@@ -1,0 +1,94 @@
+// server.js
+import express from "express";
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+import cors from "cors";
+import path from "path";
+import session from "express-session";
+import MongoStore from "connect-mongo";
+import apiRoutes from "./routes/routers.js";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
+// Set __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Load environment variables
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
+
+const app = express();
+const DB = process.env.MONGO_URI;
+const PORT = process.env.PORT || 5000;
+
+// Connect to MongoDB
+async function connectDB() {
+  try {
+    await mongoose.connect(DB);
+    console.log(`Connected to MongoDB at ${DB}`);
+  } catch (error) {
+    console.error("MongoDB Connection Error:", error);
+    process.exit(1);
+  }
+}
+connectDB();
+
+// Middleware
+app.use(
+  cors({
+    origin: true, // Accept all origins
+    credentials: true,
+  })
+);
+
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true }));
+
+// Serve static files
+app.use("/public", express.static(path.resolve(__dirname, "public")));
+
+// // Session setup with MongoDB store
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({
+      mongoUrl: DB,
+      collectionName: "sessions",
+    }),
+    cookie: { httpOnly: true },
+    rolling: true,
+  })
+);
+
+// // Inactivity timeout middleware
+const INACTIVITY_GRACE = 5000; // 5 seconds
+const INACTIVITY_TIMEOUT = 1800000; // 30 minutes
+
+const activityMiddleware = (req, res, next) => {
+  const now = Date.now();
+  if (req.session.lastActivity) {
+    const inactiveTime = now - req.session.lastActivity;
+    if (inactiveTime > INACTIVITY_GRACE + INACTIVITY_TIMEOUT) {
+      req.session.destroy((err) => {
+        if (err) return next(err);
+        return res
+          .status(440)
+          .json({ message: "Session expired due to inactivity" });
+      });
+      return; // Prevent further response
+    }
+  }
+  req.session.lastActivity = now;
+  next();
+};
+
+// API routes
+app.use("/api", activityMiddleware, apiRoutes);
+
+// Start server
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Frontend Server running at ${process.env.VITE_API_ROUTER}`);
+  console.log(`Backend Server running at http://0.0.0.0:${PORT}`);
+});

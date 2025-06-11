@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+@plugin 'tailwind-scrollbar';
+
+@theme {
+  --color-primary: red;
+  --color-brand-red-100: blue;
+
+  --color-cnsc-primary-color: #500000;
+  --color-cnsc-secondary-color: #ee8f00;
+  --color-cnsc-accent-1-color: #003092;
+  --color-cnsc-accent-2-color: #00879e;
+  --color-cnsc-white-color: #f1f1f1;
+  --color-cnsc-black-color: #4d4d4d;
+  --color-cnsc-blue-color: #1c4060;
+
+  --color-brian-blue: #1b3a57;
+}
+
+/* Scrollbar width */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+/* Scrollbar Track */
+::-webkit-scrollbar-track {
+  background: #4d4d4d;
+  border-radius: 1000px;
+}
+
+/* Scrollbar Thumb */
+::-webkit-scrollbar-thumb {
+  background: #500000;
+  border-radius: 1000px;
+}
+
+/* Scrollbar Thumb on Hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+body {
+  font-family: "Afacad", sans-serif;
+}
+
+.underline-animate {
+  position: relative;
+  /* Optional: remove default underline if needed */
+  text-decoration: none;
+}
+
+.underline-animate::after {
+  content: "";
+  position: absolute;
+  height: 2px; /* Adjust underline thickness */
+  width: 100%;
+  background-color: currentColor; /* Uses the text color */
+  left: 50%;
+  bottom: -2px; /* Adjust vertical position as needed */
+  transform: translateX(-50%) scaleX(0);
+  transform-origin: center;
+  transition: transform 0.3s ease;
+}
+
+.double-inward-bubble {
+  clip-path: path("M40,0 Q0,50 40,100 H260 Q300,50 260,0 Z");
+  height: 100px;
+  width: 300px;
+}
+
+/* Reversed Diamond Clip - curves inward on the right */
+.diamond-clip-reverse {
+  clip-path: polygon(
+    0% 0%,
+    calc(100% - 20px) 0%,
+    100% 50%,
+    calc(100% - 20px) 100%,
+    0% 100%
+  );
+}
+
+/* Left side diamond for active state background */
+.diamond-clip-left {
+  clip-path: polygon(0% 0%, 100% 20%, 100% 80%, 0% 100%);
+}
+
+.diamond-clip-reverse-radius::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: 100%;
+  background: inherit;
+  border-radius: 0 50px 50px 0;
+  transform: translateX(100%);
+}
+
+.underline-animate:hover::after {
+  transform: translateX(-50%) scaleX(1);
+}
