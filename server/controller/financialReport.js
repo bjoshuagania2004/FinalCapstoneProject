@@ -5,15 +5,13 @@ import { FinancialReport, Receipt } from "../models/users.js";
 export const createReceipt = async (req, res) => {
   try {
     const { organization, description, amount, date } = req.body;
-    console.log(req.file);
-    const file = req.file ? req.file.filename : null;
 
     const receipt = new Receipt({
       organization,
       description,
       amount,
-      file,
       date: date || new Date(),
+      document: res.locals.documentId, // Fixed: use 'document' not 'documents'
     });
 
     const savedReceipt = await receipt.save();
@@ -21,12 +19,43 @@ export const createReceipt = async (req, res) => {
     res.status(201).json({
       success: true,
       data: savedReceipt,
-      message: "Receipt created successfully",
+      message: "Receipt and Document created successfully",
     });
   } catch (error) {
     res.status(400).json({
       success: false,
       message: "Error creating receipt",
+      error: error.message,
+    });
+  }
+};
+// Update a receipt
+export const updateReceipt = async (req, res) => {
+  try {
+    const { description, amount, file, date, receiptId } = req.body;
+
+    const receipt = await Receipt.findByIdAndUpdate(
+      receiptId,
+      { description, amount, file, date },
+      { new: true, runValidators: true }
+    );
+
+    if (!receipt) {
+      return res.status(404).json({
+        success: false,
+        message: "Receipt not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: receipt,
+      message: "Receipt updated successfully",
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: "Error updating receipt",
       error: error.message,
     });
   }
@@ -84,38 +113,6 @@ export const getSingleReceipt = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error fetching receipt",
-      error: error.message,
-    });
-  }
-};
-
-// Update a receipt
-export const updateReceipt = async (req, res) => {
-  try {
-    const { description, amount, file, date } = req.body;
-
-    const receipt = await Receipt.findByIdAndUpdate(
-      req.params.id,
-      { description, amount, file, date },
-      { new: true, runValidators: true }
-    );
-
-    if (!receipt) {
-      return res.status(404).json({
-        success: false,
-        message: "Receipt not found",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      data: receipt,
-      message: "Receipt updated successfully",
-    });
-  } catch (error) {
-    res.status(400).json({
-      success: false,
-      message: "Error updating receipt",
       error: error.message,
     });
   }

@@ -19,7 +19,7 @@ const documentSchema = new Schema(
     label: String,
     name: String,
     revisionNotes: String,
-    isPinned: Boolean,
+    isPinned: { type: Boolean, default: false },
     logs: [String],
     status: { type: String, enum: statusEnum, default: "Pending" },
   },
@@ -130,14 +130,17 @@ const accreditationSchema = new Schema(
 
 // ----------------- Financial Report Schema -----------------
 
-const ReceiptSchema = new mongoose.Schema({
-  organization: { type: Schema.Types.ObjectId, ref: "Organization" },
+const ReceiptSchema = new mongoose.Schema(
+  {
+    organization: { type: Schema.Types.ObjectId, ref: "Organization" },
 
-  description: String,
-  amount: Number,
-  file: String,
-  date: Date,
-});
+    description: String,
+    amount: Number,
+    document: { type: Schema.Types.ObjectId, ref: "Document" },
+    date: Date,
+  },
+  { timestamps: true }
+);
 
 const financialReportSchema = new mongoose.Schema(
   {

@@ -11,6 +11,8 @@ import {
   GetAllStudentPostFiles,
   GetOrganizationFiles,
   UploadSingleFile,
+  DeleteSingleFile,
+  ArchiveFile,
 } from "../middleware/files.js";
 
 import {
@@ -44,7 +46,13 @@ import {
   getFinancialReportById,
   getSingleReceipt,
   updateFinancialReport,
+  updateReceipt,
 } from "../controller/financialReport.js";
+import {
+  updateDocument,
+  uploadFileAndAddDocument,
+  uploadFileAndUpdateDocument,
+} from "../controller/documents.js";
 
 const router = express.Router();
 
@@ -86,6 +94,14 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+/* ========== TESTING ROUTES========== */
+
+router.delete("/delete-file", DeleteSingleFile, (req, res) => {
+  return res.status(200).json({
+    message: `File '${req.deletedFile}' deleted successfully.`,
+  });
+});
+
 /* ========== GENERAL ========== */
 
 router.post("/login", Login);
@@ -99,6 +115,20 @@ router.post("/initial-registration", upload.any(), PostInitialRegistration);
 /* ========== STUDENT LEADER ========== */
 router.get("/user-info/:userId", GetUserInformation);
 router.get("/get-organization/:id", GetOrganizationInformation);
+
+/* ========== SANDBOX ========== */
+router.post("/sandbox-update", uploadFileAndUpdateDocument, updateReceipt);
+router.post("/sandbox-add", uploadFileAndAddDocument, createReceipt);
+
+/* ========== DOCUEMTNS ========== */
+router.post("/add-document", uploadFileAndAddDocument, createReceipt);
+
+router.put(
+  "/update-document/:id",
+  ArchiveFile,
+  UploadSingleFile,
+  updateDocument
+);
 
 /* ========== ROSTERS ========== */
 router.post("/add-roster-member", AddNewRoster);

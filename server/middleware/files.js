@@ -2,7 +2,7 @@ import path from "path";
 import fs from "fs";
 import fsPromises from "fs/promises";
 import multer from "multer";
-import { error } from "console";
+import { error, time, timeStamp } from "console";
 
 // Ensure the target directory exists (using an absolute path)
 const ensureDirExists = (dir) => {
@@ -27,14 +27,165 @@ const storage = multer.diskStorage({
     cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
-    // Save using original filename
-    cb(null, `${file.originalname}`);
+    const timestamp = Date.now();
+    const originalName = file.originalname;
+
+    // Option 1: Prepend timestamp
+    const uniqueName = `${timestamp}-${originalName}`;
+
+    // Option 2: Append timestamp before extension
+    // const ext = originalName.substring(originalName.lastIndexOf('.'));
+    // const nameWithoutExt = originalName.substring(0, originalName.lastIndexOf('.'));
+    // const uniqueName = `${nameWithoutExt}-${timestamp}${ext}`;
+
+    cb(null, uniqueName);
   },
 });
 
 const upload = multer({ storage });
 
 const uploadFiles = upload.array("file", 200); // adjust maxCount as needed
+
+export const ArchiveFile = (req, res, next) => {
+  try {
+    const organization = req.params.id;
+    const { fileToDelete } = req.body;
+
+    if (!organization || !fileToDelete) {
+      return res.status(400).json({
+        error: "Both 'organization' and 'fileToDelete' are required",
+      });
+    }
+
+    const originalPath = path.join(
+      process.cwd(),
+      "../public",
+      organization,
+      fileToDelete
+    );
+    const archivePath = path.join(process.cwd(), "../archive", organization);
+
+    fs.stat(originalPath, (err, stats) => {
+      if (err || !stats.isFile()) {
+        console.error("File not found or invalid:", err?.message);
+        return res.status(404).json({ error: "Original file not found" });
+      }
+
+      // Ensure archive directory exists
+      fs.mkdir(archivePath, { recursive: true }, (mkdirErr) => {
+        if (mkdirErr) {
+          console.error(
+            "Failed to create archive directory:",
+            mkdirErr.message
+          );
+          return res
+            .status(500)
+            .json({ error: "Failed to create archive folder" });
+        }
+
+        const archivedFilePath = path.join(archivePath, fileToDelete);
+
+        fs.rename(originalPath, archivedFilePath, (renameErr) => {
+          if (renameErr) {
+            console.error("Archiving file failed:", renameErr.message);
+            return res.status(500).json({
+              error: "Failed to move file to archive",
+              details: renameErr.message,
+            });
+          }
+
+          console.log(`File archived: ${archivedFilePath}`);
+          req.archivedFile = fileToDelete;
+          next();
+        });
+      });
+    });
+  } catch (error) {
+    console.error("Unexpected error:", error.message);
+    return res.status(500).json({ error: "Unexpected error occurred" });
+  }
+};
+
+// Middleware to accept a single file upload from the "file" field
+export const UploadSingleFile = (req, res, next) => {
+  try {
+    upload.single("file")(req, res, (err) => {
+      const document = req.file;
+
+      console.log("there is a file here");
+      if (!document) {
+        return res.status(400).json({
+          error: "file is required",
+        });
+      }
+
+      if (err) {
+        console.error("Multer error:", err);
+        return res.status(500).json({
+          error: "File upload failed",
+          details: err.message,
+        });
+      }
+
+      req.uploadData = { document };
+      next();
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Unexpected error occurred" });
+  }
+};
+
+export const DeleteSingleFile = (req, res, next) => {
+  try {
+    const { organization, fileToDelete } = req.body;
+
+    if (!organization || !fileToDelete) {
+      return res.status(400).json({
+        error: "Both 'organization' and 'fileToDelete' are required",
+      });
+    }
+
+    const filePath = path.join(
+      process.cwd(),
+      "../public",
+      organization,
+      fileToDelete
+    );
+
+    fs.stat(filePath, (err, stats) => {
+      if (err) {
+        console.error("File stat error:", err);
+        return res.status(404).json({ error: "File not found" });
+      }
+
+      if (!stats.isFile()) {
+        return res
+          .status(400)
+          .json({ error: "The specified path is not a file" });
+      }
+
+      fs.unlink(filePath, (unlinkErr) => {
+        if (unlinkErr) {
+          console.error("File deletion error:", unlinkErr);
+          return res.status(500).json({
+            error: "File deletion failed",
+            details: unlinkErr.message,
+          });
+        }
+
+        console.log(`File deleted: ${filePath}`);
+        req.deletedFile = fileToDelete;
+        next();
+      });
+    });
+  } catch (error) {
+    console.error("Unexpected error:", error);
+    return res.status(500).json({
+      error: "Unexpected error occurred",
+    });
+  }
+};
 
 export const UploadMultipleFiles = (req, res, next) => {
   try {
@@ -59,72 +210,6 @@ export const UploadMultipleFiles = (req, res, next) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Unexpected error occurred" });
-  }
-};
-
-// Middleware to accept a single file upload from the "file" field
-export const UploadSingleFile = (req, res, next) => {
-  try {
-    upload.single("file")(req, res, (err) => {
-      const document = req.file;
-
-      console.log(document);
-      if (!document) {
-        return res.status(400).json({
-          error: "file is required",
-        });
-      }
-
-      if (err) {
-        console.error("Multer error:", err);
-        return res.status(500).json({
-          error: "File upload failed",
-          details: err.message,
-        });
-      }
-
-      req.uploadData = { document };
-      next();
-    });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: "Unexpected error occurred" });
-  }
-};
-
-export const DeleteDocumentTitle = async (req, res, next) => {
-  const { orgFolder, orgDocumentClassification, orgDocumentTitle } = req.body;
-
-  if (!orgFolder || !orgDocumentClassification || !orgDocumentTitle) {
-    return res.status(400).json({
-      error:
-        "orgFolder, orgDocumentClassification, and orgDocumentTitle are required",
-    });
-  }
-
-  const dirPath = path.join(
-    process.cwd(),
-    "public",
-    orgFolder,
-    orgDocumentClassification,
-    orgDocumentTitle
-  );
-
-  if (!fs.existsSync(dirPath)) {
-    return res
-      .status(404)
-      .json({ error: "Document title directory does not exist" });
-  }
-
-  try {
-    await fsPromises.rm(dirPath, { recursive: true, force: true });
-    console.log("Deleted directory:", dirPath);
-    return next(); // ✅ only call next, don't respond
-  } catch (error) {
-    console.error("Error deleting directory:", error);
-    return res
-      .status(500)
-      .json({ error: "Failed to delete directory", details: error.message });
   }
 };
 
