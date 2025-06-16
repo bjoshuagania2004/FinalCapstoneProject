@@ -83,13 +83,13 @@ const CollegeCourseDepartments = ({ formData, onChange }) => {
   return (
     <div className="flex flex-1 w-full gap-4">
       <div className="flex flex-col gap-1 flex-1 ">
-        <label htmlFor="org_department">
+        <label htmlFor="orgDepartment">
           Department <span className="text-red-500">*</span>
         </label>
         <select
-          id="org_department"
-          name="org_department"
-          value={formData.org_department || ""}
+          id="orgDepartment"
+          name="orgDepartment"
+          value={formData.orgDepartment || ""}
           onChange={onChange}
           className="px-3 py-2 border w-full border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           required
@@ -103,21 +103,21 @@ const CollegeCourseDepartments = ({ formData, onChange }) => {
         </select>
       </div>
 
-      {formData.org_department && (
+      {formData.orgDepartment && (
         <div className="flex flex-col gap-1 flex-1">
-          <label htmlFor="org_course">
+          <label htmlFor="orgCourse">
             Course <span className="text-red-500">*</span>
           </label>
           <select
-            id="org_course"
-            name="org_course"
-            value={formData.org_course || ""}
+            id="orgCourse"
+            name="orgCourse"
+            value={formData.orgCourse || ""}
             onChange={onChange}
-            className="px-3 py-2 border  w-full border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-3 py-2 border w-full border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             required
           >
             <option value="">Select Course</option>
-            {departments[formData.org_department]?.map((course) => (
+            {departments[formData.orgDepartment]?.map((course) => (
               <option key={course} value={course}>
                 {course}
               </option>
@@ -142,7 +142,7 @@ export default function InitialRegistrationComponent({ userData, onComplete }) {
     orgDepartment: "",
     orgCourse: "",
     specialization: "",
-    userId: userData._id,
+    user_id: userData._id,
   });
 
   const [errors, setErrors] = useState({});
@@ -175,6 +175,7 @@ export default function InitialRegistrationComponent({ userData, onComplete }) {
 
   const handleClassificationChange = (e) => {
     const { value } = e.target;
+    console.log(`${e.target.name} changed to: ${e.target.value}`);
     setFormData((prev) => ({
       ...prev,
       orgClass: value,
@@ -238,11 +239,9 @@ export default function InitialRegistrationComponent({ userData, onComplete }) {
     if (validateForm()) {
       // Append all text/string fields
       Object.entries(formData).forEach(([key, value]) => {
-        if (value && typeof value === "string") {
-          submitFormData.append(key, value);
-        }
+        submitFormData.append(key, value);
       });
-
+      console.log(submitFormData);
       try {
         const response = await axios.post(
           `${API_ROUTER}/initial-registration`,

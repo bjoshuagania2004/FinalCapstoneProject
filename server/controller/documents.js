@@ -1,4 +1,4 @@
-import { Document } from "../models/users.js";
+import { Document } from "../models/index.js";
 import path from "path";
 import fs from "fs";
 import fsPromises from "fs/promises";

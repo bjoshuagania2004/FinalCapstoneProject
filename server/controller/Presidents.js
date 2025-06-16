@@ -1,4 +1,4 @@
-import { PresidentProfile, Organization } from "./../models/users.js"; // If you're using CommonJS, use: const StudentProfile = require('../models/studentProfileModel');
+import { PresidentProfile, Organization } from "./../models/index.js"; // If you're using CommonJS, use: const StudentProfile = require('../models/studentProfileModel');
 
 export const AddPresident = async (req, res) => {
   try {

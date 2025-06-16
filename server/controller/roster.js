@@ -1,6 +1,6 @@
-import { Roster, Organization } from "../models/users.js";
+import { RosterMember, Organization } from "../models/index.js";
 
-export const AddNewRoster = async (req, res) => {
+export const AddNewRosterMember = async (req, res) => {
   const {
     organization,
     name,
@@ -21,7 +21,7 @@ export const AddNewRoster = async (req, res) => {
   }
 
   if (!name || !email) {
-    console.error("Missing required roster fields");
+    console.error("Missing required RosterMember fields");
     return res.status(400).json({ message: "Name and email are required." });
   }
 
@@ -33,7 +33,7 @@ export const AddNewRoster = async (req, res) => {
   }
 
   try {
-    const newRoster = new Roster({
+    const newRosterMember = new RosterMember({
       organization,
       name,
       email,
@@ -44,18 +44,18 @@ export const AddNewRoster = async (req, res) => {
       contactNumber,
     });
 
-    const savedRoster = await newRoster.save();
-    console.log("Roster saved:", savedRoster);
+    const savedRosterMember = await newRosterMember.save();
+    console.log("RosterMember saved:", savedRosterMember);
 
     const updatedOrg = await Organization.findByIdAndUpdate(
       organization,
-      { $push: { roster: savedRoster._id } },
+      { $push: { RosterMember: savedRosterMember._id } },
       { new: true }
     );
 
     return res.status(201).json({
-      message: "Roster added and linked to organization successfully",
-      roster: savedRoster,
+      message: "RosterMember added and linked to organization successfully",
+      RosterMember: savedRosterMember,
     });
   } catch (error) {
     console.error("Unexpected error:", error);
@@ -65,129 +65,137 @@ export const AddNewRoster = async (req, res) => {
   }
 };
 
-export const DeleteRoster = async (req, res) => {
-  const { rosterId } = req.params;
+export const DeleteRosterMember = async (req, res) => {
+  const { RosterMemberId } = req.params;
 
-  console.log("Request to delete roster:", rosterId);
+  console.log("Request to delete RosterMember:", RosterMemberId);
 
-  if (!rosterId) {
-    console.error("Roster ID not provided");
-    return res.status(400).json({ message: "Roster ID is required." });
+  if (!RosterMemberId) {
+    console.error("RosterMember ID not provided");
+    return res.status(400).json({ message: "RosterMember ID is required." });
   }
 
   try {
-    const roster = await Roster.findById(rosterId);
+    const RosterMember = await RosterMember.findById(RosterMemberId);
 
-    if (!roster) {
-      console.error("Roster not found:", rosterId);
-      return res.status(404).json({ message: "Roster not found." });
+    if (!RosterMember) {
+      console.error("RosterMember not found:", RosterMemberId);
+      return res.status(404).json({ message: "RosterMember not found." });
     }
 
-    // Remove the roster reference from the organization
-    const organizationId = roster.organization;
+    // Remove the RosterMember reference from the organization
+    const organizationId = RosterMember.organization;
     await Organization.findByIdAndUpdate(organizationId, {
-      $pull: { roster: rosterId },
+      $pull: { RosterMember: RosterMemberId },
     });
 
-    // Delete the roster document itself
-    await Roster.findByIdAndDelete(rosterId);
+    // Delete the RosterMember document itself
+    await RosterMember.findByIdAndDelete(RosterMemberId);
 
     console.log(
-      `Roster ${rosterId} deleted and removed from organization ${organizationId}`
+      `RosterMember ${RosterMemberId} deleted and removed from organization ${organizationId}`
     );
 
-    return res.status(200).json({ message: "Roster deleted successfully." });
+    return res
+      .status(200)
+      .json({ message: "RosterMember deleted successfully." });
   } catch (error) {
-    console.error("Error deleting roster:", error);
+    console.error("Error deleting RosterMember:", error);
     return res
       .status(500)
       .json({ message: "Internal server error", error: error.message });
   }
 };
 
-export const UpdateRoster = async (req, res) => {
-  const { rosterId } = req.params;
+export const UpdateRosterMember = async (req, res) => {
+  const { RosterMemberId } = req.params;
   const updateData = req.body;
 
-  console.log("PATCH request to update roster:", rosterId);
+  console.log("PATCH request to update RosterMember:", RosterMemberId);
   console.log("Fields to update:", updateData);
 
-  if (!rosterId) {
-    console.error("Roster ID not provided");
-    return res.status(400).json({ message: "Roster ID is required." });
+  if (!RosterMemberId) {
+    console.error("RosterMember ID not provided");
+    return res.status(400).json({ message: "RosterMember ID is required." });
   }
 
   try {
-    const updatedRoster = await Roster.findByIdAndUpdate(rosterId, updateData, {
-      new: true,
-      runValidators: true,
-    });
+    const updatedRosterMember = await RosterMember.findByIdAndUpdate(
+      RosterMemberId,
+      updateData,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
 
-    if (!updatedRoster) {
-      console.error("Roster not found:", rosterId);
-      return res.status(404).json({ message: "Roster not found." });
+    if (!updatedRosterMember) {
+      console.error("RosterMember not found:", RosterMemberId);
+      return res.status(404).json({ message: "RosterMember not found." });
     }
 
-    console.log("Roster updated successfully:", updatedRoster);
+    console.log("RosterMember updated successfully:", updatedRosterMember);
 
     return res.status(200).json({
-      message: "Roster updated successfully.",
-      roster: updatedRoster,
+      message: "RosterMember updated successfully.",
+      RosterMember: updatedRosterMember,
     });
   } catch (error) {
-    console.error("Error updating roster:", error);
+    console.error("Error updating RosterMember:", error);
     return res
       .status(500)
       .json({ message: "Internal server error", error: error.message });
   }
 };
 
-export const GetRostersByOrganization = async (req, res) => {
+export const GetRosterMembersByOrganization = async (req, res) => {
   const { organizationId } = req.params;
 
-  console.log("Fetching rosters for organization:", organizationId);
+  console.log("Fetching RosterMembers for organization:", organizationId);
 
   if (!organizationId) {
     return res.status(400).json({ message: "Organization ID is required." });
   }
 
   try {
-    const rosters = await Roster.find({ organization: organizationId });
+    const RosterMembers = await RosterMember.find({
+      organization: organizationId,
+    });
 
-    if (!rosters.length) {
+    if (!RosterMembers.length) {
       return res
         .status(404)
-        .json({ message: "No rosters found for this organization." });
+        .json({ message: "No RosterMembers found for this organization." });
     }
 
-    return res.status(200).json({ rosters });
+    return res.status(200).json({ RosterMembers });
   } catch (error) {
-    console.error("Error fetching rosters:", error);
+    console.error("Error fetching RosterMembers:", error);
     return res
       .status(500)
       .json({ message: "Internal server error", error: error.message });
   }
 };
 
-export const GetSingleRoster = async (req, res) => {
-  const { rosterId } = req.params;
+export const GetSingleRosterMember = async (req, res) => {
+  const { RosterMemberId } = req.params;
 
-  console.log("Fetching roster with ID:", rosterId);
+  console.log("Fetching RosterMember with ID:", RosterMemberId);
 
-  if (!rosterId) {
-    return res.status(400).json({ message: "Roster ID is required." });
+  if (!RosterMemberId) {
+    return res.status(400).json({ message: "RosterMember ID is required." });
   }
 
   try {
-    const roster = await Roster.findById(rosterId);
+    const RosterMember = await RosterMember.findById(RosterMemberId);
 
-    if (!roster) {
-      return res.status(404).json({ message: "Roster not found." });
+    if (!RosterMember) {
+      return res.status(404).json({ message: "RosterMember not found." });
     }
 
-    return res.status(200).json({ roster });
+    return res.status(200).json({ RosterMember });
   } catch (error) {
-    console.error("Error fetching roster:", error);
+    console.error("Error fetching RosterMember:", error);
     return res
       .status(500)
       .json({ message: "Internal server error", error: error.message });

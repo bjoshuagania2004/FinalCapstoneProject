@@ -20,23 +20,18 @@ import {
   ConfirmRegistration,
   GetOrganizationInformation,
   GetUserInformation,
+  upload,
   Login,
   Logout,
   RegisterUser,
   SendRegistrationConfirmationCode,
-} from "../controller/z-general.js";
-
-import {
-  AddNewRoster,
-  DeleteRoster,
-  GetRostersByOrganization,
-  GetSingleRoster,
-  UpdateRoster,
-} from "../controller/roster.js";
-
-import { AddPresident } from "../controller/Presidents.js";
-import { PostInitialRegistration } from "../controller/accreditation.js";
-import {
+  AddNewRosterMember,
+  DeleteRosterMember,
+  GetRosterMembersByOrganization,
+  GetSingleRosterMember,
+  UpdateRosterMember,
+  AddPresident,
+  GetAllAccreditationDetails,
   createFinancialReport,
   createReceipt,
   deleteFinancialReport,
@@ -47,54 +42,20 @@ import {
   getSingleReceipt,
   updateFinancialReport,
   updateReceipt,
-} from "../controller/financialReport.js";
-import {
   updateDocument,
   uploadFileAndAddDocument,
   uploadFileAndUpdateDocument,
-} from "../controller/documents.js";
+  PostOrganizationProfile,
+} from "../controller/index.js";
 
 const router = express.Router();
 
-// Set storage location and filename format
-// Ensure the target directory exists (using an absolute path)
-const ensureDirExists = (dir) => {
-  try {
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-  } catch (error) {
-    console.error("Error creating directory:", error);
-  }
-};
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const baseDir = path.join(process.cwd(), "../public", req.body.userId);
-
-    // Divide files based on field name: "document" or "photo"
-    let subDir = "";
-    if (file.fieldname === "document") {
-      subDir = "documents";
-    } else if (file.fieldname === "photo") {
-      subDir = "photos";
-    } else {
-      subDir = "others";
-    }
-
-    const uploadPath = path.join(baseDir, subDir);
-    ensureDirExists(uploadPath);
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    // Prepend a timestamp to the original filename
-    cb(null, `${file.originalname}`);
-  },
-});
-
-const upload = multer({ storage });
-
 /* ========== TESTING ROUTES========== */
+router.get("/get-accreditation-details/:orgId", GetAllAccreditationDetails);
+router.post(
+  "/add-reciept-accreditation/:accreditationId",
+  GetAllAccreditationDetails
+);
 
 router.delete("/delete-file", DeleteSingleFile, (req, res) => {
   return res.status(200).json({
@@ -110,7 +71,7 @@ router.get("/session-check", CheckSession);
 
 router.post("/send-verification", SendRegistrationConfirmationCode);
 router.post("/confirm-verification", ConfirmRegistration, RegisterUser);
-router.post("/initial-registration", upload.any(), PostInitialRegistration);
+router.post("/initial-registration", upload.any(), PostOrganizationProfile);
 
 /* ========== STUDENT LEADER ========== */
 router.get("/user-info/:userId", GetUserInformation);
@@ -130,12 +91,18 @@ router.put(
   updateDocument
 );
 
-/* ========== ROSTERS ========== */
-router.post("/add-roster-member", AddNewRoster);
-router.get("/get-roster-member/:rosterId", GetSingleRoster);
-router.get("/get-roster-members/:organizationId", GetRostersByOrganization);
-router.patch("/update-roster-member/:rosterId", UpdateRoster);
-router.delete("/delete-roster-member/:rosterId", DeleteRoster);
+/* ========== ROSTERMemberS ========== */
+router.post("/add-rosterMember-member", AddNewRosterMember);
+router.get("/get-rosterMember-member/:rosterMemberId", GetSingleRosterMember);
+router.get(
+  "/get-rosterMember-members/:organizationId",
+  GetRosterMembersByOrganization
+);
+router.patch("/update-rosterMember-member/:rosterMemberId", UpdateRosterMember);
+router.delete(
+  "/delete-rosterMember-member/:rosterMemberId",
+  DeleteRosterMember
+);
 
 /* ========== RECEIPTS ========== */
 router.post("/add-receipt", UploadSingleFile, createReceipt);

@@ -1,4 +1,4 @@
-import { FinancialReport, Receipt } from "../models/users.js";
+import { FinancialReport, Receipt } from "../models/index.js";
 
 /* ========== Receipt ========== */
 

@@ -1,4 +1,4 @@
-import { User as userModel, Organization } from "../models/users.js";
+import { User as userModel, Organization } from "../models/index.js";
 import { customAlphabet } from "nanoid";
 import { NodeEmail } from "../middleware/emailer.js";
 

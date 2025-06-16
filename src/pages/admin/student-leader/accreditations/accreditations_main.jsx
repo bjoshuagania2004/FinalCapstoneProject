@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FileText,
   Upload,
@@ -9,6 +9,7 @@ import {
   AlertCircle,
   CheckCircle,
   Clock,
+  X,
 } from "lucide-react";
 
 const timelineData = [
@@ -195,63 +196,70 @@ function StatusBadge({ status }) {
     </span>
   );
 }
-
 function OrganizationRequirementsTimeline() {
   return (
-    <div className="bg-white h-full p-6 border border-gray-200 rounded-lg">
-      <h3 className="font-bold text-gray-800 mb-6 text-lg">
-        Accreditation Timeline
-      </h3>
-      <div className="relative max-h-96 overflow-y-auto">
-        {/* Vertical line */}
-        <div className="absolute left-[130px] transform -translate-x-0.5 top-0 h-full w-0.5 bg-gray-300"></div>
+    <div className="w-1/3 min-w-fit max-w-2xl mx-auto bg-white rounded-xl p-4 sm:p-6 flex flex-col items-center">
+      <div className="sticky top-0 bg-white font-bold text-gray-800 mb-6 text-lg sm:text-xl text-center py-2 z-20">
+        <h3>Accreditation Timeline</h3>
+      </div>
 
-        <div className="space-y-6">
-          {timelineData.map((item, index) => {
-            let iconBg = "bg-gray-300";
+      {/* Scrollable area */}
+      <div className="relative w-full max-h-[500px] overflow-auto ">
+        {/* Timeline container */}
+        <div className="relative w-full pt-6 pb-6">
+          {/* Vertical line */}
+          <div className="absolute left-1/2 transform -translate-x-1/2 top-0 bottom-0 w-0.5 bg-gray-300 z-0" />
 
-            switch (item.type) {
-              case "success":
-                iconBg = "bg-green-500";
-                break;
-              case "warning":
-                iconBg = "bg-yellow-500";
-                break;
-              case "info":
-                iconBg = "bg-blue-500";
-                break;
-            }
+          {/* Timeline items */}
+          <div className="space-y-6 sm:space-y-8 relative z-10">
+            {timelineData.map((item, index) => {
+              let iconBg = "bg-gray-300";
 
-            return (
-              <div key={index} className="flex items-center w-full">
-                {/* Left side - Date */}
-                <div className="text-right pr-4">
-                  <p className="text-xs text-gray-500">{item.date}</p>
+              switch (item.type) {
+                case "success":
+                  iconBg = "bg-green-500";
+                  break;
+                case "warning":
+                  iconBg = "bg-yellow-500";
+                  break;
+                case "info":
+                  iconBg = "bg-blue-500";
+                  break;
+              }
+
+              return (
+                <div key={index} className="relative flex items-center">
+                  {/* Left - Date */}
+                  <div className="flex-1 text-right pr-3 sm:pr-4">
+                    <p className="text-xs sm:text-sm text-gray-500 font-medium">
+                      {item.date}
+                    </p>
+                  </div>
+
+                  {/* Center - Dot */}
+                  <div className="relative z-10 flex-shrink-0">
+                    <div
+                      className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full border-2 border-white shadow-md ${iconBg}`}
+                    ></div>
+                  </div>
+
+                  {/* Right - Status */}
+                  <div className="flex-1 pl-3 sm:pl-4">
+                    <p className="text-xs sm:text-sm font-medium text-gray-900 leading-tight">
+                      {item.status}
+                    </p>
+                  </div>
                 </div>
-
-                {/* Center - Dot */}
-                <div className="relative z-10">
-                  <div
-                    className={`w-4 h-4 rounded-full border-2 border-white shadow ${iconBg}`}
-                  ></div>
-                </div>
-
-                {/* Right side - Status */}
-                <div className="w-1/2 pl-4">
-                  <p className="text-sm font-medium text-gray-900">
-                    {item.status}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-function RequirementDetails({ requirement }) {
+function RequirementDetailsPopup({ requirement, isOpen, onClose }) {
   const getStatusIcon = (status) => {
     switch (status) {
       case "Approved":
@@ -265,107 +273,231 @@ function RequirementDetails({ requirement }) {
     }
   };
 
+  // Handle escape key to close modal
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("keydown", handleEscape);
+      // Prevent body scroll when modal is open
+      document.body.style.overflow = "hidden";
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen, onClose]);
+
+  if (!isOpen || !requirement) return null;
+
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6">
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-gray-800 flex items-center">
-            {getStatusIcon(requirement.status)}
-            <span className="ml-3">{requirement.requirement}</span>
-          </h2>
-          <StatusBadge status={requirement.status} />
-        </div>
-        <p className="text-gray-600 text-sm leading-relaxed">
-          {requirement.description}
-        </p>
-      </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/20 backdrop-blur-sm transition-opacity"
+        onClick={onClose}
+      />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        {/* File Information */}
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <h3 className="font-semibold text-gray-800 mb-3 flex items-center">
-            <FileText className="w-4 h-4 mr-2" />
-            File Information
-          </h3>
-          {requirement.fileName ? (
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600">File Name:</span>
-                <span className="font-medium text-gray-800">
-                  {requirement.fileName}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Size:</span>
-                <span className="font-medium text-gray-800">
-                  {requirement.fileSize}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Upload Date:</span>
-                <span className="font-medium text-gray-800">
-                  {requirement.uploadDate}
-                </span>
-              </div>
-            </div>
-          ) : (
-            <p className="text-gray-500 text-sm italic">No file uploaded yet</p>
-          )}
+      {/* Modal */}
+      <div className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        {/* Header with close button */}
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-lg">
+          <h1 className="text-2xl font-bold text-gray-900">
+            Requirement Details
+          </h1>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            aria-label="Close modal"
+          >
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
         </div>
 
-        {/* Review Information */}
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <h3 className="font-semibold text-gray-800 mb-3 flex items-center">
-            <User className="w-4 h-4 mr-2" />
-            Review Information
-          </h3>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Reviewer:</span>
-              <span className="font-medium text-gray-800">
-                {requirement.reviewer}
-              </span>
+        {/* Content */}
+        <div className="p-6">
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-800 flex items-center">
+                {getStatusIcon(requirement.status)}
+                <span className="ml-3">{requirement.requirement}</span>
+              </h2>
+              <StatusBadge status={requirement.status} />
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Status:</span>
-              <span className="font-medium text-gray-800">
-                {requirement.status}
-              </span>
+            <p className="text-gray-600 text-sm leading-relaxed">
+              {requirement.description}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            {/* File Information */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-gray-800 mb-3 flex items-center">
+                <FileText className="w-4 h-4 mr-2" />
+                File Information
+              </h3>
+              {requirement.fileName ? (
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">File Name:</span>
+                    <span className="font-medium text-gray-800">
+                      {requirement.fileName}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Size:</span>
+                    <span className="font-medium text-gray-800">
+                      {requirement.fileSize}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Upload Date:</span>
+                    <span className="font-medium text-gray-800">
+                      {requirement.uploadDate}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-gray-500 text-sm italic">
+                  No file uploaded yet
+                </p>
+              )}
             </div>
+
+            {/* Review Information */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-gray-800 mb-3 flex items-center">
+                <User className="w-4 h-4 mr-2" />
+                Review Information
+              </h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Reviewer:</span>
+                  <span className="font-medium text-gray-800">
+                    {requirement.reviewer}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Status:</span>
+                  <span className="font-medium text-gray-800">
+                    {requirement.status}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Comments Section */}
+          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg mb-6">
+            <h3 className="font-semibold text-gray-800 mb-2 flex items-center">
+              <MessageSquare className="w-4 h-4 mr-2" />
+              Reviewer Comments
+            </h3>
+            <p className="text-gray-700 text-sm leading-relaxed">
+              {requirement.comments}
+            </p>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-3 justify-end border-t border-gray-200 pt-4">
+            {requirement.fileName ? (
+              <>
+                <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center text-sm font-medium transition-colors">
+                  <Eye className="w-4 h-4 mr-2" />
+                  View Document
+                </button>
+                <button className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md flex items-center text-sm font-medium transition-colors">
+                  <Upload className="w-4 h-4 mr-2" />
+                  Replace File
+                </button>
+              </>
+            ) : (
+              <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md flex items-center text-sm font-medium transition-colors">
+                <Upload className="w-4 h-4 mr-2" />
+                Upload Document
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-md text-sm font-medium transition-colors"
+            >
+              Close
+            </button>
           </div>
         </div>
       </div>
+    </div>
+  );
+}
 
-      {/* Comments Section */}
-      <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
-        <h3 className="font-semibold text-gray-800 mb-2 flex items-center">
-          <MessageSquare className="w-4 h-4 mr-2" />
-          Reviewer Comments
-        </h3>
-        <p className="text-gray-700 text-sm leading-relaxed">
-          {requirement.comments}
-        </p>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="mt-6 flex gap-3">
-        {requirement.fileName ? (
-          <>
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center text-sm font-medium transition-colors">
-              <Eye className="w-4 h-4 mr-2" />
-              View Document
-            </button>
-            <button className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md flex items-center text-sm font-medium transition-colors">
-              <Upload className="w-4 h-4 mr-2" />
-              Replace File
-            </button>
-          </>
-        ) : (
-          <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md flex items-center text-sm font-medium transition-colors">
-            <Upload className="w-4 h-4 mr-2" />
-            Upload Document
-          </button>
-        )}
+function AccreditationRequirements({
+  handleRequirementClick,
+  selectedRequirement,
+}) {
+  return (
+    <div className="w-2/3 p-4 bg-white rounded-xl  flex h-full flex-col">
+      <div className="overflow-auto">
+        <div className="p-4 border-b border-gray-100">
+          <h3 className="font-bold text-gray-800 flex items-center text-lg">
+            <FileText className="w-6 h-6 mr-3 text-blue-600" />
+            Accreditation Requirements
+          </h3>
+        </div>
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50 sticky top-0">
+            <tr>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Requirement
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Status
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {requirementsData.map((req) => (
+              <tr
+                key={req.id}
+                className={`hover:bg-blue-50 cursor-pointer transition-colors ${
+                  selectedRequirement?.id === req.id
+                    ? "bg-blue-50 border-l-4 border-blue-500"
+                    : ""
+                }`}
+                onClick={() => handleRequirementClick(req)}
+              >
+                <td className="px-4 py-3 text-sm font-medium text-gray-800">
+                  {req.requirement}
+                </td>
+                <td className="px-4 py-3">
+                  <StatusBadge status={req.status} />
+                </td>
+                <td className="px-4 py-3 text-sm">
+                  <div className="flex gap-2">
+                    {req.fileName ? (
+                      <button className="text-blue-600 hover:text-blue-800 flex items-center">
+                        <Eye className="w-4 h-4 mr-1" />
+                        View
+                      </button>
+                    ) : (
+                      <button className="text-emerald-600 hover:text-emerald-800 flex items-center">
+                        <Upload className="w-4 h-4 mr-1" />
+                        Upload
+                      </button>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
@@ -373,105 +505,37 @@ function RequirementDetails({ requirement }) {
 
 function OrganizationRequirements() {
   const [selectedRequirement, setSelectedRequirement] = useState(null);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
 
   const handleRequirementClick = (requirement) => {
     setSelectedRequirement(requirement);
+    setIsPopupOpen(true); // This was missing!
   };
 
   return (
-    <div className="bg-gray-50 h-full">
-      <div className="flex h-full gap-6">
+    <div className="h-full">
+      <div className="flex flex-col h-full gap-6">
         {/* Right Panel - Requirements Navigation and Details */}
-        <div className="w-2/3 flex flex-col gap-6">
-          {/* Requirements Navigation Table */}
-          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-            <div className="p-4 border-b border-gray-100">
-              <h3 className="font-bold text-gray-800 flex items-center text-lg">
-                <FileText className="w-6 h-6 mr-3 text-blue-600" />
-                Accreditation Requirements
-              </h3>
-            </div>
-            <div className="overflow-auto max-h-80">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Requirement
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {requirementsData.map((req) => (
-                    <tr
-                      key={req.id}
-                      className={`hover:bg-blue-50 cursor-pointer transition-colors ${
-                        selectedRequirement?.id === req.id
-                          ? "bg-blue-50 border-l-4 border-blue-500"
-                          : ""
-                      }`}
-                      onClick={() => handleRequirementClick(req)}
-                    >
-                      <td className="px-4 py-3 text-sm font-medium text-gray-800">
-                        {req.requirement}
-                      </td>
-                      <td className="px-4 py-3">
-                        <StatusBadge status={req.status} />
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <div className="flex gap-2">
-                          {req.fileName ? (
-                            <button className="text-blue-600 hover:text-blue-800 flex items-center">
-                              <Eye className="w-4 h-4 mr-1" />
-                              View
-                            </button>
-                          ) : (
-                            <button className="text-emerald-600 hover:text-emerald-800 flex items-center">
-                              <Upload className="w-4 h-4 mr-1" />
-                              Upload
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Requirement Details */}
-          {selectedRequirement ? (
-            <RequirementDetails requirement={selectedRequirement} />
-          ) : (
-            <div className="bg-white border border-gray-200 rounded-lg p-8 flex items-center justify-center">
-              <p className="text-gray-400 text-center">
-                Select a requirement from the table above to view detailed
-                information.
-              </p>
-            </div>
-          )}
-        </div>
-        {/* Left Panel - Timeline */}
-        <div className="w-1/3">
+        <div className="w-full flex min-h-1/3 overflow-auto gap-4">
+          {/* Left Panel - Timeline */}
           <OrganizationRequirementsTimeline />
+          {/* Requirement Details */}
+          <AccreditationRequirements
+            handleRequirementClick={handleRequirementClick}
+            selectedRequirement={selectedRequirement}
+          />
         </div>
+
+        <RequirementDetailsPopup
+          requirement={selectedRequirement}
+          isOpen={isPopupOpen}
+          onClose={() => setIsPopupOpen(false)}
+        />
       </div>
     </div>
   );
 }
 
 export default function StudentAccreditationSection() {
-  return (
-    <div className="h-full flex flex-col bg-gray-50">
-      <div className="flex-1 h-full p-4">
-        <OrganizationRequirements />
-      </div>
-    </div>
-  );
+  return <OrganizationRequirements />;
 }

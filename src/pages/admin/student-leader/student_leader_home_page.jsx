@@ -49,47 +49,6 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-export function Header() {
-  return (
-    <div className="bg-cnsc-secondary-color/80 text-black px-8 py-6 shadow-lg">
-      <div className="flex items-center gap-8">
-        <div className="bg-white rounded-full h-24 w-24 flex items-center justify-center shadow-xl border-4 border-white/20">
-          <div className="bg-cnsc-primary-color rounded-full h-20 w-20 flex items-center justify-center">
-            <Shield className="h-10 w-10 text-white" />
-          </div>
-        </div>
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold leading-tight mb-2">
-            Sample Organization (SORG)
-          </h1>
-          <div className="flex items-center gap-4 mb-3">
-            <span className="">Overall Accreditation Status:</span>
-            <StatusBadge status="approved" />
-            <div className="flex items-center gap-1 text-yellow-300">
-              <Star className="w-4 h-4 fill-current" />
-              <Star className="w-4 h-4 fill-current" />
-              <Star className="w-4 h-4 fill-current" />
-              <Star className="w-4 h-4 fill-current" />
-              <Star className="w-4 h-4" />
-              <span className="ml-1 text-sm">4.8/5.0</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-6 text-sm ">
-            <div className="flex items-center gap-1">
-              <Calendar className="w-4 h-4" />
-              <span>Last Updated: June 8, 2025</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <TrendingUp className="w-4 h-4" />
-              <span>Next Review: December 2025</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function StudentHomeSection({ orgId }) {
   return <h2 className="text-black">Welcome to the Home Page {orgId}</h2>;
 }
