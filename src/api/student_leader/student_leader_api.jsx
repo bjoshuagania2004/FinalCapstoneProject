@@ -1,10 +1,11 @@
 import axios from "axios";
-import { API_ROUTER } from "../App";
+import { API_ROUTER } from "../../App";
+import { CodeSquare } from "lucide-react";
 
 export const GetorganizationInfoAll = async (orgId) => {
   try {
     const response = await axios.get(
-      `${API_ROUTER}/get-organization/${orgId}`,
+      `${API_ROUTER}/getOrganizationProfile/${orgId}`,
       { withCredentials: true }
     );
 
@@ -19,7 +20,7 @@ export const GetorganizationInfoAll = async (orgId) => {
 
 export const GetUser = async (userId) => {
   try {
-    const response = await axios.get(`${API_ROUTER}/user-info/${userId}`, {
+    const response = await axios.get(`${API_ROUTER}/userInfo/${userId}`, {
       withCredentials: true,
     });
 

@@ -62,40 +62,6 @@ body {
   transition: transform 0.3s ease;
 }
 
-.double-inward-bubble {
-  clip-path: path("M40,0 Q0,50 40,100 H260 Q300,50 260,0 Z");
-  height: 100px;
-  width: 300px;
-}
-
-/* Reversed Diamond Clip - curves inward on the right */
-.diamond-clip-reverse {
-  clip-path: polygon(
-    0% 0%,
-    calc(100% - 20px) 0%,
-    100% 50%,
-    calc(100% - 20px) 100%,
-    0% 100%
-  );
-}
-
-/* Left side diamond for active state background */
-.diamond-clip-left {
-  clip-path: polygon(0% 0%, 100% 20%, 100% 80%, 0% 100%);
-}
-
-.diamond-clip-reverse-radius::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 20px;
-  height: 100%;
-  background: inherit;
-  border-radius: 0 50px 50px 0;
-  transform: translateX(100%);
-}
-
 .underline-animate:hover::after {
   transform: translateX(-50%) scaleX(1);
 }

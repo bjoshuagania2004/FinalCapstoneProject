@@ -8,11 +8,10 @@ export const accreditationSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "organizationProfile",
     },
+    overallStatus: { type: String, default: "Pending" },
     isActive: { type: Boolean, default: true },
-    rosters: [{ type: Schema.Types.ObjectId, ref: "Roster" }],
     documents: [{ type: Schema.Types.ObjectId, ref: "Document" }],
     financialReport: [{ type: Schema.Types.ObjectId, ref: "financialReport" }],
-    overallStatus: { type: String, default: "Pending" },
   },
   { timestamps: true }
 );

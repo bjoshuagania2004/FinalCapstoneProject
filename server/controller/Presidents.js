@@ -1,14 +1,98 @@
-import { PresidentProfile, Organization } from "./../models/index.js"; // If you're using CommonJS, use: const StudentProfile = require('../models/studentProfileModel');
+import {
+  PresidentProfile,
+  Organization,
+  OrganizationProfile,
+} from "./../models/index.js"; // If you're using CommonJS, use: const StudentProfile = require('../models/studentProfileModel');
+
+export const UpdatePresidentProfile = async (req, res) => {
+  const file = req.file;
+
+  if (!file) {
+    return res.status(400).json({ message: "No file uploaded" });
+  }
+
+  const { presidentId } = req.params; // assuming the president's profile ID is passed as a URL param
+
+  if (!presidentId) {
+    return res
+      .status(400)
+      .json({ message: "President profile ID is required." });
+  }
+
+  try {
+    // Update the president profile with the uploaded file's filename
+    const updatedProfile = await PresidentProfile.findByIdAndUpdate(
+      presidentId,
+      { profilePicture: file.filename }, // or file.originalname if you prefer the original name
+      { new: true }
+    );
+
+    if (!updatedProfile) {
+      return res.status(404).json({ message: "President profile not found." });
+    }
+
+    res.json({
+      message: "Profile picture updated successfully",
+      profile: updatedProfile,
+    });
+  } catch (error) {
+    console.error("Error updating profile picture:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+export const GetAllPresidents = async (req, res) => {
+  try {
+    const presidents = await PresidentProfile.find();
+    res.status(200).json(presidents);
+  } catch (error) {
+    console.error("Error fetching all presidents:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+export const GetPresidentByOrg = async (req, res) => {
+  const { orgId } = req.params;
+
+  try {
+    const president = await PresidentProfile.find({ organization: orgId });
+    if (!president) {
+      return res
+        .status(404)
+        .json({ message: "President not found for this organization." });
+    }
+    res.status(200).json(president);
+  } catch (error) {
+    console.error("Error fetching president by organization:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+export const GetPresidentById = async (req, res) => {
+  const { orgPresidentId } = req.params;
+
+  try {
+    const president = await PresidentProfile.findById(orgPresidentId);
+    if (!president) {
+      return res.status(404).json({ message: "President not found." });
+    }
+    res.status(200).json(president);
+  } catch (error) {
+    console.error("Error fetching president by ID:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
 
 export const AddPresident = async (req, res) => {
   try {
     const {
       name,
-      organization,
+      organizationProfile,
       courseYear,
       age,
       sex,
       religion,
+      organization,
       nationality,
       birthplace,
       presentAddress,
@@ -22,12 +106,14 @@ export const AddPresident = async (req, res) => {
       classSchedule, // should be an array of { subject, place, time, day }
     } = req.body;
 
-    const newProfile = new PresidentProfile({
+    const newPresidentProfile = new PresidentProfile({
       name,
+      organizationProfile,
       organization,
       courseYear,
       age,
       sex,
+      profilePicture: null,
       religion,
       nationality,
       birthplace,
@@ -43,23 +129,24 @@ export const AddPresident = async (req, res) => {
     });
 
     // Basic validation
-    if (!organization) {
+    if (!organizationProfile) {
       console.error("Missing organization ID");
-      return res.status(400).json({ message: "Organization ID is required." });
+      return res
+        .status(400)
+        .json({ message: "organization Profile ID is required." });
     }
 
-    const FindOrg = await Organization.findById(organization);
+    const FindOrg = await OrganizationProfile.findById(organizationProfile);
 
     if (!FindOrg) {
-      console.error("Organization not found:", organization);
+      console.error("Organization not found:", organizationProfile);
       return res.status(404).json({ message: "Organization not found." });
     }
 
-    const savedProfile = await newProfile.save();
-
-    await Organization.findByIdAndUpdate(
-      organization,
-      { $push: { presidents: savedProfile._id } },
+    const savedProfile = await newPresidentProfile.save();
+    await OrganizationProfile.findByIdAndUpdate(
+      organizationProfile,
+      { orgPresident: savedProfile._id },
       { new: true }
     );
 

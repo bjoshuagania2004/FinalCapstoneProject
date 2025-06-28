@@ -74,34 +74,104 @@ import StudentPostSection from "./post/view";
 import StudentLogsSection from "./student_leader_logs";
 import InitialRegistration from "./student_leader_initial_registration";
 import StudentHomeSection from "./student_leader_home_page";
-import { GetUser } from "../../../api/student_leader_api";
 import Sandbox from "./sandbox";
-import { Accreditation } from "../../../../server/models/users";
 import AccreditationPage from "./accreditations/accreditation";
+import { GetUser } from "../../../api/student_leader/student_leader_api";
+import { FinancialReport, RostersMembers } from "./accreditations/documents";
+import FinancialReportDummy from "./accreditations/financial-report/financial-report";
+import { RostersMembersPage } from "./accreditations/roster_members";
+import { PresidentListComponent } from "./accreditations/president-information/presidents";
+import { GetorganizationInfoAll } from "../../../api/student_leader/student_leader_api";
+
+const navigationItems = [
+  {
+    key: "home",
+    icon: <Home className="mr-2 w-5 h-5" />,
+    label: "Reports/Dashboard",
+    path: "/student-leader",
+  },
+  {
+    key: "accreditations",
+    icon: <FolderOpen className="mr-2 w-5 h-5" />,
+    label: "Accreditations",
+    path: "/student-leader/accreditation",
+  },
+  {
+    key: "accomplishments",
+    icon: <File className="mr-2 w-5 h-5" />,
+    label: "Accomplishments",
+    path: "/student-leader/accomplishment",
+  },
+  {
+    key: "proposals",
+    icon: <FileText className="mr-2 w-5 h-5" />,
+    label: "Proposals",
+    path: "/student-leader/proposal",
+  },
+  {
+    key: "post",
+    icon: <PenSquare className="mr-2 w-5 h-5" />,
+    label: "Post",
+    path: "/student-leader/post",
+  },
+  {
+    key: "logs",
+    icon: <Clock className="mr-2 w-5 h-5" />,
+    label: "Logs",
+    path: "/student-leader/log",
+  },
+];
 
 export default function StudentAdminPage() {
   const { user } = useOutletContext();
   const location = useLocation();
   const navigate = useNavigate();
   const userId = user?.userId;
-  const [orgId, setOrgId] = useState(user?.organization || null);
-  const [showInitialRegistration, setShowInitialRegistration] = useState(false);
+  const [orgId, setOrgId] = useState(user?.organizationProfile || null);
   const [loading, setLoading] = useState(true);
-  const [userData, setUserData] = useState({});
+  const [userInfo, setuserInfo] = useState({});
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const userDataFetched = await GetUser(userId);
-        setUserData(userDataFetched);
+  const [orgInfo, setOrgInfo] = useState(null);
+  const [errorMsg, setErrorMsg] = useState("");
 
-        const fetchedOrgId = userDataFetched.organization ?? null;
+  useEffect(() => {
+    const fetchOrganization = async () => {
+      try {
+        const data = await GetorganizationInfoAll(orgId);
+        setOrgInfo(data);
+      } catch (err) {
+        console.error("Failed to fetch organization info:", err);
+        setErrorMsg("Something went wrong while fetching organization info.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (orgId) {
+      fetchOrganization();
+    }
+  }, [orgId]);
+
+  useEffect(() => {
+    const fetchuserInfo = async () => {
+      try {
+        const userInfoFetched = await GetUser(userId);
+        setuserInfo(userInfoFetched);
+
+        const fetchedOrgId = userInfoFetched.organizationProfile ?? null;
         setOrgId(fetchedOrgId);
 
-        if (!fetchedOrgId) {
-          // Handles null, undefined, or other falsy values
-          setShowInitialRegistration(true);
+        if (
+          !fetchedOrgId &&
+          location.pathname !== "/student-leader/initial-registration"
+        ) {
+          navigate("/student-leader/initial-registration");
+        } else if (
+          fetchedOrgId &&
+          location.pathname === "/student-leader/initial-registration"
+        ) {
+          navigate("/student-leader");
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -111,49 +181,14 @@ export default function StudentAdminPage() {
     };
 
     if (userId) {
-      fetchUserData();
+      fetchuserInfo();
     }
   }, [userId]);
 
-  const navigationItems = [
-    {
-      key: "home",
-      icon: <Home className="mr-2 w-5 h-5" />,
-      label: "Reports/Dashboard",
-      path: "/student_leader",
-    },
-    {
-      key: "accreditations",
-      icon: <FolderOpen className="mr-2 w-5 h-5" />,
-      label: "Accreditations",
-      path: "/student_leader/accreditation",
-    },
-    {
-      key: "accomplishments",
-      icon: <File className="mr-2 w-5 h-5" />,
-      label: "Accomplishments",
-      path: "/student_leader/accomplishment",
-    },
-    {
-      key: "proposals",
-      icon: <FileText className="mr-2 w-5 h-5" />,
-      label: "Proposals",
-      path: "/student_leader/proposal",
-    },
-    {
-      key: "post",
-      icon: <PenSquare className="mr-2 w-5 h-5" />,
-      label: "Post",
-      path: "/student_leader/post",
-    },
-    {
-      key: "logs",
-      icon: <Clock className="mr-2 w-5 h-5" />,
-      label: "Logs",
-      path: "/student_leader/log",
-    },
-  ];
-
+  const InitialRegistrationComplete = () => {
+    console.log(" say what");
+    navigate("/student-leader");
+  };
   if (loading) {
     return (
       <div className="flex items-center justify-center w-full h-screen">
@@ -164,14 +199,6 @@ export default function StudentAdminPage() {
 
   return (
     <div className="flex flex-col h-screen w-full text-xl overflow-hidden bg-gray-100">
-      {/* Show registration modal if needed */}
-      {showInitialRegistration && (
-        <InitialRegistration
-          userData={userData}
-          onComplete={() => window.location.reload()}
-        />
-      )}
-
       {/* Header Section - Responsive */}
       <div className="bg-gray-900 text-white px-4 sm:px-6 lg:px-8 py-4 sm:py-6 shadow-lg">
         <div className="flex items-center gap-4 sm:gap-6 lg:gap-8">
@@ -280,9 +307,12 @@ export default function StudentAdminPage() {
                 </svg>
               </button>
             </div>
-
             {navigationItems.map(({ key, icon, label, path }) => {
-              const isActive = location.pathname === path;
+              const isActive =
+                path === "/student-leader"
+                  ? location.pathname === path
+                  : location.pathname.startsWith(path);
+
               return (
                 <nav
                   key={key}
@@ -292,7 +322,7 @@ export default function StudentAdminPage() {
                 >
                   <Link
                     to={path}
-                    onClick={() => setSidebarOpen(false)} // Close mobile menu on navigation
+                    onClick={() => setSidebarOpen(false)}
                     className={`flex items-center gap-2 transition w-full p-3 lg:p-4 pr-6 lg:pr-8 pl-4 lg:pl-2 ${
                       isActive
                         ? "text-cnsc-primary-color font-black"
@@ -321,13 +351,52 @@ export default function StudentAdminPage() {
         <div className="flex flex-col w-full h-full overflow-hidden p-2 sm:p-4">
           {/* Nested Routes inside StudentLeaderPage */}
           <Routes>
-            <Route index element={<StudentHomeSection orgId={orgId} />} />
+            <Route
+              index
+              element={
+                <StudentHomeSection
+                  orgInfo={orgInfo}
+                  errorMsg={errorMsg}
+                  loading={loading}
+                />
+              }
+            />
             <Route path="proposal" element={<StudentProposalSection />} />
             <Route path="sandbox" element={<Sandbox />} />
             <Route
+              path="initial-registration"
+              element={
+                <InitialRegistration
+                  userInfo={userInfo}
+                  onComplete={InitialRegistrationComplete}
+                />
+              }
+            />
+
+            <Route
               path="accreditation"
               element={<AccreditationPage StatusBadge={StatusBadge} />}
-            />
+            >
+              <Route index element={<div>Select a section</div>} />
+              <Route
+                path="financial-report"
+                element={<FinancialReportDummy />}
+              />
+              <Route path="roster-of-members" element={<RostersMembers />} />
+              <Route path="president-information">
+                <Route
+                  index
+                  element={
+                    <PresidentListComponent
+                      orgInfo={orgInfo}
+                      userInfo={userInfo}
+                    />
+                  }
+                />
+              </Route>
+              <Route path="documents" element={<RostersMembersPage />} />
+            </Route>
+
             <Route
               path="accomplishment"
               element={<StudentAccomplishmentSection />}

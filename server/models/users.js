@@ -4,9 +4,13 @@ const { Schema } = mongoose;
 // ----------------- Document Schema -----------------
 export const documentSchema = new Schema(
   {
-    organization: { type: Schema.Types.ObjectId, ref: "Organization" },
+    organizationProfile: {
+      type: Schema.Types.ObjectId,
+      ref: "organizationProfile",
+      require: true,
+    },
     label: String,
-    name: String,
+    fileName: String,
     revisionNotes: String,
     isPinned: { type: Boolean, default: false },
     logs: [String],
@@ -23,7 +27,10 @@ export const userSchema = new Schema(
     deliveryUnit: String,
     password: { type: String, minlength: 6 },
     position: { type: String, trim: true },
-    organization: { type: Schema.Types.ObjectId, ref: "Organization" },
+    organizationProfile: {
+      type: Schema.Types.ObjectId,
+      ref: "organizationprofiles",
+    },
   },
   { timestamps: true }
 );

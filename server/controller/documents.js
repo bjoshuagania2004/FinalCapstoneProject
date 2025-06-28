@@ -19,6 +19,17 @@ const minutes = String(now.getMinutes()).padStart(2, "0");
 const ampm = hours >= 12 ? "PM" : "AM";
 const formatTime = `${((hours + 11) % 12) + 1}:${minutes} ${ampm}`;
 
+const formatDateTime = () => {
+  const now = new Date();
+  const formatDate = now.toLocaleDateString("en-PH", {
+    timeZone: "Asia/Manila",
+  });
+  const formatTime = now.toLocaleTimeString("en-PH", {
+    timeZone: "Asia/Manila",
+  });
+  return { formatDate, formatTime };
+};
+
 const ensureDirExists = (dir) => {
   try {
     if (!fs.existsSync(dir)) {
@@ -30,25 +41,22 @@ const ensureDirExists = (dir) => {
 };
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadPath = path.join(
-      process.cwd(),
-      "../public",
-      req.body.organization
-    );
-
+    const orgId =
+      req.body?.organizationProfile ||
+      req.params?.organizationProfile ||
+      "default-folder";
+    const uploadPath = path.join(process.cwd(), "./../public", orgId); // Adjust to your correct public path
     ensureDirExists(uploadPath);
     cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
     const timestamp = Date.now();
-    console.log(timestamp);
-    const originalName = file.originalname;
-
+    const originalName = file.originalname.replace(/\s+/g, "_"); // safer filename
     const uniqueName = `${timestamp}-${originalName}`;
-
     cb(null, uniqueName);
   },
 });
+
 const upload = multer({ storage });
 
 export const uploadFileAndAddDocument = (req, res, next) => {
@@ -65,41 +73,36 @@ export const uploadFileAndAddDocument = (req, res, next) => {
 
     if (!documentFile) {
       return res.status(400).json({
-        error: "file is required",
+        error: "File is required",
       });
     }
 
     try {
       const {
-        organization,
+        organizationProfile,
         label,
-        revisionNotes,
-        isPinned = false,
-        logs = [],
-        status = "Pending",
-      } = req.body;
-
-      const file = documentFile.filename;
-
-      const document = new Document({
-        organization,
-        label,
-        name: file,
         revisionNotes,
         isPinned,
         logs,
         status,
-        file,
+      } = req.body;
+
+      const document = new Document({
+        organizationProfile,
+        label,
+        fileName: documentFile.filename,
+        revisionNotes,
+        isPinned: isPinned === "true" || isPinned === true, // Ensure boolean
+        logs: Array.isArray(logs) ? logs : logs ? [logs] : [], // Ensure array
+        status: status || "Pending",
       });
 
       await document.save();
 
-      // Save the document ID for the next middleware
       res.locals.documentId = document._id;
-
-      next(); // Proceed to next middleware like createReceipt
+      next(); // Pass control to the next middleware (e.g., createReceipt)
     } catch (error) {
-      console.error(error);
+      console.error("Document creation error:", error);
       return res.status(400).json({ error: error.message });
     }
   });
@@ -118,7 +121,7 @@ export const uploadFileAndUpdateDocument = (req, res, next) => {
     const documentFile = req.file;
 
     const {
-      organization,
+      organization, // Folder or ID used in file path (ensure it's passed from client)
       documentId,
       label,
       revisionNotes,
@@ -128,95 +131,78 @@ export const uploadFileAndUpdateDocument = (req, res, next) => {
     } = req.body;
 
     try {
-      // Find existing document
       const existingDoc = await Document.findById(documentId);
-      console.log("this is the existing Doc", existingDoc);
-
       if (!existingDoc) {
         return res.status(404).json({ error: "Document not found" });
       }
 
-      // Start with existing logs from database, then add new logs from request
       const updatedLogs = [
-        ...(existingDoc.logs || []), // Existing logs from database
-        ...logs, // New logs from request body
+        ...(existingDoc.logs || []),
+        ...(Array.isArray(logs) ? logs : [logs]),
       ];
+      const { formatDate, formatTime } = formatDateTime();
 
-      // Determine which file to delete
-      let oldFileToDelete = null;
-
-      if (existingDoc.name) {
-        // Explicitly specified file to delete
-        oldFileToDelete = existingDoc.name;
-      } else if (documentFile && existingDoc.file) {
-        // New file uploaded and there's an existing file in database - delete the existing one
-        oldFileToDelete = existingDoc.name;
-      }
-
-      // Delete old file if there's one to delete
-      if (oldFileToDelete) {
-        const filePath = path.join(
+      // Delete old file if new one is uploaded
+      if (documentFile && existingDoc.fileName) {
+        const oldFilePath = path.join(
           process.cwd(),
-          "../public",
-          organization || existingDoc.organization,
-          oldFileToDelete
+          "./../public",
+          organization || existingDoc.organizationProfile?.toString(),
+          existingDoc.fileName
         );
-        console.log("this is the filepath", filePath);
 
         try {
-          const stats = await fs.promises.stat(filePath);
+          const stats = await fs.promises.stat(oldFilePath);
           if (stats.isFile()) {
-            await fs.promises.unlink(filePath);
-
+            await fs.promises.unlink(oldFilePath);
             updatedLogs.push(
-              `Deleted previous file: ${oldFileToDelete} on ${formatDate} at ${formatTime}`
+              `Deleted previous file: ${existingDoc.fileName} on ${formatDate} at ${formatTime}`
             );
           }
         } catch (fileErr) {
           console.error("File deletion error:", fileErr);
-
           updatedLogs.push(
-            `Failed to delete file: ${oldFileToDelete} on ${formatDate} at ${formatTime}`
+            `Failed to delete file: ${existingDoc.fileName} on ${formatDate} at ${formatTime}`
           );
         }
       }
 
-      // Add new file upload log if file was uploaded
+      // Log new file upload
       if (documentFile) {
         updatedLogs.push(
-          `Uploaded new file: ${documentFile.filename} on ${formatDate}  at ${formatTime}`
+          `Uploaded new file: ${documentFile.filename} on ${formatDate} at ${formatTime}`
         );
       }
 
-      // Prepare update data
       const updateData = {
-        ...(organization && { organization }),
+        ...(organization && { organizationProfile: organization }),
         ...(label && { label }),
         ...(revisionNotes && { revisionNotes }),
-        ...(typeof isPinned !== "undefined" && { isPinned }),
+        ...(typeof isPinned !== "undefined" && {
+          isPinned: isPinned === "true" || isPinned === true,
+        }),
         ...(status && { status }),
         logs: updatedLogs,
       };
 
-      // Add new file info if uploaded
       if (documentFile) {
-        updateData.name = documentFile.filename;
-        updateData.file = documentFile.filename;
+        updateData.fileName = documentFile.filename;
       }
 
-      // Update document
       const updatedDoc = await Document.findByIdAndUpdate(
         documentId,
         updateData,
-        { new: true, runValidators: true }
+        {
+          new: true,
+          runValidators: true,
+        }
       );
 
       res.locals.documentId = updatedDoc._id;
       res.locals.updatedDocument = updatedDoc;
-
       next();
     } catch (error) {
-      console.error(error);
+      console.error("Document update error:", error);
       return res.status(400).json({ error: error.message });
     }
   });

@@ -3,7 +3,10 @@ const { Schema } = mongoose;
 
 export const proposalSchema = new Schema(
   {
-    organization: { type: Schema.Types.ObjectId, ref: "Organization" },
+    organizationProfile: {
+      type: Schema.Types.ObjectId,
+      ref: "OrganizationProfile",
+    },
     overallStatus: { type: String, default: "Pending" },
     title: String,
     proposedDate: Date,

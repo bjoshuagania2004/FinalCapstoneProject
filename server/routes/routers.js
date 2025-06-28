@@ -18,9 +18,7 @@ import {
 import {
   CheckSession,
   ConfirmRegistration,
-  GetOrganizationInformation,
   GetUserInformation,
-  upload,
   Login,
   Logout,
   RegisterUser,
@@ -45,10 +43,19 @@ import {
   updateDocument,
   uploadFileAndAddDocument,
   uploadFileAndUpdateDocument,
-  PostOrganizationProfile,
+  PostInitialOrganizationProfile,
+  AddMultipleRosterMembers,
+  GetOrganizationProfileInformation,
+  GetAllPresidents,
+  GetPresidentByOrg,
+  GetPresidentById,
+  UpdatePresidentProfile,
 } from "../controller/index.js";
 
 const router = express.Router();
+
+const storage = multer.memoryStorage(); // or use diskStorage for local saving
+const upload = multer({ storage });
 
 /* ========== TESTING ROUTES========== */
 router.get("/get-accreditation-details/:orgId", GetAllAccreditationDetails);
@@ -69,61 +76,66 @@ router.post("/login", Login);
 router.post("/logout", Logout);
 router.get("/session-check", CheckSession);
 
-router.post("/send-verification", SendRegistrationConfirmationCode);
-router.post("/confirm-verification", ConfirmRegistration, RegisterUser);
-router.post("/initial-registration", upload.any(), PostOrganizationProfile);
+router.post("/sendVerification", SendRegistrationConfirmationCode);
+router.post("/confirmVerification", ConfirmRegistration, RegisterUser);
+router.post("/initialRegistration", PostInitialOrganizationProfile);
+
+router.get(
+  "/getOrganizationProfile/:orgProfileId",
+  GetOrganizationProfileInformation
+);
+
+/* ========== PRESIDENTS ========== */
+router.post("/addPresident", AddPresident);
+router.get("/getPresidents", GetAllPresidents);
+router.get("/getPresidentByOrg/:orgId", GetPresidentByOrg);
+router.get("/getPresidentById/:orgPresidentId", GetPresidentById);
 
 /* ========== STUDENT LEADER ========== */
-router.get("/user-info/:userId", GetUserInformation);
-router.get("/get-organization/:id", GetOrganizationInformation);
+router.get("/userInfo/:userId", GetUserInformation);
 
-/* ========== SANDBOX ========== */
-router.post("/sandbox-update", uploadFileAndUpdateDocument, updateReceipt);
-router.post("/sandbox-add", uploadFileAndAddDocument, createReceipt);
+router.post(
+  "/upload-profile/:presidentId",
+  UploadSingleFile,
+  UpdatePresidentProfile
+);
 
-/* ========== DOCUEMTNS ========== */
-router.post("/add-document", uploadFileAndAddDocument, createReceipt);
+/* ========== ACCREDITATION ========== */
+router.get("/Accreditation/:OrgId", GetAllAccreditationDetails);
 
+/* ========== Reciept ========== */
+router.post(
+  "/AddReceipt/:organizationProfile",
+  uploadFileAndAddDocument,
+  createReceipt
+);
+router.post(
+  "/UpdateReceipt/:organizationProfile",
+  uploadFileAndUpdateDocument,
+  updateReceipt
+);
+
+/* ========== DOCUMENTS ========== */
 router.put(
-  "/update-document/:id",
+  "/UpdateDocument/:id",
   ArchiveFile,
   UploadSingleFile,
   updateDocument
 );
 
-/* ========== ROSTERMemberS ========== */
-router.post("/add-rosterMember-member", AddNewRosterMember);
-router.get("/get-rosterMember-member/:rosterMemberId", GetSingleRosterMember);
-router.get(
-  "/get-rosterMember-members/:organizationId",
-  GetRosterMembersByOrganization
-);
-router.patch("/update-rosterMember-member/:rosterMemberId", UpdateRosterMember);
-router.delete(
-  "/delete-rosterMember-member/:rosterMemberId",
-  DeleteRosterMember
-);
-
-/* ========== RECEIPTS ========== */
-router.post("/add-receipt", UploadSingleFile, createReceipt);
-router.put("/update-receipt/:id", UploadSingleFile, createReceipt);
-router.get("/get-all-receipt", getAllReceipts);
-router.get("/get-single-receipt/:id", getSingleReceipt);
-router.delete("/delete-receipt/:id", deleteReceipt);
+/* ========== ROSTER MEMBERS ========== */
+router.post("/addRosterMember", AddNewRosterMember);
+router.post("/addRosterMembers", AddMultipleRosterMembers);
+router.get("/getRosterMember/:rosterMemberId", GetSingleRosterMember);
+router.get("/getRosterMembers/:organizationId", GetRosterMembersByOrganization);
+router.patch("/updateRosterMember/:rosterMemberId", UpdateRosterMember);
+router.delete("/deleteRosterMember/:rosterMemberId", DeleteRosterMember);
 
 /* ========== FINANCIAL REPORT ========== */
-
-router.post(
-  "/add-financial-report",
-  UploadMultipleFiles,
-  createFinancialReport
-);
-router.get("/get-financial-report/:Id", getAllFinancialReports);
-router.get("/get-financial-reports/:Id", getFinancialReportById);
-router.patch("/update-financial-report/:Id", updateFinancialReport);
-router.delete("/delete-financial-report/:Id", deleteFinancialReport);
-
-/* ========== PRESIDENTS ========== */
-router.post("/add-president", AddPresident);
+router.post("/addFinancialReport", UploadMultipleFiles, createFinancialReport);
+router.get("/getFinancialreport/:Id", getAllFinancialReports);
+router.get("/getFinancialreport/:Id", getFinancialReportById);
+router.patch("/updateFinancialReport/:Id", updateFinancialReport);
+router.delete("/deleteFinancialReport/:Id", deleteFinancialReport);
 
 export default router;

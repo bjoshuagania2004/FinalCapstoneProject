@@ -11,7 +11,15 @@ export const classScheduleSchema = new Schema({
 
 export const presidentProfileSchema = new Schema(
   {
-    organization: { type: Schema.Types.ObjectId, ref: "Organization" },
+    organizationProfile: {
+      type: Schema.Types.ObjectId,
+      ref: "OrganizationProfile",
+    },
+    organization: {
+      type: Schema.Types.ObjectId,
+      ref: "Organization",
+    },
+    profilePicture: String,
     courseYear: String,
     name: String,
     age: Number,
@@ -23,7 +31,7 @@ export const presidentProfileSchema = new Schema(
     permanentAddress: String,
     parentGuardian: String,
     sourceOfFinancialSupport: String,
-    talentSkills: String,
+    talentSkills: [Object],
     contactNo: String,
     addressPhoneNo: String,
     facebookAccount: String,

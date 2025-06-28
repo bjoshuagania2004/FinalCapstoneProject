@@ -1,52 +1,92 @@
-import { Organization, User } from "../models/index.js";
+import { Organization, OrganizationProfile, User } from "../models/index.js";
 
-export const PostOrganizationProfile = async (req, res) => {
+export const PostInitialOrganizationProfile = async (req, res) => {
   try {
     const {
+      userId, // User who created this profile
       adviserName,
       adviserEmail,
       adviserDepartment,
       orgName,
-      orgEmail,
       orgClass,
       orgCourse,
       orgAcronym,
-      orgPresident,
       orgDepartment,
       orgSpecialization,
-      user_id,
+      academicYearStart,
+      academicYearEnd,
+      logo,
+      orgStatus, // Active, Inactive, Disqualified
+
+      originalName = orgName,
+      currentName = orgName,
+      firstApplication = true,
+      isActive = true, // optional default
     } = req.body;
 
+    // Create new Organization
     const newOrg = new Organization({
+      originalName,
+      currentName,
+      firstApplication,
+      isActive,
+    });
+
+    const organizationDoc = await newOrg.save();
+
+    const newOrgProfile = new OrganizationProfile({
       adviserName,
       adviserEmail,
       adviserDepartment,
       orgName,
-      orgEmail,
       orgClass,
       orgCourse,
       orgAcronym,
-      orgPresident,
+      orgPresident: null,
       orgDepartment,
       orgSpecialization,
+      organization: organizationDoc._id,
+      academicYear: {
+        start: academicYearStart,
+        end: academicYearEnd,
+      },
+      logo,
+      orgStatus,
     });
 
-    const savedOrg = await newOrg.save();
+    const savedOrgProfile = await newOrgProfile.save();
 
-    // Step 2: Update the user with the new organization's ID
     const updatedUser = await User.findByIdAndUpdate(
-      user_id,
-      { organization: savedOrg._id },
+      userId,
+      { organizationProfile: savedOrgProfile._id },
       { new: true }
-    ).populate("organization"); // Populate if you want to return full org details
+    );
 
     res.status(200).json({
-      message: "Organization registered and linked to user.",
-      organization: savedOrg,
+      message: "Organization profile created and linked to user.",
+      organizationProfile: savedOrgProfile,
       updatedUser,
     });
   } catch (error) {
-    console.error("Error in PostInitialRegistration:", error);
+    console.error("Error in PostOrganizationProfile:", error);
     res.status(500).json({ message: "Server error", error });
+  }
+};
+
+export const GetOrganizationProfileInformation = async (req, res) => {
+  const { orgProfileId } = req.params;
+
+  try {
+    const organization = await OrganizationProfile.findById(orgProfileId);
+
+    if (!organization) {
+      return res.status(404).json({ error: "Organization not found" });
+    }
+
+    res.status(200).json(organization);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "Failed to fetch organization", details: error.message });
   }
 };

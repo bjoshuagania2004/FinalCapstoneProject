@@ -4,10 +4,10 @@ import { FinancialReport, Receipt } from "../models/index.js";
 
 export const createReceipt = async (req, res) => {
   try {
-    const { organization, description, amount, date } = req.body;
+    const { organizationProfile, description, amount, date } = req.body;
 
     const receipt = new Receipt({
-      organization,
+      organizationProfile,
       description,
       amount,
       date: date || new Date(),
@@ -29,6 +29,7 @@ export const createReceipt = async (req, res) => {
     });
   }
 };
+
 // Update a receipt
 export const updateReceipt = async (req, res) => {
   try {

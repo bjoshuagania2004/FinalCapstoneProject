@@ -196,68 +196,6 @@ function StatusBadge({ status }) {
     </span>
   );
 }
-function OrganizationRequirementsTimeline() {
-  return (
-    <div className="w-1/3 min-w-fit max-w-2xl mx-auto bg-white rounded-xl p-4 sm:p-6 flex flex-col items-center">
-      <div className="sticky top-0 bg-white font-bold text-gray-800 mb-6 text-lg sm:text-xl text-center py-2 z-20">
-        <h3>Accreditation Timeline</h3>
-      </div>
-
-      {/* Scrollable area */}
-      <div className="relative w-full max-h-[500px] overflow-auto ">
-        {/* Timeline container */}
-        <div className="relative w-full pt-6 pb-6">
-          {/* Vertical line */}
-          <div className="absolute left-1/2 transform -translate-x-1/2 top-0 bottom-0 w-0.5 bg-gray-300 z-0" />
-
-          {/* Timeline items */}
-          <div className="space-y-6 sm:space-y-8 relative z-10">
-            {timelineData.map((item, index) => {
-              let iconBg = "bg-gray-300";
-
-              switch (item.type) {
-                case "success":
-                  iconBg = "bg-green-500";
-                  break;
-                case "warning":
-                  iconBg = "bg-yellow-500";
-                  break;
-                case "info":
-                  iconBg = "bg-blue-500";
-                  break;
-              }
-
-              return (
-                <div key={index} className="relative flex items-center">
-                  {/* Left - Date */}
-                  <div className="flex-1 text-right pr-3 sm:pr-4">
-                    <p className="text-xs sm:text-sm text-gray-500 font-medium">
-                      {item.date}
-                    </p>
-                  </div>
-
-                  {/* Center - Dot */}
-                  <div className="relative z-10 flex-shrink-0">
-                    <div
-                      className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full border-2 border-white shadow-md ${iconBg}`}
-                    ></div>
-                  </div>
-
-                  {/* Right - Status */}
-                  <div className="flex-1 pl-3 sm:pl-4">
-                    <p className="text-xs sm:text-sm font-medium text-gray-900 leading-tight">
-                      {item.status}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function RequirementDetailsPopup({ requirement, isOpen, onClose }) {
   const getStatusIcon = (status) => {

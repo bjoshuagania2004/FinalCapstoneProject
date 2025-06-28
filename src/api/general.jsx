@@ -8,16 +8,18 @@ export const handleLogin = async (email, password, navigate, setErrorMsg) => {
       { email, password },
       { withCredentials: true }
     );
+
     console.log(response.data);
+
     const role = response.data.user.position;
     if (role === "student_leader") {
-      navigate("/student_leader");
+      navigate("/student-leader");
     } else if (role === "adviser") {
       navigate("/adviser");
     } else if (role === "dean") {
       navigate("/dean");
     } else if (role === "ossd coordinator" || role === "ossd") {
-      navigate("/OSSDCoordinator");
+      navigate("/OSSD-Coordinator");
     } else if (role === "sdu") {
       navigate("/SDU");
     } else {
@@ -34,7 +36,7 @@ export const handleLogin = async (email, password, navigate, setErrorMsg) => {
 export const handleRegistration = async (email, password, code) => {
   console.log(email, password, code);
   try {
-    const response = await axios.post(`${API_ROUTER}/confirm-verification`, {
+    const response = await axios.post(`${API_ROUTER}/confirmVerification`, {
       email,
       position: "student_leader",
       password,
@@ -50,30 +52,36 @@ export const handleRegistration = async (email, password, code) => {
 
 export const SendOtp = async ({ email }) => {
   console.log(email);
-
   try {
-    const response = await axios.post(`${API_ROUTER}/send-verification`, {
+    const response = await axios.post(`${API_ROUTER}/sendVerification`, {
       email,
     });
-
-    // You probably shouldn't get token/user here during OTP step
     console.log("OTP sent response:", response.data);
-
-    // Optional: Show a UI message to enter the OTP next
+    return response.data; // Return the response for success handling
   } catch (err) {
     console.error("OTP sending failed", err.response?.data || err.message);
+    throw err; // Re-throw the error so it can be caught in the component
   }
 };
 
-export const HandleLogout = (navigate) => {
-  console.log(navigate);
+export const HandleLogout = async (navigate) => {
   const confirmLogout = window.confirm("Are you sure you want to log out?");
-  if (confirmLogout) {
+  if (!confirmLogout) return;
+
+  try {
+    // Call the backend logout endpoint
+    await axios.post(`${API_ROUTER}/logout`, {}, { withCredentials: true });
+
+    // Clean up local/session storage
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("position");
     sessionStorage.removeItem("userData");
 
+    // Navigate to login/home page
     navigate("/");
+  } catch (error) {
+    console.error("Logout failed:", error);
+    alert("Logout failed. Please try again.");
   }
 };

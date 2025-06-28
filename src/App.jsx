@@ -20,6 +20,7 @@ import FileUploadDemo from "./components/demo";
 import { NotFoundPage, UnauthorizedPage } from "./components/error";
 const MAIN_API_ROUTER = import.meta.env.VITE_API_ROUTER;
 import { X, AlertTriangle, LogOut } from "lucide-react";
+import { ProportionCropTool } from "./components/image_uploader";
 
 export const API_ROUTER = `${MAIN_API_ROUTER}/api`;
 
@@ -27,11 +28,10 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
-      <Route path="/Demo" element={<FileUploadDemo />} />
-      <Route path="/Session-expire-demo" element={<Demo />} />
+      <Route path="/sandbox" element={<ExampleUsage />} />
 
       <Route element={<ProtectedRoute allowedRoles={["student_leader"]} />}>
-        <Route path="/student_leader/*" element={<StudentAdminPage />} />
+        <Route path="/student-leader/*" element={<StudentAdminPage />} />
       </Route>
 
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
@@ -39,6 +39,42 @@ export default function App() {
     </Routes>
   );
 }
+
+const ExampleUsage = () => {
+  const handleCropComplete = (result) => {
+    // Access the original File object
+    console.log("Original File:", result.originalFile);
+    console.log("Original file size:", result.originalFile.size);
+
+    // Access the cropped File object
+    console.log("Cropped File:", result.croppedFile);
+    console.log("Cropped file size:", result.croppedFile.size);
+
+    // Upload to server using FormData
+    const formData = new FormData();
+    formData.append("organization", result.croppedFile.name);
+    formData.append("file", result.croppedFile);
+    formData.append("fileName", result.croppedFile.name);
+
+    axios
+      .post(`${API_ROUTER}/upload-profile`, formData)
+      .then((response) => {
+        console.log("Upload response:", response.data);
+      })
+      .catch((error) => {
+        console.error("Upload error:", error);
+      });
+  };
+
+  return (
+    <div className="space-y-8">
+      <ProportionCropTool
+        title="Crop & Submit Demo"
+        onCropComplete={handleCropComplete}
+      />
+    </div>
+  );
+};
 
 // Option 2: Using sessionStorage (if you want persistence across browser sessions)
 const ProtectedRoute = ({ allowedRoles }) => {

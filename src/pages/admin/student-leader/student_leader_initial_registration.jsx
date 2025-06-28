@@ -1,10 +1,8 @@
 import React, { useState } from "react";
 import { User, Building } from "lucide-react";
-import { ReusableFileUpload } from "../../../components/file_manager";
-import axios from "axios";
-import { API_ROUTER } from "../../../App";
+import { PostInitialRegistrationForm } from "../../../api/student_leader/accreditation";
 
-const departments = {
+export const departments = {
   "College of Arts and Sciences": [
     "Bachelor of Science in Biology",
     "Bachelor of Science in Applied Mathematics",
@@ -78,56 +76,8 @@ const specializations = [
   "Adviser Academic Rank",
 ];
 
-// CollegeCourseDepartments component
-const CollegeCourseDepartments = ({ formData, onChange }) => {
-  return (
-    <div className="flex flex-1 w-full gap-4">
-      <div className="flex flex-col gap-1 flex-1 ">
-        <label htmlFor="orgDepartment">
-          Department <span className="text-red-500">*</span>
-        </label>
-        <select
-          id="orgDepartment"
-          name="orgDepartment"
-          value={formData.orgDepartment || ""}
-          onChange={onChange}
-          className="px-3 py-2 border w-full border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          required
-        >
-          <option value="">Select Department</option>
-          {Object.keys(departments).map((dept) => (
-            <option key={dept} value={dept}>
-              {dept}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {formData.orgDepartment && (
-        <div className="flex flex-col gap-1 flex-1">
-          <label htmlFor="orgCourse">
-            Course <span className="text-red-500">*</span>
-          </label>
-          <select
-            id="orgCourse"
-            name="orgCourse"
-            value={formData.orgCourse || ""}
-            onChange={onChange}
-            className="px-3 py-2 border w-full border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            required
-          >
-            <option value="">Select Course</option>
-            {departments[formData.orgDepartment]?.map((course) => (
-              <option key={course} value={course}>
-                {course}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-    </div>
-  );
-};
+const InputBox =
+  "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent";
 
 export default function InitialRegistrationComponent({ userData, onComplete }) {
   const [formData, setFormData] = useState({
@@ -136,13 +86,12 @@ export default function InitialRegistrationComponent({ userData, onComplete }) {
     adviserDepartment: "",
     orgName: "",
     orgAcronym: "",
-    orgPresident: "",
-    orgEmail: userData.email,
-    orgClass: "System-wide", // default selection
+    orgEmail: userData?.email || "",
+    orgClass: "System-wide",
     orgDepartment: "",
     orgCourse: "",
     specialization: "",
-    user_id: userData._id,
+    userId: userData?._id || "",
   });
 
   const [errors, setErrors] = useState({});
@@ -155,7 +104,6 @@ export default function InitialRegistrationComponent({ userData, onComplete }) {
       [name]: value,
     }));
 
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
@@ -163,34 +111,30 @@ export default function InitialRegistrationComponent({ userData, onComplete }) {
       }));
     }
 
-    // Auto-populate adviser department if organization orgClass is "Local"
     if (name === "orgDepartment" && formData.orgClass === "Local") {
       setFormData((prev) => ({
         ...prev,
         orgDepartment: value,
-        adviserDepartment: value, // Auto-populate adviser department
+        adviserDepartment: value,
       }));
     }
   };
 
   const handleClassificationChange = (e) => {
     const { value } = e.target;
-    console.log(`${e.target.name} changed to: ${e.target.value}`);
     setFormData((prev) => ({
       ...prev,
       orgClass: value,
-      // Reset related fields when orgClass changes
       orgDepartment: "",
       orgCourse: "",
       specialization: "",
-      adviserDepartment: "", // Reset adviser department
+      adviserDepartment: "",
     }));
   };
 
   const validateForm = () => {
     const newErrors = {};
 
-    // Required field validation
     if (!formData.adviserName.trim())
       newErrors.adviserName = "Adviser name is required";
     if (!formData.adviserEmail.trim())
@@ -203,12 +147,9 @@ export default function InitialRegistrationComponent({ userData, onComplete }) {
       newErrors.orgClass = "Organization class is required";
     if (!formData.orgAcronym.trim())
       newErrors.orgAcronym = "Organization acronym is required";
-    if (!formData.orgPresident.trim())
-      newErrors.orgPresident = "Organization president is required";
     if (!formData.orgEmail.trim())
       newErrors.orgEmail = "Organization email is required";
 
-    // Classification-specific validation
     if (formData.orgClass === "Local") {
       if (!formData.orgDepartment)
         newErrors.orgDepartment = "Organization department is required";
@@ -219,7 +160,6 @@ export default function InitialRegistrationComponent({ userData, onComplete }) {
         newErrors.specialization = "Specialization is required";
     }
 
-    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (formData.adviserEmail && !emailRegex.test(formData.adviserEmail)) {
       newErrors.adviserEmail = "Please enter a valid email address";
@@ -229,327 +169,316 @@ export default function InitialRegistrationComponent({ userData, onComplete }) {
     }
 
     setErrors(newErrors);
-    console.log(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
-    const submitFormData = new FormData();
-
     if (validateForm()) {
-      // Append all text/string fields
-      Object.entries(formData).forEach(([key, value]) => {
-        submitFormData.append(key, value);
-      });
-      console.log(submitFormData);
       try {
-        const response = await axios.post(
-          `${API_ROUTER}/initial-registration`,
-          submitFormData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
+        console.log("Form submitted:", formData);
 
-        console.log("Success:", response.data);
+        // Call the API
+        const result = await PostInitialRegistrationForm(formData);
+        console.log("Registration successful:", result);
+
+        // Call the completion callback
         onComplete?.();
       } catch (error) {
-        console.error("Error submitting form:", error);
-        alert("There was an error submitting the form.");
+        console.error("Registration failed:", error);
+        // You might want to show an error message to the user here
+        // setErrors({ submit: "Registration failed. Please try again." });
       }
     }
   };
-
   return (
-    <div className="min-h-screen min-w-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-6">
-            <h1 className="text-3xl font-bold text-white flex items-center">
-              <Building className="mr-3 h-8 w-8" />
-              Organization Registration
+    <div className="absolute inset-0 h-screen w-screen overflow-hidden bg-black/75 backdrop-blur-3xl z-50 flex items-center justify-center">
+      <div className="max-h-9/10 flex-col max-w-4xl gap-4 w-full bg-gray-100 flex items-center px-8 py-6 overflow-hidden">
+        <h1 className="text-3xl font-bold text-blue-600">
+          WELCOME TO INITIAL REGISTRATION
+        </h1>
+        <small>Set up Your Organization Initial Information Here</small>
+
+        <div className="h-full w-full overflow-y-auto">
+          {/* Organization Information */}
+          <div className="w-full border bg-white px-6 py-4 mb-4">
+            <h1 className="text-xl font-semibold mb-4 flex items-center">
+              <Building className="mr-2 h-5 w-5 text-green-600" />
+              Organization Information
             </h1>
-            <p className="text-blue-100 ">Register your student organization</p>
-          </div>
 
-          <div className="p-8 space-y-8 max-h-[80vh] overflow-auto">
-            {/* Organization Information */}
-            <div className="bg-gray-50 rounded-xl p-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-                <Building className="mr-2 h-5 w-5 text-green-600" />
-                Organization Details
-              </h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-lg font-medium text-gray-700 ">
-                    Organization Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="orgName"
-                    value={formData.orgName}
-                    onChange={handleInputChange}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      errors.orgName ? "border-red-500" : "border-gray-300"
-                    }`}
-                    placeholder="Full organization name"
-                  />
-                  {errors.orgName && (
-                    <p className="text-red-500 text-lg ">{errors.orgName}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-lg font-medium text-gray-700 ">
-                    Acronym *
-                  </label>
-                  <input
-                    type="text"
-                    name="orgAcronym"
-                    value={formData.orgAcronym}
-                    onChange={handleInputChange}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      errors.orgAcronym ? "border-red-500" : "border-gray-300"
-                    }`}
-                    placeholder="ORG"
-                  />
-                  {errors.orgAcronym && (
-                    <p className="text-red-500 text-lg ">{errors.orgAcronym}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-lg font-medium text-gray-700 ">
-                    Organization Email *
-                  </label>
-                  <input
-                    type="email"
-                    name="orgEmail"
-                    value={formData.orgEmail}
-                    readOnly
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      errors.orgEmail ? "border-red-500" : "border-gray-300"
-                    } bg-gray-100 cursor-not-allowed`}
-                    placeholder="organization@email.com"
-                  />
-                  {errors.orgEmail && (
-                    <p className="text-red-500 text-lg ">{errors.orgEmail}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-lg font-medium text-gray-700 ">
-                    Organization President *
-                  </label>
-                  <input
-                    type="text"
-                    name="orgPresident"
-                    value={formData.orgPresident}
-                    onChange={handleInputChange}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      errors.orgPresident ? "border-red-500" : "border-gray-300"
-                    }`}
-                    placeholder="President's full name"
-                  />
-                  {errors.orgPresident && (
-                    <p className="text-red-500 text-lg ">
-                      {errors.orgPresident}
-                    </p>
-                  )}
-                </div>
+            <div className="grid grid-cols-3 gap-x-6 gap-y-4">
+              <div className="flex flex-col col-span-2 gap-2">
+                <label className="block text-lg font-medium text-gray-700">
+                  Organization Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="orgName"
+                  value={formData.orgName}
+                  onChange={handleInputChange}
+                  className={`${InputBox} ${
+                    errors.orgName ? "border-red-500" : ""
+                  }`}
+                  placeholder="(Example: Union of Supreme Student Government)"
+                />
+                {errors.orgName && (
+                  <p className="text-red-500 text-sm px-4">{errors.orgName}</p>
+                )}
               </div>
 
-              {/* Classification Section */}
-              <div className="flex flex-col mt-4 w-full md:flex-row gap-6">
-                <div className="flex flex-col min-w-fit gap-1 ">
-                  <label className="block text-lg font-medium text-gray-700 mb-2">
-                    Classification <span className="text-red-500">*</span>
-                  </label>
-                  <div className="flex gap-4">
-                    {["System-wide", "Local"].map((option) => (
-                      <div key={option} className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          id={`orgClass${option}`}
-                          name="orgClass"
-                          value={option}
-                          checked={formData.orgClass === option}
-                          onChange={handleClassificationChange}
-                          className="h-4 w-4 text-blue-600"
-                          required
-                        />
-                        <label
-                          htmlFor={`orgClass${option}`}
-                          className="text-lg"
-                        >
-                          {option}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                  {errors.orgClass && (
-                    <p className="text-red-500 text-lg ">{errors.orgClass}</p>
-                  )}
-                </div>
+              <div className="flex flex-col gap-2">
+                <label className="block text-lg font-medium text-gray-700">
+                  Acronym <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="orgAcronym"
+                  value={formData.orgAcronym}
+                  onChange={handleInputChange}
+                  className={`${InputBox} ${
+                    errors.orgAcronym ? "border-red-500" : ""
+                  }`}
+                  placeholder="(Example: USSG)"
+                />
+                {errors.orgAcronym && (
+                  <p className="text-red-500 text-sm px-4">
+                    {errors.orgAcronym}
+                  </p>
+                )}
+              </div>
 
-                {/* For Local orgClass, include CollegeCourseDepartments */}
-                {formData.orgClass === "Local" && (
-                  <div className="flex-1 w-full ">
-                    <CollegeCourseDepartments
-                      formData={formData}
+              {/* Classification */}
+              <div className=" flex flex-col gap-2">
+                <label className="block text-lg font-medium text-gray-700">
+                  Classification <span className="text-red-500">*</span>
+                </label>
+                <div className="flex gap-4 px-4 py-3 rounded-lg border-gray-300 border bg-gray-100 ">
+                  {["System-wide", "Local"].map((option) => (
+                    <div key={option} className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        id={`orgClass${option}`}
+                        name="orgClass"
+                        value={option}
+                        checked={formData.orgClass === option}
+                        onChange={handleClassificationChange}
+                        className="h-4 w-4 text-blue-600"
+                      />
+                      <label htmlFor={`orgClass${option}`} className="text-lg">
+                        {option}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+                {errors.orgClass && (
+                  <p className="text-red-500 text-sm px-4">{errors.orgClass}</p>
+                )}
+              </div>
+
+              <div className="flex col-span-2 flex-col gap-2">
+                <label className="block text-lg font-medium text-gray-700">
+                  Organization Email <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  name="orgEmail"
+                  value={formData.orgEmail}
+                  readOnly
+                  className={`${InputBox} bg-gray-100 cursor-not-allowed ${
+                    errors.orgEmail ? "border-red-500" : ""
+                  }`}
+                  placeholder="organization@email.com"
+                />
+                {errors.orgEmail && (
+                  <p className="text-red-500 text-sm px-4">{errors.orgEmail}</p>
+                )}
+              </div>
+
+              {/* For Local Classification */}
+              {formData.orgClass === "Local" && (
+                <div className="flex col-span-3 gap-6 ">
+                  <div className="flex flex-1 flex-col gap-2">
+                    <label className="block text-lg font-medium text-gray-700">
+                      Department <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      name="orgDepartment"
+                      value={formData.orgDepartment}
                       onChange={handleInputChange}
-                    />
+                      className={`${InputBox} ${
+                        errors.orgDepartment ? "border-red-500" : ""
+                      }`}
+                    >
+                      <option value="">Select Department</option>
+                      {Object.keys(departments).map((dept) => (
+                        <option key={dept} value={dept}>
+                          {dept}
+                        </option>
+                      ))}
+                    </select>
                     {errors.orgDepartment && (
-                      <p className="text-red-500 text-lg ">
+                      <p className="text-red-500 text-sm px-4">
                         {errors.orgDepartment}
                       </p>
                     )}
+                  </div>
+
+                  <div className="flex flex-col flex-1 gap-2">
+                    <label className="block text-lg font-medium text-gray-700">
+                      Course <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      name="orgCourse"
+                      value={formData.orgCourse}
+                      onChange={handleInputChange}
+                      className={`${InputBox} ${
+                        errors.orgCourse ? "border-red-500" : ""
+                      }`}
+                      disabled={!formData.orgDepartment}
+                    >
+                      <option value="">Select Course</option>
+                      {formData.orgDepartment &&
+                        departments[formData.orgDepartment]?.map((course) => (
+                          <option key={course} value={course}>
+                            {course}
+                          </option>
+                        ))}
+                    </select>
                     {errors.orgCourse && (
-                      <p className="text-red-500 text-lg ">
+                      <p className="text-red-500 text-sm px-4">
                         {errors.orgCourse}
                       </p>
                     )}
                   </div>
-                )}
-                {/* For System-wide orgClass */}
-                {formData.orgClass === "System-wide" && (
-                  <div className="w-full ">
-                    <div className="flex flex-col gap-4">
-                      <div className="flex flex-col gap-1">
-                        <label
-                          htmlFor="specialization"
-                          className="block text-lg font-medium text-gray-700"
-                        >
-                          Specialization <span className="text-red-500">*</span>
-                        </label>
-                        <select
-                          id="specialization"
-                          name="specialization"
-                          value={formData.specialization}
-                          onChange={handleInputChange}
-                          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          required
-                        >
-                          <option value="">Select Specialization</option>
-                          {specializations.map((spec) => (
-                            <option key={spec} value={spec}>
-                              {spec}
-                            </option>
-                          ))}
-                        </select>
-                        {errors.specialization && (
-                          <p className="text-red-500 text-lg ">
-                            {errors.specialization}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Adviser Information */}
-            <div className="bg-gray-50 rounded-xl p-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-                <User className="mr-2 h-5 w-5 text-blue-600" />
-                Adviser Information
-              </h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-lg font-medium text-gray-700 mb-2">
-                    Adviser Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="adviserName"
-                    value={formData.adviserName}
-                    onChange={handleInputChange}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      errors.adviserName ? "border-red-500" : "border-gray-300"
-                    }`}
-                    placeholder="Enter adviser's full name"
-                  />
-                  {errors.adviserName && (
-                    <p className="text-red-500 text-lg ">
-                      {errors.adviserName}
-                    </p>
-                  )}
                 </div>
+              )}
 
-                <div>
-                  <label className="block text-lg font-medium text-gray-700 mb-2">
-                    Adviser Email *
-                  </label>
-                  <input
-                    type="email"
-                    name="adviserEmail"
-                    value={formData.adviserEmail}
-                    onChange={handleInputChange}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      errors.adviserEmail ? "border-red-500" : "border-gray-300"
-                    }`}
-                    placeholder="adviser@university.edu"
-                  />
-                  {errors.adviserEmail && (
-                    <p className="text-red-500 text-lg ">
-                      {errors.adviserEmail}
-                    </p>
-                  )}
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-lg font-medium text-gray-700 mb-2">
-                    Adviser Department *
+              {/* For System-wide Classification */}
+              {formData.orgClass === "System-wide" && (
+                <div className="flex flex-col col-span-3 gap-2">
+                  <label className="block text-lg font-medium text-gray-700">
+                    Specialization <span className="text-red-500">*</span>
                   </label>
                   <select
-                    name="adviserDepartment"
-                    value={formData.adviserDepartment}
+                    name="specialization"
+                    value={formData.specialization}
                     onChange={handleInputChange}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      errors.adviserDepartment
-                        ? "border-red-500"
-                        : "border-gray-300"
+                    className={`${InputBox} ${
+                      errors.specialization ? "border-red-500" : ""
                     }`}
-                    disabled={
-                      formData.orgClass === "Local" && formData.orgDepartment
-                    }
                   >
-                    <option value="">Select department</option>
-                    {Object.keys(departments).map((dept) => (
-                      <option key={dept} value={dept}>
-                        {dept}
+                    <option value="">Select Specialization</option>
+                    {specializations.map((spec) => (
+                      <option key={spec} value={spec}>
+                        {spec}
                       </option>
                     ))}
                   </select>
-                  {errors.adviserDepartment && (
-                    <p className="text-red-500 text-lg ">
-                      {errors.adviserDepartment}
-                    </p>
-                  )}
-                  {formData.orgClass === "Local" && formData.orgDepartment && (
-                    <p className="text-blue-600 text-lg ">
-                      Auto-populated from organization department
+                  {errors.specialization && (
+                    <p className="text-red-500 text-sm px-4">
+                      {errors.specialization}
                     </p>
                   )}
                 </div>
+              )}
+            </div>
+          </div>
+
+          {/* Adviser Information */}
+          <div className="w-full border bg-white px-6 py-4 mb-4">
+            <h1 className="text-xl font-semibold mb-4 flex items-center">
+              <User className="mr-2 h-5 w-5 text-blue-600" />
+              Adviser Information
+            </h1>
+
+            <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+              <div className="flex flex-col gap-2">
+                <label className="block text-lg font-medium text-gray-700">
+                  Adviser Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="adviserName"
+                  value={formData.adviserName}
+                  onChange={handleInputChange}
+                  className={`${InputBox} ${
+                    errors.adviserName ? "border-red-500" : ""
+                  }`}
+                  placeholder="Enter adviser's full name"
+                />
+                {errors.adviserName && (
+                  <p className="text-red-500 text-sm px-4">
+                    {errors.adviserName}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-col col-span-2 gap-2">
+                <label className="block text-lg font-medium text-gray-700">
+                  Adviser Email <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  name="adviserEmail"
+                  value={formData.adviserEmail}
+                  onChange={handleInputChange}
+                  className={`${InputBox} ${
+                    errors.adviserEmail ? "border-red-500" : ""
+                  }`}
+                  placeholder="adviser@university.edu"
+                />
+                {errors.adviserEmail && (
+                  <p className="text-red-500 text-sm px-4">
+                    {errors.adviserEmail}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-col col-span-3 gap-2">
+                <label className="block text-lg font-medium text-gray-700">
+                  Adviser Department <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="adviserDepartment"
+                  value={formData.adviserDepartment}
+                  onChange={handleInputChange}
+                  className={`${InputBox} ${
+                    errors.adviserDepartment ? "border-red-500" : ""
+                  }`}
+                  disabled={
+                    formData.orgClass === "Local" && formData.orgDepartment
+                  }
+                >
+                  <option value="">Select department</option>
+                  {Object.keys(departments).map((dept) => (
+                    <option key={dept} value={dept}>
+                      {dept}
+                    </option>
+                  ))}
+                </select>
+                {errors.adviserDepartment && (
+                  <p className="text-red-500 text-sm px-4">
+                    {errors.adviserDepartment}
+                  </p>
+                )}
+                {formData.orgClass === "Local" && formData.orgDepartment && (
+                  <p className="text-blue-600 text-sm px-4">
+                    Auto-populated from organization department
+                  </p>
+                )}
               </div>
             </div>
+          </div>
 
-            {/* Submit Button */}
-            <div className="flex justify-end pt-6">
-              <button
-                type="button"
-                onClick={handleSubmit}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition duration-200 shadow-lg hover:shadow-xl"
-              >
-                Register Organization
-              </button>
-            </div>
+          {/* Submit Button */}
+          <div className="flex justify-end pt-4">
+            <button
+              type="button"
+              onClick={handleSubmit}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition duration-200 shadow-lg hover:shadow-xl"
+            >
+              Register Organization
+            </button>
           </div>
         </div>
       </div>

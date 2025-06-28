@@ -16,27 +16,26 @@ import { rosterMembersSchema } from "./roster.js";
 import { accomplishmentSchema } from "./accomplishment.js";
 import { userSchema, documentSchema } from "./users.js";
 // Compile models
-const Receipt = mongoose.model("Receipt", ReceiptSchema);
-const Document = mongoose.model("Document", documentSchema);
-const User = mongoose.model("User", userSchema);
+const Receipt = mongoose.model("Receipts", ReceiptSchema);
+const Document = mongoose.model("Documents", documentSchema);
+const User = mongoose.model("Users", userSchema);
 const FinancialReport = mongoose.model(
   "FinancialReport",
   financialReportSchema
 );
-const Organization = mongoose.model("Organization", organizationSchema);
+const Organization = mongoose.model("Organizations", organizationSchema);
 const OrganizationProfile = mongoose.model(
   "OrganizationProfile",
   organizationProfileSchema
 );
-const Proposal = mongoose.model("Proposal", proposalSchema);
-const ClassSchedule = mongoose.model("ClassSchedule", classScheduleSchema);
+const Proposal = mongoose.model("Proposals", proposalSchema);
 const PresidentProfile = mongoose.model(
   "PresidentProfile",
   presidentProfileSchema
 );
-const Accreditation = mongoose.model("Accreditation", accreditationSchema);
-const RosterMember = mongoose.model("RosterMember", rosterMembersSchema);
-const Accomplishment = mongoose.model("Accomplishment", accomplishmentSchema);
+const Accreditation = mongoose.model("Accreditations", accreditationSchema);
+const RosterMember = mongoose.model("RosterMembers", rosterMembersSchema);
+const Accomplishment = mongoose.model("Accomplishments", accomplishmentSchema);
 
 // Export all models
 export {
@@ -47,7 +46,6 @@ export {
   OrganizationProfile,
   Proposal,
   User,
-  ClassSchedule,
   PresidentProfile,
   Accreditation,
   RosterMember,

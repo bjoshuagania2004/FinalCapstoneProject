@@ -1,67 +1,112 @@
-import { RosterMember, Organization } from "../models/index.js";
+import {
+  RosterMember,
+  Organization,
+  OrganizationProfile,
+} from "../models/index.js";
 
 export const AddNewRosterMember = async (req, res) => {
   const {
-    organization,
+    organizationProfile,
     name,
     email,
     address,
     position,
     birthDate,
+    status,
     studentId,
     contactNumber,
   } = req.body;
 
-  console.log("Received request body:", req.body);
-
-  // Basic validation
-  if (!organization) {
-    console.error("Missing organization ID");
-    return res.status(400).json({ message: "Organization ID is required." });
-  }
-
-  if (!name || !email) {
-    console.error("Missing required RosterMember fields");
-    return res.status(400).json({ message: "Name and email are required." });
-  }
-
-  const FindOrg = await Organization.findById(organization);
-
-  if (!FindOrg) {
-    console.error("Organization not found:", organization);
-    return res.status(404).json({ message: "Organization not found." });
+  if (!organizationProfile || !name || !email) {
+    return res
+      .status(400)
+      .json({ message: "organizationProfile, name, and email are required." });
   }
 
   try {
-    const newRosterMember = new RosterMember({
-      organization,
+    const parentDoc = await RosterMember.findOne({ organizationProfile });
+
+    const newMember = {
       name,
       email,
       address,
       position,
       birthDate,
+      status,
       studentId,
       contactNumber,
-    });
+    };
 
-    const savedRosterMember = await newRosterMember.save();
-    console.log("RosterMember saved:", savedRosterMember);
+    let updatedDoc;
 
-    const updatedOrg = await Organization.findByIdAndUpdate(
-      organization,
-      { $push: { RosterMember: savedRosterMember._id } },
-      { new: true }
-    );
+    if (parentDoc) {
+      parentDoc.rosterMembers.push(newMember);
+      updatedDoc = await parentDoc.save();
+    } else {
+      const newRosterGroup = new RosterMember({
+        organizationProfile,
+        rosterMembers: [newMember],
+      });
+      updatedDoc = await newRosterGroup.save();
+    }
 
     return res.status(201).json({
-      message: "RosterMember added and linked to organization successfully",
-      RosterMember: savedRosterMember,
+      message: "Roster member added successfully.",
+      RosterMember: updatedDoc,
     });
   } catch (error) {
-    console.error("Unexpected error:", error);
+    console.error("Error adding roster member:", error);
     return res
       .status(500)
       .json({ message: "Internal server error", error: error.message });
+  }
+};
+
+export const AddMultipleRosterMembers = async (req, res) => {
+  const rosterMembers = req.body;
+
+  if (!Array.isArray(rosterMembers) || rosterMembers.length === 0) {
+    return res
+      .status(400)
+      .json({ message: "Request must contain an array of roster members." });
+  }
+
+  try {
+    // Validate all members before insertion
+    for (const member of rosterMembers) {
+      const { organizationProfile, name, email } = member;
+
+      if (!organizationProfile || !name || !email) {
+        return res.status(400).json({
+          message:
+            "Each roster member must include organizationProfile, name, and email.",
+        });
+      }
+
+      const organizationExists = await OrganizationProfile.findById(
+        organizationProfile
+      );
+
+      if (!organizationExists) {
+        return res.status(404).json({
+          message: `Organization with ID ${organizationProfile} not found.`,
+        });
+      }
+    }
+
+    // Insert members in batch
+    const savedMembers = await RosterMember.insertMany(rosterMembers);
+
+    return res.status(201).json({
+      message: "Roster members added successfully.",
+      RosterMembers: savedMembers,
+    });
+  } catch (error) {
+    console.error("Error inserting roster members:", error);
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 };
 
@@ -159,7 +204,7 @@ export const GetRosterMembersByOrganization = async (req, res) => {
 
   try {
     const RosterMembers = await RosterMember.find({
-      organization: organizationId,
+      organizationProfile: organizationId,
     });
 
     if (!RosterMembers.length) {
@@ -178,22 +223,22 @@ export const GetRosterMembersByOrganization = async (req, res) => {
 };
 
 export const GetSingleRosterMember = async (req, res) => {
-  const { RosterMemberId } = req.params;
+  const { rosterMemberId } = req.params;
 
-  console.log("Fetching RosterMember with ID:", RosterMemberId);
+  console.log("Fetching RosterMember with ID:", rosterMemberId);
 
-  if (!RosterMemberId) {
+  if (!rosterMemberId) {
     return res.status(400).json({ message: "RosterMember ID is required." });
   }
 
   try {
-    const RosterMember = await RosterMember.findById(RosterMemberId);
+    const member = await RosterMember.findById(rosterMemberId); // ✅ use different name
 
-    if (!RosterMember) {
+    if (!member) {
       return res.status(404).json({ message: "RosterMember not found." });
     }
 
-    return res.status(200).json({ RosterMember });
+    return res.status(200).json({ member }); // use the new variable name
   } catch (error) {
     console.error("Error fetching RosterMember:", error);
     return res
