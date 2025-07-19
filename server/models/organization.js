@@ -27,6 +27,7 @@ export const organizationSchema = new Schema(
     originalName: String,
     establishedDate: Date,
     currentName: String,
+
     isActive: { type: Boolean, default: true },
     organizationProfile: [
       {

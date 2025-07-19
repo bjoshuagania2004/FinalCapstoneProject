@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Eye, EyeOff, LogIn } from "lucide-react";
-import { SendOtp, handleRegistration } from "../../api/general";
+import axios from "axios";
+import { API_ROUTER } from "../../App";
 
 export function RegistrationForm({ onShowRegistration, onBackToLogin }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -127,9 +128,9 @@ export function RegistrationForm({ onShowRegistration, onBackToLogin }) {
   // Success state
   if (registrationSuccess) {
     return (
-      <div className="w-full">
+      <div className="w-45 px-4 py-12 rounded-2xl bg-cnsc-white-color">
         <div className="text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-green-200 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg
               className="w-8 h-8 text-green-600"
               fill="none"
@@ -150,20 +151,20 @@ export function RegistrationForm({ onShowRegistration, onBackToLogin }) {
           <p className="text-gray-600 mb-4">
             Your account has been created successfully.
           </p>
-          <p className="text-sm text-gray-500">Redirecting to login...</p>
+          <p className="text-sm text-gray-500">Logging in...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full h-full bg-white rounded-3xl shadow-xl relative overflow-hidden mx-auto">
+    <div className="  w-3/4  rounded-3xl relative overflow-hidden mx-auto">
       {/* Loading Overlay */}
       {isLoading && (
         <div className="absolute inset-0 bg-white bg-opacity-80 flex items-center justify-center z-10">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-blue-600 font-medium">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cnsc-primary-color mx-auto mb-4"></div>
+            <p className="text-cnsc-primary-color font-medium">
               {currentPhase === 1
                 ? "Sending verification code..."
                 : "Verifying code..."}
@@ -173,16 +174,18 @@ export function RegistrationForm({ onShowRegistration, onBackToLogin }) {
       )}
 
       {/* Phase Indicator */}
-      <div className="flex justify-center p-4 bg-gray-50">
+      <div className="flex justify-center p-4">
         <div className="flex items-center space-x-4">
           <div
             className={`flex items-center space-x-2 ${
-              currentPhase >= 1 ? "text-blue-600" : "text-gray-400"
+              currentPhase >= 1 ? "text-cnsc-primary-color" : "text-gray-400"
             }`}
           >
             <div
               className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                currentPhase >= 1 ? "bg-blue-600 text-white" : "bg-gray-200"
+                currentPhase >= 1
+                  ? "bg-cnsc-primary-color text-white"
+                  : "bg-gray-200"
               }`}
             >
               1
@@ -191,17 +194,19 @@ export function RegistrationForm({ onShowRegistration, onBackToLogin }) {
           </div>
           <div
             className={`w-8 h-0.5 ${
-              currentPhase >= 2 ? "bg-blue-600" : "bg-gray-200"
+              currentPhase >= 2 ? "bg-cnsc-primary-color" : "bg-gray-200"
             }`}
           ></div>
           <div
             className={`flex items-center space-x-2 ${
-              currentPhase >= 2 ? "text-blue-600" : "text-gray-400"
+              currentPhase >= 2 ? "text-cnsc-primary-color" : "text-gray-400"
             }`}
           >
             <div
               className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                currentPhase >= 2 ? "bg-blue-600 text-white" : "bg-gray-200"
+                currentPhase >= 2
+                  ? "bg-cnsc-primary-color text-white"
+                  : "bg-gray-200"
               }`}
             >
               2
@@ -213,7 +218,7 @@ export function RegistrationForm({ onShowRegistration, onBackToLogin }) {
 
       {currentPhase === 1 && (
         <div className="py-6 px-8">
-          <h2 className="text-2xl font-bold text-blue-600 mb-6 text-center">
+          <h2 className="text-2xl font-bold text-cnsc-primary-color mb-6 text-center">
             Create Account
           </h2>
           <div>
@@ -224,7 +229,7 @@ export function RegistrationForm({ onShowRegistration, onBackToLogin }) {
                   placeholder="Email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-white text-black w-full px-4 py-3 text-base rounded-xl border border-gray-300 focus:border-blue-600 focus:outline-none transition-colors"
+                  className="bg-white text-black w-full px-4 py-3 text-base rounded-xl border border-gray-300 focus:border-cnsc-primary-color focus:outline-none transition-colors"
                   onKeyDown={(e) => e.key === "Enter" && handleSubmit(e)}
                 />
                 <p className="text-sm text-gray-600 mt-1 ml-2">
@@ -237,18 +242,18 @@ export function RegistrationForm({ onShowRegistration, onBackToLogin }) {
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="bg-white text-black w-full px-4 py-3 pr-12 rounded-xl border border-gray-300 focus:border-blue-600 focus:outline-none transition-colors"
+                  className="bg-white text-black w-full px-4 py-3 pr-12 rounded-xl border border-gray-300 focus:border-cnsc-primary-color focus:outline-none transition-colors"
                   onKeyDown={(e) => e.key === "Enter" && handleSubmit(e)}
                 />
                 {showPassword ? (
                   <EyeOff
                     onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-500 hover:text-blue-600 transition-colors w-5 h-5"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-500 hover:text-cnsc-primary-color transition-colors w-5 h-5"
                   />
                 ) : (
                   <Eye
                     onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-500 hover:text-blue-600 transition-colors w-5 h-5"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-500 hover:text-cnsc-primary-color transition-colors w-5 h-5"
                   />
                 )}
               </div>
@@ -258,18 +263,18 @@ export function RegistrationForm({ onShowRegistration, onBackToLogin }) {
                   placeholder="Confirm Password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="bg-white text-black w-full px-4 py-3 pr-12 rounded-xl border border-gray-300 focus:border-blue-600 focus:outline-none transition-colors"
+                  className="bg-white text-black w-full px-4 py-3 pr-12 rounded-xl border border-gray-300 focus:border-cnsc-primary-color focus:outline-none transition-colors"
                   onKeyDown={(e) => e.key === "Enter" && handleSubmit(e)}
                 />
                 {showConfirmPassword ? (
                   <EyeOff
                     onClick={() => setShowConfirmPassword((prev) => !prev)}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-500 hover:text-blue-600 transition-colors w-5 h-5"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-500 hover:text-cnsc-primary-color transition-colors w-5 h-5"
                   />
                 ) : (
                   <Eye
                     onClick={() => setShowConfirmPassword((prev) => !prev)}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-500 hover:text-blue-600 transition-colors w-5 h-5"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-500 hover:text-cnsc-primary-color transition-colors w-5 h-5"
                   />
                 )}
               </div>
@@ -282,7 +287,7 @@ export function RegistrationForm({ onShowRegistration, onBackToLogin }) {
             <button
               onClick={handleSubmit}
               disabled={isLoading}
-              className="bg-blue-600 mt-6 text-white w-full py-3 text-lg rounded-xl hover:bg-blue-700 transition-all duration-300 font-semibold disabled:opacity-50"
+              className="bg-cnsc-primary-color mt-6 text-white w-full py-3 text-lg rounded-xl hover:bg-cnsc-secondary-color hover:text-black transition-all duration-300 font-semibold disabled:opacity-50"
             >
               {isLoading ? "Sending Code..." : "Continue"}
             </button>
@@ -303,7 +308,7 @@ export function RegistrationForm({ onShowRegistration, onBackToLogin }) {
       {currentPhase === 2 && (
         <div className="p-8">
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-blue-600 mb-2">
+            <h2 className="text-2xl font-bold text-cnsc-primary-color mb-2">
               Verification Required
             </h2>
             <p className="text-gray-600">
@@ -325,7 +330,7 @@ export function RegistrationForm({ onShowRegistration, onBackToLogin }) {
                   onChange={(e) =>
                     setCode(e.target.value.replace(/\D/g, "").slice(0, 6))
                   }
-                  className="bg-white text-black w-full px-4 py-3 text-center text-2xl font-mono rounded-xl border border-gray-300 focus:border-blue-600 focus:outline-none transition-colors tracking-widest"
+                  className="bg-white text-black w-full px-4 py-3 text-center text-2xl font-mono rounded-xl border border-gray-300 focus:border-cnsc-primary-color focus:outline-none transition-colors tracking-widest"
                   maxLength={6}
                   onKeyDown={(e) => e.key === "Enter" && handleSubmit(e)}
                 />
@@ -340,7 +345,7 @@ export function RegistrationForm({ onShowRegistration, onBackToLogin }) {
                     <button
                       onClick={resendOtp}
                       disabled={isLoading}
-                      className="text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors disabled:opacity-50"
+                      className="text-cnsc-primary-color hover:text-cnsc-primary-color text-sm font-medium transition-colors disabled:opacity-50"
                     >
                       {isLoading ? "Sending..." : "Resend verification code"}
                     </button>
@@ -364,7 +369,7 @@ export function RegistrationForm({ onShowRegistration, onBackToLogin }) {
               <button
                 onClick={handleSubmit}
                 disabled={isLoading}
-                className="flex-1 bg-blue-600 text-white py-3 text-lg rounded-xl hover:bg-blue-700 transition-all duration-300 font-semibold disabled:opacity-50"
+                className="flex-1 bg-cnsc-primary-color text-white py-3 text-lg rounded-xl hover:bg-cnsc-primary-color transition-all duration-300 font-semibold disabled:opacity-50"
               >
                 {isLoading ? "Verifying..." : "Complete Registration"}
               </button>
@@ -375,3 +380,34 @@ export function RegistrationForm({ onShowRegistration, onBackToLogin }) {
     </div>
   );
 }
+
+const handleRegistration = async (email, password, code) => {
+  console.log(email, password, code);
+  try {
+    const response = await axios.post(`${API_ROUTER}/confirmVerification`, {
+      email,
+      position: "student-leader",
+      password,
+      code,
+    });
+
+    // Proceed to registration form or next step
+    console.log("OTP confirmed successfully:", response.data);
+  } catch (err) {
+    console.error("OTP confirmation failed", err.response?.data || err.message);
+  }
+};
+
+const SendOtp = async ({ email }) => {
+  console.log(email);
+  try {
+    const response = await axios.post(`${API_ROUTER}/sendVerification`, {
+      email,
+    });
+    console.log("OTP sent response:", response.data);
+    return response.data; // Return the response for success handling
+  } catch (err) {
+    console.error("OTP sending failed", err.response?.data || err.message);
+    throw err; // Re-throw the error so it can be caught in the component
+  }
+};

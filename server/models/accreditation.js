@@ -6,12 +6,14 @@ export const accreditationSchema = new Schema(
   {
     organizationProfile: {
       type: Schema.Types.ObjectId,
-      ref: "organizationProfile",
+      ref: "OrganizationProfile",
     },
     overallStatus: { type: String, default: "Pending" },
     isActive: { type: Boolean, default: true },
-    documents: [{ type: Schema.Types.ObjectId, ref: "Document" }],
-    financialReport: [{ type: Schema.Types.ObjectId, ref: "financialReport" }],
+    JointStatement: { type: Schema.Types.ObjectId, ref: "Documents" },
+    PledgeAgainstHazing: { type: Schema.Types.ObjectId, ref: "Documents" },
+    Roster: { type: Schema.Types.ObjectId, ref: "Roster" },
+    PresidentProfile: { type: Schema.Types.ObjectId, ref: "PresidentProfile" },
   },
   { timestamps: true }
 );

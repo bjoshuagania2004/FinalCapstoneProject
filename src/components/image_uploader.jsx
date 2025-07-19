@@ -12,11 +12,11 @@ export const ProportionCropTool = ({
   onCropComplete = null,
   initialProportion = "1:1",
   maxImageHeight = 400,
-  showDownload = true,
   showReset = true,
   acceptedFormats = "image/*",
   className = "",
-  title = "Image Proportion Crop Tool",
+  title = "",
+  cropRef = null, // New prop to expose crop function
 }) => {
   const [imagePreview, setImagePreview] = useState(null); // For display only
   const [originalFile, setOriginalFile] = useState(null); // The actual File object
@@ -337,8 +337,12 @@ export const ProportionCropTool = ({
     });
   };
 
+  // Main crop function that can be called externally
   const cropImage = async () => {
-    if (!previewCanvasRef.current || !originalFile) return;
+    if (!previewCanvasRef.current || !originalFile) {
+      console.warn("No image to crop or canvas not ready");
+      return null;
+    }
 
     const croppedDataUrl = previewCanvasRef.current.toDataURL(
       originalFile.type
@@ -354,7 +358,7 @@ export const ProportionCropTool = ({
         const scaleX = img.width / rect.width;
         const scaleY = img.height / rect.height;
 
-        onCropComplete({
+        const cropData = {
           // Pass the original File object and cropped File object
           originalFile: originalFile,
           croppedFile: croppedFile,
@@ -367,12 +371,33 @@ export const ProportionCropTool = ({
             width: cropArea.width * scaleX,
             height: cropArea.height * scaleY,
           },
-        });
+        };
+
+        onCropComplete(cropData);
       };
 
       img.src = imagePreview;
     }
+
+    return {
+      originalFile,
+      croppedFile,
+      croppedDataUrl,
+      proportion: selectedProportion,
+      originalFileName,
+    };
   };
+
+  // Expose the crop function via ref
+  useEffect(() => {
+    if (cropRef) {
+      cropRef.current = {
+        cropImage,
+        hasImage: !!imagePreview,
+        resetImage,
+      };
+    }
+  }, [cropRef, imagePreview, cropImage]);
 
   const resetImage = () => {
     setImagePreview(null);
@@ -385,25 +410,8 @@ export const ProportionCropTool = ({
     }
   };
 
-  // Example download function using the File object
-  const downloadCroppedFile = async () => {
-    const croppedFile = await createCroppedFile();
-    if (croppedFile) {
-      const url = URL.createObjectURL(croppedFile);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = croppedFile.name;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-  };
-
   return (
-    <div
-      className={`max-w-6xl mx-auto p-6 bg-gray-200 text-black rounded-2xl shadow-2xl ${className}`}
-    >
-      <h2 className="text-3xl font-black mb-6 text-center">{title}</h2>
-
+    <div className={` ${className}`}>
       {!imagePreview ? (
         <div
           className={`border-2 border-dashed rounded-xl p-12 text-center text-black transition-colors ${
@@ -416,9 +424,7 @@ export const ProportionCropTool = ({
           onDragLeave={handleDragLeave}
         >
           <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-          <p className="text-lg  mb-4">
-            Drop your image here or click to browse
-          </p>
+
           <input
             ref={fileInputRef}
             type="file"
@@ -534,14 +540,6 @@ export const ProportionCropTool = ({
 
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-4 justify-center">
-            <button
-              onClick={cropImage}
-              className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 font-medium"
-            >
-              <UploadCloud className="w-5 h-5" />
-              Upload
-            </button>
-
             {showReset && (
               <button
                 onClick={resetImage}

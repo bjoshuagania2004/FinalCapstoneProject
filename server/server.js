@@ -6,7 +6,7 @@ import cors from "cors";
 import path from "path";
 import session from "express-session";
 import MongoStore from "connect-mongo";
-import apiRoutes from "./routes/routers.js";
+import apiRoutes from "./routers.js";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 
@@ -19,7 +19,7 @@ dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
 const app = express();
 const DB = process.env.MONGO_URI;
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT;
 
 // Connect to MongoDB
 async function connectDB() {
@@ -64,7 +64,7 @@ app.use(
 
 // // Inactivity timeout middleware
 const INACTIVITY_GRACE = 5000; // 5 seconds
-const INACTIVITY_TIMEOUT = 1800000; // 30 minutes
+const INACTIVITY_TIMEOUT = 3600000; // 30 minutes
 
 const activityMiddleware = (req, res, next) => {
   const now = Date.now();

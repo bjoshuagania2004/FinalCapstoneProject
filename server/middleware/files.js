@@ -2,7 +2,6 @@ import path from "path";
 import fs from "fs";
 import fsPromises from "fs/promises";
 import multer from "multer";
-import { error, time, timeStamp } from "console";
 
 // Ensure the target directory exists (using an absolute path)
 const ensureDirExists = (dir) => {
@@ -28,17 +27,11 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const timestamp = Date.now();
-    const originalName = file.originalname;
-
-    // Option 1: Prepend timestamp
-    const uniqueName = `${timestamp}-${originalName}`;
-
-    // Option 2: Append timestamp before extension
-    // const ext = originalName.substring(originalName.lastIndexOf('.'));
-    // const nameWithoutExt = originalName.substring(0, originalName.lastIndexOf('.'));
-    // const uniqueName = `${nameWithoutExt}-${timestamp}${ext}`;
-
-    cb(null, uniqueName);
+    const ext = path.extname(file.originalname);
+    const baseName = path.basename(file.originalname, ext);
+    const sanitizedBaseName = baseName.replace(/[^a-zA-Z0-9_]/g, "_");
+    const finalFileName = `${sanitizedBaseName}_${timestamp}${ext}`;
+    cb(null, finalFileName);
   },
 });
 
@@ -112,7 +105,7 @@ export const UploadSingleFile = (req, res, next) => {
     upload.single("file")(req, res, (err) => {
       const document = req.file;
 
-      console.log("there is a file here");
+      console.log("there is a file here", req.file);
       if (!document) {
         return res.status(400).json({
           error: "file is required",

@@ -1,26 +1,19 @@
 import "./main.css";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Route,
   Routes,
   Outlet,
   useNavigate,
-  Navigate,
   useLocation,
 } from "react-router-dom";
 import HomePage from "./pages/public/home_page";
-import StudentAdminPage from "./pages/admin/student-leader/student_leader_main";
-import StudentProposalSection from "./pages/admin/student-leader/proposals/view";
-import StudentAccreditationSection from "./pages/admin/student-leader/accreditations/accreditations_main";
-import StudentAccomplishmentSection from "./pages/admin/student-leader/accomplishments/accomplishment_main";
-import StudentPostSection from "./pages/admin/student-leader/post/view";
-import StudentLogsSection from "./pages/admin/student-leader/student_leader_logs";
-import FileUploadDemo from "./components/demo";
+import { AlertTriangle, X, LogOut } from "lucide-react";
 import { NotFoundPage, UnauthorizedPage } from "./components/error";
+import StudentLeaderMainPage from "./pages/admin/student-leader/student-leader-main";
+import PhilippineAddressForm from "./sandbox";
 const MAIN_API_ROUTER = import.meta.env.VITE_API_ROUTER;
-import { X, AlertTriangle, LogOut } from "lucide-react";
-import { ProportionCropTool } from "./components/image_uploader";
 
 export const API_ROUTER = `${MAIN_API_ROUTER}/api`;
 
@@ -28,10 +21,10 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
-      <Route path="/sandbox" element={<ExampleUsage />} />
+      <Route path="/sandbox" element={<PhilippineAddressForm />} />
 
-      <Route element={<ProtectedRoute allowedRoles={["student_leader"]} />}>
-        <Route path="/student-leader/*" element={<StudentAdminPage />} />
+      <Route element={<ProtectedRoute allowedRoles={["student-leader"]} />}>
+        <Route path="/student-leader/*" element={<StudentLeaderMainPage />} />
       </Route>
 
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
@@ -40,131 +33,108 @@ export default function App() {
   );
 }
 
-const ExampleUsage = () => {
-  const handleCropComplete = (result) => {
-    // Access the original File object
-    console.log("Original File:", result.originalFile);
-    console.log("Original file size:", result.originalFile.size);
-
-    // Access the cropped File object
-    console.log("Cropped File:", result.croppedFile);
-    console.log("Cropped file size:", result.croppedFile.size);
-
-    // Upload to server using FormData
-    const formData = new FormData();
-    formData.append("organization", result.croppedFile.name);
-    formData.append("file", result.croppedFile);
-    formData.append("fileName", result.croppedFile.name);
-
-    axios
-      .post(`${API_ROUTER}/upload-profile`, formData)
-      .then((response) => {
-        console.log("Upload response:", response.data);
-      })
-      .catch((error) => {
-        console.error("Upload error:", error);
-      });
-  };
-
-  return (
-    <div className="space-y-8">
-      <ProportionCropTool
-        title="Crop & Submit Demo"
-        onCropComplete={handleCropComplete}
-      />
-    </div>
-  );
-};
-
-// Option 2: Using sessionStorage (if you want persistence across browser sessions)
 const ProtectedRoute = ({ allowedRoles }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [isChecking, setIsChecking] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [showSessionExpired, setShowSessionExpired] = useState(false); // Add this
-  const [userData, setUserData] = useState(() => {
-    try {
-      const stored = sessionStorage.getItem("userData");
-      return stored ? JSON.parse(stored) : null;
-    } catch {
-      return null;
-    }
-  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [showSessionExpired, setShowSessionExpired] = useState(false);
 
   useEffect(() => {
     const checkSession = async () => {
+      // Check if user had a previous session before making the request
+      const hadPreviousSession = sessionStorage.getItem("userData");
+
       try {
         const res = await axios.get(`${API_ROUTER}/session-check`, {
           withCredentials: true,
         });
-        setIsChecking(true);
 
         if (res.data.loggedIn) {
           const userRole = res.data.user.position;
-          const isAllowed = allowedRoles.includes(userRole);
 
-          if (isAllowed) {
-            sessionStorage.setItem("userData", JSON.stringify(res.data.user));
-            setUserData(res.data.user);
-            setIsAuthenticated(true);
-            setShowSessionExpired(false); // Hide popup if session is valid
+          if (allowedRoles.includes(userRole)) {
+            setUser(res.data.user);
+            setShowSessionExpired(false);
           } else {
-            sessionStorage.removeItem("userData");
-            setIsAuthenticated(false);
+            // User is logged in but doesn't have permission
+            setUser(null);
+            navigate("/unauthorized", { replace: true });
           }
         } else {
-          // Check if user had a previous session
-          const hadPreviousSession = sessionStorage.getItem("userData");
-          sessionStorage.removeItem("userData");
-          setIsAuthenticated(false);
-
-          // Show popup only if user had a previous session
+          // Not logged in - show popup if had previous session
+          setUser(null);
           if (hadPreviousSession) {
             setShowSessionExpired(true);
+            sessionStorage.removeItem("userData");
+          } else {
+            // No previous session, redirect to login
+            navigate("/", { replace: true });
           }
         }
       } catch (err) {
-        const hadPreviousSession = sessionStorage.getItem("userData");
-        sessionStorage.removeItem("userData");
-        setIsAuthenticated(false);
-
-        // Show popup for session-related errors
+        // Handle session check errors
+        setUser(null);
         if (
           hadPreviousSession &&
           (err.response?.status === 401 || err.response?.status === 403)
         ) {
           setShowSessionExpired(true);
+          sessionStorage.removeItem("userData");
+        } else if (!hadPreviousSession) {
+          // Only redirect if no previous session
+          navigate("/", { replace: true });
+        }
+        // If there was a previous session but error isn't 401/403, show popup anyway
+        else {
+          setShowSessionExpired(true);
+          sessionStorage.removeItem("userData");
         }
       } finally {
-        setIsChecking(false);
+        setIsLoading(false);
       }
     };
 
     checkSession();
-  }, [location.pathname, allowedRoles]);
+  }, [location.pathname, allowedRoles, navigate]);
 
-  if (isChecking)
-    return <div className="flex justify-center items-center">Loading...</div>;
+  // Update sessionStorage when user changes
+  useEffect(() => {
+    if (user) {
+      sessionStorage.setItem("userData", JSON.stringify(user));
+    }
+  }, [user]);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  const handleSessionExpiredRedirect = () => {
+    setShowSessionExpired(false);
+    sessionStorage.clear();
+    navigate("/", { replace: true });
+  };
 
   return (
     <>
-      {isAuthenticated ? (
-        <Outlet context={{ user: userData }} />
+      {user ? (
+        <Outlet context={{ user }} />
+      ) : showSessionExpired ? (
+        <SessionExpiredPopup
+          isOpen={showSessionExpired}
+          onClose={() => setShowSessionExpired(false)}
+          onRedirect={handleSessionExpiredRedirect}
+        />
       ) : (
-        <Navigate to="/unauthorized" replace />
+        // Show loading or nothing while checking/redirecting
+        <div className="flex justify-center items-center min-h-screen">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
       )}
-
-      {/* Add the session expired popup */}
-      <SessionExpiredPopup
-        isOpen={showSessionExpired}
-        onClose={() => setShowSessionExpired(false)}
-        onRedirect={() => {
-          setShowSessionExpired(false);
-          sessionStorage.clear();
-          navigate("/login", { replace: true });
-        }}
-      />
     </>
   );
 };
@@ -173,21 +143,19 @@ const SessionExpiredPopup = ({ isOpen, onClose, onRedirect }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 transform transition-all ">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 animate-in fade-in-0 zoom-in-95 duration-200">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
-            <div className="flex-shrink-0">
-              <AlertTriangle className="w-6 h-6 text-red-500" />
-            </div>
+            <AlertTriangle className="w-6 h-6 text-red-500" />
             <h3 className="text-lg font-semibold text-gray-900">
               Session Expired
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 hover:text-gray-600 transition-colors rounded-full p-1 hover:bg-gray-100"
           >
             <X className="w-5 h-5" />
           </button>
@@ -202,57 +170,16 @@ const SessionExpiredPopup = ({ isOpen, onClose, onRedirect }) => {
 
           {/* Actions */}
           <div className="flex space-x-3">
-            <a
-              href="/"
+            <button
+              onClick={onRedirect}
               className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors flex items-center justify-center space-x-2"
             >
               <LogOut className="w-4 h-4" />
               <span>Sign In Again</span>
-            </a>
+            </button>
           </div>
         </div>
       </div>
-    </div>
-  );
-};
-
-const Demo = () => {
-  const [showPopup, setShowPopup] = useState(false);
-
-  return (
-    <div className="p-8 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Session Expired Popup Demo</h1>
-
-      <div className="space-y-4">
-        <button
-          onClick={() => setShowPopup(true)}
-          className="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-md transition-colors"
-        >
-          Show Session Expired Popup
-        </button>
-
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <h3 className="font-semibold mb-2 text-blue-800">Features:</h3>
-          <ul className="text-sm text-blue-700 space-y-1">
-            <li>• Automatically detects session expiration</li>
-            <li>• Only shows popup if user had a previous session</li>
-            <li>• Provides clear call-to-action to sign in again</li>
-            <li>• Includes proper cleanup of session data</li>
-            <li>• Backdrop blur and smooth animations</li>
-            <li>• Responsive design</li>
-            <li>• Accessible with keyboard navigation</li>
-          </ul>
-        </div>
-      </div>
-
-      <SessionExpiredPopup
-        isOpen={showPopup}
-        onClose={() => setShowPopup(false)}
-        onRedirect={() => {
-          setShowPopup(false);
-          alert("Would redirect to login page");
-        }}
-      />
     </div>
   );
 };

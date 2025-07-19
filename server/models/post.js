@@ -4,6 +4,10 @@ const { Schema } = mongoose;
 const postSchema = new Schema(
   {
     organization: { type: Schema.Types.ObjectId, ref: "Organization" },
+    organizationProfile: {
+      type: Schema.Types.ObjectId,
+      ref: "OrganizationProfile",
+    },
     status: { type: String },
     tags: [String],
     title: String,
