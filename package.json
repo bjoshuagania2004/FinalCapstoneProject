@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
+    "postinstall": "npm install @tailwindcss/oxide",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
