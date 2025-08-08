@@ -3,7 +3,78 @@ import { Link, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import Login from "./login_form";
 import { RegistrationForm } from "./registration_form";
+import backgroundImage from "/cnscsch.jpg"; // Adjust the path as necessary
 
+export default function HomePage() {
+  const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToSection = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  };
+  return (
+    <div className="relative h-screen w-screen ">
+      {/* Desktop Navigation */}
+      <div className="hidden md:flex h-full w-full items-center justify-center z-10 relative">
+        <DekstopNavigation scrollToSection={scrollToSection} />
+      </div>
+      <div className="flex md:hidden h-full w-full items-center justify-center z-10 relative">
+        <CellphoneNavigation />
+      </div>
+
+      {/* Background Image */}
+      <img
+        src={backgroundImage}
+        alt="Background"
+        className="absolute inset-0 w-full h-full object-cover brightness-50 z-0"
+      />
+    </div>
+  );
+}
+
+function OrganzationComponent() {
+  return (
+    <div className="text-center p-8">
+      <h2 className="text-3xl font-bold text-blue-800 mb-4">Organizations</h2>
+      <p className="text-base text-blue-600">
+        Browse all student organizations and their information.
+      </p>
+    </div>
+  );
+}
+function EventCalendarComponent() {
+  return (
+    <div className="text-center p-8">
+      <h2 className="text-3xl font-bold text-purple-800 mb-4">
+        Latest Posts & Updates
+      </h2>
+      <p className="text-base text-purple-600">
+        Stay updated with the latest news and announcements.
+      </p>
+    </div>
+  );
+}
+function PostComponent() {
+  return (
+    <div className="text-center p-8">
+      <h2 className="text-3xl font-bold text-green-800 mb-4">Event Calendar</h2>
+      <p className="text-base text-green-600">
+        View upcoming events and important dates.
+      </p>
+    </div>
+  );
+}
 function DekstopNavigation({ scrollToSection }) {
   const [showRegistration, setShowRegistration] = useState(false);
   const navigate = useNavigate();
@@ -191,74 +262,3 @@ function CellphoneNavigation() {
 }
 
 // Your component implementations remain the same
-
-export default function HomePage() {
-  const [scrollY, setScrollY] = useState(0);
-
-  useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  const scrollToSection = (sectionId) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }
-  };
-  return (
-    <div className="relative h-screen w-screen ">
-      {/* Desktop Navigation */}
-      <div className="hidden md:flex h-full w-full items-center justify-center z-10 relative">
-        <DekstopNavigation scrollToSection={scrollToSection} />
-      </div>
-      <div className="flex md:hidden h-full w-full items-center justify-center z-10 relative">
-        <CellphoneNavigation />
-      </div>
-
-      {/* Background Image */}
-      <img
-        src="/cnscsch.jpg"
-        alt="Background"
-        className="absolute inset-0 w-full h-full object-cover brightness-50 z-0"
-      />
-    </div>
-  );
-}
-
-function OrganzationComponent() {
-  return (
-    <div className="text-center p-8">
-      <h2 className="text-3xl font-bold text-blue-800 mb-4">Organizations</h2>
-      <p className="text-base text-blue-600">
-        Browse all student organizations and their information.
-      </p>
-    </div>
-  );
-}
-function EventCalendarComponent() {
-  return (
-    <div className="text-center p-8">
-      <h2 className="text-3xl font-bold text-purple-800 mb-4">
-        Latest Posts & Updates
-      </h2>
-      <p className="text-base text-purple-600">
-        Stay updated with the latest news and announcements.
-      </p>
-    </div>
-  );
-}
-function PostComponent() {
-  return (
-    <div className="text-center p-8">
-      <h2 className="text-3xl font-bold text-green-800 mb-4">Event Calendar</h2>
-      <p className="text-base text-green-600">
-        View upcoming events and important dates.
-      </p>
-    </div>
-  );
-}
