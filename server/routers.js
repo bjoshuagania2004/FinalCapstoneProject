@@ -1,80 +1,99 @@
 import multer from "multer";
 import express from "express";
-import { UploadSingleFile } from "./middleware/files.js";
-import {
-  ConfirmRegistration,
-  RegisterUser,
-  SendRegistrationConfirmationCode,
-  CheckSession,
-  Login,
-  PostInitialOrganizationProfile,
-  GetUserInformation,
-  GetOrganizationProfileInformation,
-  Logout,
-} from "./controller/general.js";
-import {
-  AddPresident,
-  GetPresidentByOrg,
-} from "./controller/student-leader/president.js";
-import {
-  AddNewRosterMember,
-  GetRosterMemberByOrganization,
-} from "./controller/student-leader/roster-member.js";
-import {
-  getDocumentById,
-  uploadFileAndAddDocument,
-} from "./controller/general-document.js";
-
-import { AddAccreditationDocument } from "./controller/student-leader/accreditation-documents.js";
-import { GetAccreditationDetails } from "./controller/student-leader/index-student-leader.js";
-import {
-  AddReceipt,
-  getFinancialReport,
-} from "./controller/student-leader/financial-report.js";
+import * as Controller from "./controller/index.js";
 
 const router = express.Router();
 const storage = multer.memoryStorage(); // or use diskStorage for local saving
-const upload = multer({ storage });
 
-/* ========== STUDENT LEADER ========== */
+/* ========== STUDENT DEVELOPMENT ORGANIZATION ========== */
+router.get("/getAllOrganizationProfile", Controller.GetAllOrganizationProfile);
+router.get("/getAllOrganization/", Controller.GetAllOrganization);
 
-/* ========== FINANCIAL REPORT ========== */
-router.get("/getFinancialReport/:OrgProfileId", getFinancialReport);
-router.post("/addReciept", uploadFileAndAddDocument, AddReceipt);
+/* ========== STUDENT DEVELOPMENT ACCREDITATION ========== */
+router.get("/getAllAccreditationId", Controller.GetAllAccreditationId);
+router.get(
+  "/checkAccreditationApprovalStatuses/:orgProfileId",
+  Controller.CheckAccreditationApprovalStatus
+);
+/* ========== STUDENT DEVELOPMENT PRESIDENT ========== */
+router.post(
+  "/approvePresidentProfile/:presidentId",
+  Controller.ApprovePresidentProfile
+);
 
-/* ========== ACCREDITATION========== */
-router.get("/getAccreditationInfo/:orgProfileId", GetAccreditationDetails);
+/* ========== STUDENT DEVELOPMENT ROSTER ========== */
+router.get("/getAllroster", Controller.GetRosterAllMembers);
+router.get(
+  "/getRosterByOrg/:orgProfileId",
+  Controller.GetRosterMembersByOrganizationIdSDU
+);
+router.post("/ApproveRosterList/:rosterId", Controller.ApprovedRosterList);
+router.post("/RevisionRosterList/:rosterId", Controller.revisionNoteRosterList);
 
-/* ========== DOCUMENTS ========== */
+/* ==========  STUDENT LEADER FINANCIAL REPORT ========== */
+router.get("/getFinancialReport/:OrgProfileId", Controller.getFinancialReport);
+router.post(
+  "/addReciept",
+  Controller.uploadFileAndAddDocument,
+  Controller.AddReceipt
+);
+
+/* ==========  STUDENT LEADER ACCREDITATION ========== */
+router.get(
+  "/getAccreditationInfo/:orgProfileId",
+  Controller.GetAccreditationDetails
+);
+
+/* ========== STUDENT LEADER DOCUMENTS ========== */
 router.post(
   "/addAccreditationDocument",
-  uploadFileAndAddDocument,
-  AddAccreditationDocument
+  Controller.uploadFileAndAddDocument,
+  Controller.AddAccreditationDocument
 );
 
-/* ========== ROSTER MEMBER ========== */
-router.get("/getRosterMembers/:orgProfileId", GetRosterMemberByOrganization);
-router.post("/addRosterMember", uploadFileAndAddDocument, AddNewRosterMember);
+/* ========== STUDENT LEADER ROSTER MEMBER ========== */
+router.get(
+  "/getRosterMembers/:orgProfileId",
+  Controller.GetRosterMemberByOrganization
+);
+router.post(
+  "/addRosterMember",
+  Controller.uploadFileAndAddDocument,
+  Controller.AddNewRosterMember
+);
 
-/* ========== PRESIDENT ========== */
-router.post("/addPresident", AddPresident);
-router.get("/getPresidents/:orgId", GetPresidentByOrg);
+/* ========== STUDENT LEADER PRESIDENT ========== */
+router.post("/addPresident", Controller.AddPresident);
+router.post(
+  "/addPresidentProfile/:presidentId",
+  Controller.uploadFileAndAddDocument,
+  Controller.UpdatePresidentProfile
+);
+router.get("/getPresidents/:orgId", Controller.GetPresidentByOrg);
+router.get("/getPresident/:orgPresidentId", Controller.GetPresidentById);
 
 /* ========== GENERAL ========== */
-router.get("/userInfo/:userId", GetUserInformation);
-
+router.post(
+  "/uploadOrganizationLogo",
+  Controller.uploadFileAndAddDocument,
+  Controller.PostOrganizationalLogo
+);
+router.get("/userInfo/:userId", Controller.GetUserInformation);
 router.get(
   "/getOrganizationProfile/:orgProfileId",
-  GetOrganizationProfileInformation
+  Controller.GetOrganizationProfileInformation
 );
-router.post("/login", Login);
-router.post("/logout", Logout);
-router.get("/session-check", CheckSession);
+router.post("/login", Controller.Login);
+router.post("/logout", Controller.Logout);
+router.get("/session-check", Controller.CheckSession);
 
-router.post("/sendVerification", SendRegistrationConfirmationCode);
-router.post("/confirmVerification", ConfirmRegistration, RegisterUser);
-router.post("/initialRegistration", PostInitialOrganizationProfile);
-// router.post("/initialRegistration", PostInitialOrganizationProfile);
-router.get("/documents/:id", getDocumentById);
+router.post("/sendVerification", Controller.SendRegistrationConfirmationCode);
+router.post(
+  "/confirmVerification",
+  Controller.ConfirmRegistration,
+  Controller.RegisterUser
+);
+router.post("/initialRegistration", Controller.PostInitialOrganizationProfile);
+router.get("/documents/:id", Controller.getDocumentById);
 
 export default router;

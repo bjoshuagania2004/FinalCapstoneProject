@@ -1,4 +1,4 @@
-import { Receipt, FinancialReport } from "../../models/index.js";
+import { Receipt, FinancialReport } from "../models/index.js";
 
 export const getFinancialReport = async (req, res) => {
   try {

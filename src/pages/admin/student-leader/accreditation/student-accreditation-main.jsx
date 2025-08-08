@@ -21,6 +21,7 @@ import {
 import axios from "axios";
 import { API_ROUTER } from "../../../../App";
 import DocumentUploader from "../../../../components/document_uploader";
+
 export default function StudentAccreditationMainComponent({ orgId }) {
   const [accreditationData, setAccreditationData] = useState(null);
   const [uploadingDocType, setUploadingDocType] = useState(null);
@@ -60,19 +61,6 @@ export default function StudentAccreditationMainComponent({ orgId }) {
 
     GetAccreditationInformation();
   }, [orgId]);
-
-  const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case "approved":
-        return "text-green-600 bg-green-50";
-      case "pending":
-        return "text-yellow-600 bg-yellow-50";
-      case "rejected":
-        return "text-red-600 bg-red-50";
-      default:
-        return "text-gray-600 bg-gray-50";
-    }
-  };
 
   const handleUploadSubmit = async () => {
     if (!selectedFile || !uploadingDocType) return;

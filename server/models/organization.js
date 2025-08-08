@@ -5,8 +5,8 @@ export const organizationProfileSchema = new Schema(
   {
     organization: { type: Schema.Types.ObjectId, ref: "Organization" },
     orgPresident: { type: Schema.Types.ObjectId, ref: "PresidentProfile" },
-
-    logo: String,
+    overAllStatus: { type: String, default: "Pending" },
+    orgLogo: String,
     orgName: String, // Name used this year
     orgClass: String,
     orgCourse: String,
@@ -14,6 +14,7 @@ export const organizationProfileSchema = new Schema(
     orgAcronym: String,
     orgDepartment: String,
     orgSpecialization: String,
+    isActive: { type: Boolean, default: true },
 
     adviserName: String,
     adviserEmail: String,
@@ -28,11 +29,10 @@ export const organizationSchema = new Schema(
     establishedDate: Date,
     currentName: String,
 
-    isActive: { type: Boolean, default: true },
     organizationProfile: [
       {
         type: Schema.Types.ObjectId,
-        ref: "organizationProfile",
+        ref: "OrganizationProfile",
       },
     ],
   },

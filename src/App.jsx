@@ -13,6 +13,7 @@ import { AlertTriangle, X, LogOut } from "lucide-react";
 import { NotFoundPage, UnauthorizedPage } from "./components/error";
 import StudentLeaderMainPage from "./pages/admin/student-leader/student-leader-main";
 import PhilippineAddressForm from "./sandbox";
+import StudentDevMainLayout from "./pages/admin/sdu/sdu-main";
 const MAIN_API_ROUTER = import.meta.env.VITE_API_ROUTER;
 
 export const API_ROUTER = `${MAIN_API_ROUTER}/api`;
@@ -25,6 +26,9 @@ export default function App() {
 
       <Route element={<ProtectedRoute allowedRoles={["student-leader"]} />}>
         <Route path="/student-leader/*" element={<StudentLeaderMainPage />} />
+      </Route>
+      <Route element={<ProtectedRoute allowedRoles={["SDU", "sdu"]} />}>
+        <Route path="/SDU/*" element={<StudentDevMainLayout />} />
       </Route>
 
       <Route path="/unauthorized" element={<UnauthorizedPage />} />

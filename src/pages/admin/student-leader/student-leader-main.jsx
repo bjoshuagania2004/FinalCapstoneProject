@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   NavLink,
   Routes,
   Route,
   useOutletContext,
+  Outlet,
   useLocation,
   useNavigate,
 } from "react-router-dom";
@@ -18,48 +19,98 @@ import {
   LogOut,
   X,
   ReceiptPoundSterling,
+  UserPlus2,
+  UserPlus,
+  CameraIcon,
+  Plus,
 } from "lucide-react";
 import axios from "axios";
 import { API_ROUTER } from "../../../App";
 import InitialRegistration from "./initial-registration";
 import StudentLeaderPresidentListComponent from "./accreditation/presidents/president";
 import StudentLeaderRosters from "./accreditation/roster-members/roster-member";
-import StudentAccreditationPage from "./accreditation/navigation";
-import StudentAccreditationMainComponent from "./accreditation/accreditation-main";
+import StudentAccreditationMainComponent from "./accreditation/student-accreditation-main";
 import StudentHomePage from "./home";
 import FinancialReport from "./accreditation/financial-report.jsx/financial-report";
+import { ProportionCropTool } from "../../../components/image_uploader";
+import AccreditationDocuments from "./accreditation/documents";
 
 export default function StudentLeaderMainPage() {
-  const { user } = useOutletContext();
+  const [orgData, setOrgData] = useState({});
+  const [orgProfileId, setOrgProfileId] = useState("");
 
   return (
-    <div className="flex flex-col h-screen  w-screen overflow-hidden">
-      {/* Header with fixed height */}
+    <div className="flex flex-col h-screen w-screen overflow-hidden">
+      {/* Header */}
+      <div className="flex min-h-24 bg-amber-600" />
 
-      {/* Main content area fills the rest of the screen */}
-      <div className="flex min-h-24 bg-amber-600 " />
-      <div className="flex h-full  overflow-auto">
-        {/* Sidebar */}
-        <div className="w-1/6 h-full flex flex-col p-4 bg-cnsc-primary-color">
-          <StudentNavigation />
+      {/* Main content area */}
+      <div className="flex h-full overflow-auto">
+        <div className="w-1/5 h-full flex flex-col p-4 bg-cnsc-primary-color">
+          <StudentNavigation orgData={orgData} />
           <LogoutButton />
         </div>
 
-        {/* Main content */}
-        <div className="flex-1 h-full  overflow-y-auto">
-          <StudentComponents />
+        <div className="flex-1 h-full overflow-y-auto">
+          <StudentComponents
+            orgData={orgData}
+            setOrgData={setOrgData}
+            orgProfileId={orgProfileId}
+            setOrgProfileId={setOrgProfileId}
+          />
         </div>
       </div>
     </div>
   );
 }
+function StudentAccreditationNavigationPage() {
+  const tabs = [
+    { to: ".", label: "Overview", end: true },
+    { to: "financial-report", label: "Financial Report" },
+    { to: "documents", label: "Accreditation Documents" },
+    { to: "roster-of-members", label: "Roster of Members" },
+    { to: "president-information", label: "President's Information Sheet" },
+  ];
 
-function StudentComponents() {
+  return (
+    <div className="h-full flex flex-col p-4">
+      {/* Navigation */}
+      <nav className="flex gap-4 p-4 bg-white rounded-t-2xl pb-4 border-b">
+        {tabs.map((tab) => (
+          <NavLink
+            key={tab.to}
+            to={tab.to}
+            end={tab.end}
+            className={({ isActive }) =>
+              `text-lg font-semibold px-4 pt-2 ${
+                isActive
+                  ? "border-b-2 border-blue-600 text-blue-600"
+                  : "text-gray-600 hover:text-blue-500"
+              }`
+            }
+          >
+            {tab.label}
+          </NavLink>
+        ))}
+      </nav>
+
+      {/* Tab Content */}
+      <div className="h-full overflow-hidden  flex flex-col ">
+        <Outlet />
+      </div>
+    </div>
+  );
+}
+
+function StudentComponents({
+  orgData,
+  setOrgData,
+  orgProfileId,
+  setOrgProfileId,
+}) {
   const { user } = useOutletContext();
   const [userId, setUserId] = useState(user.userId);
   const [userData, setUserData] = useState({});
-  const [orgData, setorgData] = useState({});
-  const [orgProfileId, setOrgProfileId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
   const [hasNavigated, setHasNavigated] = useState(false);
@@ -112,7 +163,7 @@ function StudentComponents() {
             `${API_ROUTER}/getOrganizationProfile/${user.organizationProfile}`,
             { withCredentials: true }
           );
-          setorgData(orgResponse.data);
+          setOrgData(orgResponse.data);
         }
       } catch (err) {
         console.error("Error fetching data:", err);
@@ -197,7 +248,10 @@ function StudentComponents() {
             />
           }
         />
-        <Route path="accreditation" element={<StudentAccreditationPage />}>
+        <Route
+          path="accreditation"
+          element={<StudentAccreditationNavigationPage />}
+        >
           <Route
             index
             element={
@@ -219,6 +273,16 @@ function StudentComponents() {
             path="president-information"
             element={
               <StudentLeaderPresidentListComponent
+                orgData={orgData}
+                accreditationData={accreditationData}
+              />
+            }
+          />
+
+          <Route
+            path="Documents"
+            element={
+              <AccreditationDocuments
                 orgData={orgData}
                 accreditationData={accreditationData}
               />
@@ -257,29 +321,184 @@ function StudentComponents() {
   );
 }
 
-function StudentNavigation() {
+function StudentNavigation({ orgData }) {
+  // Add safety check for orgData
+  if (!orgData) {
+    return <div>Loading...</div>;
+  }
+
+  const imageSrc =
+    orgData._id && orgData.orgLogo ? `/${orgData._id}/${orgData.orgLogo}` : "";
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [croppedData, setCroppedData] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const cropRef = useRef();
+
+  const handleUploadClick = () => {
+    setIsUploadingLogo(true);
+  };
+
+  const cancelUploadLogo = () => {
+    setIsUploadingLogo(false);
+    setSelectedFile(null);
+    setCroppedData(null);
+  };
+
+  const handleCropComplete = (cropData) => {
+    setCroppedData(cropData);
+  };
+
+  const handleSubmitOrgLogo = async () => {
+    setIsUploading(true);
+
+    try {
+      let finalCropData = croppedData;
+
+      // If there's an image uploaded but not cropped yet, crop it first
+      if (cropRef.current && cropRef.current.hasImage && !croppedData) {
+        console.log("Cropping image before submit...");
+        const result = await cropRef.current.cropImage();
+        if (result) {
+          finalCropData = result;
+          setCroppedData(result); // Fixed: was setCropData
+          console.log("Crop completed:", result);
+        }
+      }
+
+      const formData = new FormData();
+      formData.append("orgId", orgData._id); // Add organization ID if needed
+      formData.append("organizationProfile", orgData._id); // Add organization ID if needed
+
+      // Add cropped image file to FormData (if available)
+      if (finalCropData && finalCropData.croppedFile) {
+        formData.append("file", finalCropData.croppedFile);
+        formData.append("profilePicture", finalCropData.croppedFile.name);
+      }
+
+      console.log("=== FormData Contents ===");
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}: ${value}`);
+      }
+      // Send to backend
+      const response = await axios.post(
+        `${API_ROUTER}/uploadOrganizationLogo`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      console.log("Logo uploaded successfully:", response.data);
+
+      // Close modal on success
+      setIsUploadingLogo(false);
+      setSelectedFile(null);
+      setCroppedData(null);
+
+      // Optionally show success message
+      alert("Logo uploaded successfully!");
+    } catch (error) {
+      console.error("Error uploading logo:", error);
+      alert("Error uploading logo. Please try again.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
-    <div className="bg-cnsc-primary-color h-full w-full flex-col">
-      <nav className="flex flex-col space-y-2">
-        {navigationItems.map((item) => (
-          <NavLink
-            key={item.key}
-            to={item.path}
-            end={item.key === "home"}
-            className={({ isActive }) =>
-              `flex items-center py-4 rounded-lg text-lg font-medium transition-all duration-500 ${
-                isActive
-                  ? "px-4 bg-white text-cnsc-primary-color"
-                  : "px-2 text-white hover:bg-amber-500"
-              }`
-            }
-          >
-            {item.icon}
-            {item.label}
-          </NavLink>
-        ))}
-      </nav>
-    </div>
+    <>
+      <div className="bg-cnsc-primary-color h-full w-full flex-col">
+        <div className="text-white mt-2 mb-4 font-bold flex items-center space-x-4 hover:cursor-pointer">
+          <div className="w-20 aspect-square rounded-full bg-cnsc-secondary-color flex items-center justify-center text-2xl cursor-pointer overflow-hidden hover:bg-white hover:text-cnsc-primary-color transition-all duration-500">
+            {imageSrc ? (
+              <img
+                src={imageSrc}
+                alt="Organization Logo"
+                className="w-full h-full object-cover rounded-full"
+              />
+            ) : (
+              <span
+                className="relative inline-block"
+                onClick={handleUploadClick}
+              >
+                <CameraIcon size={48} />
+                <Plus
+                  size={24}
+                  className="absolute top-0 right-0 transform translate-x-1/3 bg-cnsc-secondary-color rounded-full"
+                />
+              </span>
+            )}
+          </div>
+          <h1>{orgData.orgName}</h1>
+        </div>
+
+        <nav className="flex flex-col space-y-2">
+          {navigationItems.map((item) => (
+            <NavLink
+              key={item.key}
+              to={item.path}
+              end={item.key === "home"}
+              className={({ isActive }) =>
+                `flex items-center py-4 rounded-lg text-lg font-medium transition-all duration-500 ${
+                  isActive
+                    ? "px-4 bg-white text-cnsc-primary-color"
+                    : "px-2 text-white hover:bg-amber-500"
+                }`
+              }
+            >
+              {item.icon}
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+      </div>
+
+      {isUploadingLogo && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+          <div className="bg-white p-6 rounded-xl shadow-xl min-w-96 w-fit relative">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold mb-4">
+                Upload Organization Logo
+              </h2>
+              <X
+                size={32}
+                onClick={cancelUploadLogo}
+                className="cursor-pointer hover:text-red-500 transition-colors"
+              />
+            </div>
+
+            <ProportionCropTool
+              cropRef={cropRef}
+              file={selectedFile}
+              onCropComplete={handleCropComplete}
+              initialProportion="1:1"
+              acceptedFormats="image/*"
+              className="bg-white"
+            />
+
+            <div className="mt-4 flex justify-end gap-3">
+              <button
+                onClick={cancelUploadLogo}
+                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors disabled:opacity-50"
+                disabled={isUploading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmitOrgLogo}
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                disabled={isUploading}
+              >
+                {isUploading ? "Uploading..." : "Crop & Upload"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 

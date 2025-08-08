@@ -17,6 +17,19 @@
   --color-brian-blue: #1b3a57;
 }
 
+.stroked-text-cnsc {
+  color: #500000;
+  font-weight: 1000; /* or bold, or any numeric weight like 900 */
+  -webkit-text-stroke: 3px white;
+  text-stroke: 3px white; /* fallback (not widely supported) */
+}
+
+.stroked-text-codex {
+  color: #ee8f00;
+  font-weight: 700; /* or bold */
+  -webkit-text-stroke: 3px white;
+  text-stroke: 3px white;
+}
 /* Scrollbar width */
 ::-webkit-scrollbar {
   width: 12px;

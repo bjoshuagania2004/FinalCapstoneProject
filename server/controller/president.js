@@ -1,8 +1,9 @@
+import { CodeSquare } from "lucide-react";
 import {
   Accreditation,
   OrganizationProfile,
   PresidentProfile,
-} from "./../../models/index.js";
+} from "../models/index.js";
 
 export const AddPresident = async (req, res) => {
   try {
@@ -99,9 +100,37 @@ export const AddPresident = async (req, res) => {
   }
 };
 
-export const UpdatePresidentProfile = async (req, res) => {
-  const file = req.file;
+export const ApprovePresidentProfile = async (req, res) => {
+  const { presidentId } = req.params;
 
+  console.log("Approving president profile with ID:", presidentId);
+  if (!presidentId) {
+    return res.status(400).json({ message: "President ID is required." });
+  }
+
+  try {
+    const profile = await PresidentProfile.findById(presidentId);
+
+    if (!profile) {
+      return res.status(404).json({ message: "President profile not found." });
+    }
+
+    profile.overAllStatus = "Approved";
+    await profile.save();
+
+    return res.status(200).json({
+      message: "President profile approved successfully.",
+      updatedProfile: profile,
+    });
+  } catch (error) {
+    console.log("Error approving president profile:", error);
+    return res.status(500).json({ message: "Internal server error." });
+  }
+};
+export const UpdatePresidentProfile = async (req, res) => {
+  const file = res.locals.fileName;
+
+  console.log("+++++++++++++++++++++++++++++++++++++++", file);
   if (!file) {
     return res.status(400).json({ message: "No file uploaded" });
   }
@@ -118,9 +147,10 @@ export const UpdatePresidentProfile = async (req, res) => {
     // Update the president profile with the uploaded file's filename
     const updatedProfile = await PresidentProfile.findByIdAndUpdate(
       presidentId,
-      { profilePicture: file.filename }, // or file.originalname if you prefer the original name
+      { profilePicture: file }, // or file.originalname if you prefer the original name
       { new: true }
     );
+    console.log("Updated Profile:", updatedProfile.profilePicture);
 
     if (!updatedProfile) {
       return res.status(404).json({ message: "President profile not found." });
@@ -130,8 +160,10 @@ export const UpdatePresidentProfile = async (req, res) => {
       message: "Profile picture updated successfully",
       profile: updatedProfile,
     });
+    console.log("error1");
   } catch (error) {
-    console.error("Error updating profile picture:", error);
+    console.log("error2");
+    console.log("Error updating profile picture:", error);
     res.status(500).json({ message: "Server error", error });
   }
 };

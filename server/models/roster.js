@@ -10,6 +10,7 @@ export const rosterSchema = new Schema(
 
     isComplete: { type: Boolean, default: false },
     overAllStatus: { type: String, default: "Pending" },
+    revisionNotes: { type: String, default: "" },
   },
   { timestamps: true }
 );

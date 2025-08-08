@@ -10,12 +10,11 @@ import {
   Award,
   Clock,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import AddStudentPresident from "./add_president";
 import axios from "axios";
 import { API_ROUTER } from "../../../../../App";
-import {} from "lucide-react";
-
+import { ProportionCropTool } from "./../../../../../components/image_uploader";
 // Loading Component
 const LoadingScreen = () => {
   return (
@@ -53,6 +52,7 @@ export default function StudentLeaderPresidentListComponent({
   accreditationData,
 }) {
   const [showAddForm, setShowAddForm] = useState(false);
+  const [uploadComplete, setUploadComplete] = useState(false);
   const [presidents, setPresidents] = useState([]);
   const [currentPresident, setCurrentPresident] = useState({});
   const [loading, setLoading] = useState(true);
@@ -170,13 +170,13 @@ export default function StudentLeaderPresidentListComponent({
       {/* Display all presidents */}
 
       {orgData.orgPresident ? (
-        <div className="flex flex-col gap-4">
-          <CurrentPresidentCard currentPresident={currentPresident} />
-        </div>
+        <CurrentPresidentCard
+          currentPresident={currentPresident}
+          orgData={orgData}
+        />
       ) : (
         // If there is no current president, show the add card
         <div className="h-full flex flex-col gap-4">
-          <h1 className="text-xl font-black text-center">Current President</h1>
           <div
             className="bg-white h-full rounded-lg shadow-md hover:shadow-lg transition-all duration-300 p-6 relative cursor-pointer group border-2 border-dashed border-gray-300 hover:border-indigo-400"
             onClick={handleAdd}
@@ -207,6 +207,12 @@ export default function StudentLeaderPresidentListComponent({
             orgInfo={orgData}
             AccreditationId={accreditationData._id}
             onClose={() => setShowAddForm(false)}
+            onSuccess={() => {
+              setShowAddForm(false);
+              setUploadComplete(true);
+              window.location.reload();
+              setTimeout(() => setUploadComplete(false), 3000); // hide after 3 seconds
+            }}
           />
         </div>
       )}
@@ -228,7 +234,7 @@ export default function StudentLeaderPresidentListComponent({
   );
 }
 
-const CurrentPresidentCard = ({ currentPresident }) => {
+const CurrentPresidentCard = ({ currentPresident, orgData }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleImageClick = () => setIsModalOpen(true);
@@ -250,16 +256,12 @@ const CurrentPresidentCard = ({ currentPresident }) => {
     classSchedule = [],
   } = president;
 
+  console.log(president);
+  const profilePictureUrl = `/${president.organizationProfile}/${profilePicture}`;
+  console.log("Profile Picture URL:", profilePictureUrl);
   return (
     <div className="">
-      <div className="bg-white pt-4 w-full">
-        {/* Header */}
-        <div className="text-center ">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">
-            Current President
-          </h1>
-        </div>
-
+      <div className="bg-white w-full">
         {/* Main Content */}
         <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
           <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-8">
@@ -271,7 +273,7 @@ const CurrentPresidentCard = ({ currentPresident }) => {
                   onClick={handleImageClick}
                 >
                   <img
-                    src={profilePicture}
+                    src={profilePictureUrl}
                     alt="President"
                     className="w-full h-full object-cover"
                   />
@@ -447,54 +449,148 @@ const CurrentPresidentCard = ({ currentPresident }) => {
 
       {/* Enhanced Modal */}
       {isModalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 p-4"
-          onClick={closeModal}
-        >
-          <div
-            className="bg-white rounded-2xl shadow-2xl max-w-md w-full relative animate-in fade-in zoom-in duration-300"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={closeModal}
-              className="absolute top-4 right-4 w-8 h-8 bg-gray-100 hover:bg-red-100 rounded-full flex items-center justify-center text-gray-600 hover:text-red-500 transition-colors duration-200 z-10"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            <div className="p-6">
-              <div className="relative mb-6">
-                <img
-                  src={profilePicture}
-                  alt="President Profile"
-                  className="w-full h-80 object-cover rounded-xl"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-xl"></div>
-                <div className="absolute bottom-4 left-4 text-white">
-                  <h2 className="text-2xl font-bold">{name}</h2>
-                  <p className="text-gray-200">{department}</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 text-center">
-                <div className="bg-blue-50 rounded-lg p-3">
-                  <p className="text-sm text-blue-600 font-medium">Course</p>
-                  <p className="text-lg font-semibold text-gray-800">
-                    {course}
-                  </p>
-                </div>
-                <div className="bg-blue-50 rounded-lg p-3">
-                  <p className="text-sm text-blue-600 font-medium">Year</p>
-                  <p className="text-lg font-semibold text-gray-800">{year}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <UploadPresidentProfilePicture
+          isOpen={isModalOpen}
+          onClose={closeModal}
+          presidentProfileId={currentPresident._id}
+          orgData={orgData}
+        />
       )}
     </div>
   );
 };
+
+export function UploadPresidentProfilePicture({
+  isOpen,
+  closeModal,
+  orgData,
+  presidentProfileId,
+}) {
+  console.log(orgData);
+  const cropRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
+  const [cropData, setCropData] = useState(null);
+
+  const handleCropComplete = (result) => {
+    console.log("Original File:", result.originalFile);
+    console.log("Cropped File:", result.croppedFile);
+    setCropData(result);
+  };
+
+  const handleUpload = async () => {
+    let finalCropData = cropData;
+
+    // if (!cropData || !cropData.croppedFile) {
+    //   alert("Please select and crop an image first.");
+    //   return;
+    // }
+    // If the user has uploaded but not manually cropped yet, trigger the crop
+    if (!finalCropData && cropRef.current?.hasImage) {
+      try {
+        console.log("No crop data yet. Cropping now...");
+        const result = await cropRef.current.cropImage(); // Should return { croppedFile, ... }
+        finalCropData = result;
+        console.log("Cropped result:", result);
+        setCropData(result); // Cache it
+      } catch (err) {
+        console.error("❌ Failed to crop image before upload:", err);
+        alert("Please crop the image before uploading.");
+        return;
+      }
+    }
+    // Still no data? Bail.
+    if (!finalCropData || !finalCropData.croppedFile) {
+      alert("Please select and crop an image first.");
+      return;
+    }
+    const formData = new FormData();
+    console.log("ay", finalCropData.croppedFile);
+    formData.append("profilePicture", finalCropData.name);
+    formData.append("organization", orgData.organization);
+    formData.append("organizationProfile", orgData._id);
+    formData.append("file", finalCropData.croppedFile);
+
+    console.log("=== FormData Contents ===");
+    for (let [key, value] of formData.entries()) {
+      if (value instanceof File) {
+        console.log(
+          `${key}: [FILE] ${value.name} (${value.size} bytes, ${value.type})`
+        );
+      } else {
+        console.log(`${key}: ${value}`);
+      }
+    }
+
+    setUploading(true);
+
+    try {
+      const res = await axios.post(
+        `${API_ROUTER}/addPresidentProfile/${presidentProfileId}`,
+        formData
+      );
+
+      const data = res.data; // ✅ No need to call .json()
+      console.log("✅ Upload successful:", data);
+      alert("Profile picture uploaded successfully!");
+    } catch (err) {
+      console.error("❌ Upload failed:", err);
+      alert("Failed to upload image.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4"
+      onClick={closeModal}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-xl w-full max-w-lg relative"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={closeModal}
+          className="absolute top-4 right-4 w-8 h-8 bg-gray-100 hover:bg-red-100 rounded-full flex items-center justify-center text-gray-600 hover:text-red-500 transition"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
+        <div className="p-6">
+          <h2 className="text-xl font-semibold text-center mb-4">
+            Upload & Crop Image
+          </h2>
+
+          <ProportionCropTool
+            title="Crop Your Image"
+            cropRef={cropRef}
+            onCropComplete={handleCropComplete}
+            maxImageHeight={500}
+            showReset={true}
+          />
+
+          <div className="mt-6 flex justify-center gap-4">
+            <button
+              onClick={handleUpload}
+              disabled={uploading}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium disabled:opacity-50"
+            >
+              {uploading ? "Processing..." : "Upload Image"}
+            </button>
+            <button
+              onClick={() => cropRef.current?.resetImage()}
+              className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-5 py-2 rounded-lg font-medium"
+            >
+              Reset
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const PresidentCard = ({
   president,

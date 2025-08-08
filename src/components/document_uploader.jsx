@@ -140,3 +140,54 @@ export function DocumentDisplayCard({
     </div>
   );
 }
+
+export function FileRenderer({ basePath, fileName }) {
+  const isImage = /\.(jpe?g|png|gif|bmp|webp|svg)$/.test(fileName);
+  const raw = `${basePath}/${isImage ? "photos" : "documents"}/${fileName}`;
+  const url = encodeURI(raw);
+
+  const [showModal, setShowModal] = useState(false);
+  if (isImage) {
+    return (
+      <div className="object-cover h-70 object-center  rounded-lg flex-shrink-0 flex flex-wrap relative overflow-hidden">
+        <img
+          src={url}
+          alt={fileName}
+          className="w-full h-70x-2 rounded-lg object-cover cursor-pointer"
+          onClick={() => setShowModal(true)}
+        />
+
+        {showModal && (
+          <div
+            className="fixed inset-0 bg-black/25 w-full bg-opacity-70 flex items-center justify-center z-50"
+            onClick={() => setShowModal(false)}
+          >
+            <div className="relative" onClick={(e) => e.stopPropagation()}>
+              <X className="w-8 h-8 text-red-600 absolute top-2 right-4 cursor-pointer" />
+
+              <img
+                src={url}
+                alt={fileName}
+                className="max-h-[90vh] max-w-[90vw] object-contain rounded-lg shadow-lg"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className=" p-2 w-full space-y-4 flex flex-col justify-center items-center rounded-lg shadow-md bg-white">
+      <FileText className="w-12 h-12 text-gray-800" />
+      <a
+        href={url}
+        target="_blank"
+        rel="noreferrer"
+        className="text-blue-600 text-md underline h-full"
+      >
+        (preview) - {fileName}
+      </a>
+    </div>
+  );
+}

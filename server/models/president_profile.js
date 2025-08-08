@@ -20,6 +20,7 @@ export const presidentProfileSchema = new Schema(
       ref: "Organization",
     },
     profilePicture: String,
+    overAllStatus: String,
     department: String,
     course: String,
     year: String,

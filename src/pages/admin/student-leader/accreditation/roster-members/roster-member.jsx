@@ -9,7 +9,7 @@ export default function StudentLeaderRosters({ orgData }) {
   const [rosterData, setRosterData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  console.log(orgData);
   useEffect(() => {
     const fetchOrganization = async () => {
       try {

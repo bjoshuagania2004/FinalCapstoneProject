@@ -29,7 +29,7 @@ export default function Login({ navigate, onShowRegistration }) {
         navigate("/dean");
       } else if (role === "ossd coordinator" || role === "ossd") {
         navigate("/OSSD-Coordinator");
-      } else if (role === "sdu") {
+      } else if (role === "sdu" || role === "SDU") {
         navigate("/SDU");
       } else {
         navigate("/unauthorized");
@@ -43,78 +43,93 @@ export default function Login({ navigate, onShowRegistration }) {
   };
 
   return (
-    <div className="w-3/4 h-100 bg-white rounded-3xl p-6 py-12 flex flex-col justify-center shadow-4xl items-center ">
-      <form className="w-full" onSubmit={handleSubmit}>
-        <div className="flex flex-col gap-8">
-          <div className="flex  text-center items-center justify-center">
-            <User size={48} className="mr-6" />
-            <h1 className="text-xl">
-              <span className="">WELCOME TO{"  "}</span>
-              <span
-                className="text-cnsc-primary-color text-xl font-black"
-                style={{
-                  textShadow:
-                    "1px 1px 0 white, -1px -1px 0 white, 1px -1px 0 white, -1px 1px 0 white",
-                }}
-              >
-                CNSC {"  "}
-              </span>
-              <span
-                className="text-cnsc-secondary-color  font-bold"
-                style={{
-                  textShadow:
-                    "1px 1px 0 white, -1px -1px 0 white, 1px -1px 0 white, -1px 1px 0 white, 0 0 1px white",
-                }}
-              >
-                CODEX
-              </span>
-            </h1>
+    <div className="min-h-fit w-3/4  flex flex-col gap-4 rounded-xl bg-gray-100 shadow-2xl border border-gray-100 px-10 py-12 relative overflow-hidden">
+      {/* Subtle background decoration */}
+      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-cnsc-primary-color/5 to-transparent rounded-full -translate-y-16 translate-x-16"></div>
+
+      <form
+        className="w-full flex flex-col gap-6 relative z-10"
+        onSubmit={handleSubmit}
+      >
+        {/* Header
+        <div className="text-center mb-2">
+          <h1 className="text-2xl font-bold text-gray-800 tracking-wide">
+            WELCOME TO
+          </h1>
+          <h2 className="text-3xl font-black text-cnsc-primary-color mt-1 tracking-wider">
+            CNSC CODEX
+          </h2>
+          <div className="w-16 h-1 bg-gradient-to-r from-cnsc-primary-color to-cnsc-secondary-color rounded-full mx-auto mt-3"></div>
+        </div> */}
+        {/* Input Fields */}
+        <div className="flex flex-col gap-5">
+          <div className="relative group">
+            <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">
+              Username
+            </label>
+            <input
+              type="text"
+              placeholder="Enter your username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="bg-gray-50 text-gray-800 w-full px-5 py-4 text-base rounded-2xl border-2 border-gray-200 focus:border-cnsc-primary-color focus:bg-white focus:outline-none focus:ring-4 focus:ring-cnsc-primary-color/10 transition-all duration-300 group-hover:border-gray-300"
+              required
+            />
           </div>
-          <input
-            type="text"
-            placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            className="bg-white text-black w-full px-6 py-3 text-base rounded-xl border  border-gray-500"
-            required
-          />
-          <div className="relative w-full">
+
+          <div className="relative group">
+            <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">
+              Password
+            </label>
             <input
               type={showPassword ? "text" : "password"}
-              placeholder="Password"
+              placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="bg-white text-black w-full px-6 py-3 text-base rounded-xl border  border-gray-500"
+              className="bg-gray-50 text-gray-800 w-full px-5 py-4 pr-14 text-base rounded-2xl border-2 border-gray-200 focus:border-cnsc-primary-color focus:bg-white focus:outline-none focus:ring-4 focus:ring-cnsc-primary-color/10 transition-all duration-300 group-hover:border-gray-300"
               required
             />
             <div
-              className="absolute right-4 inset-y-0 flex justify-center items-center transform  cursor-pointer text-gray-600"
+              className="absolute right-4 top-12 flex justify-center items-center cursor-pointer text-gray-500 hover:text-cnsc-primary-color transition-colors duration-200 p-1 rounded-full hover:bg-gray-100"
               onClick={() => setShowPassword((prev) => !prev)}
             >
-              {showPassword ? <EyeOff size={24} /> : <Eye size={24} />}
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </div>
           </div>
         </div>
-
-        {errorMsg && <p className="text-red-500 text-sm mt-3">{errorMsg}</p>}
-
+        {/* Error Message */}
+        {errorMsg && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-3">
+            <p className="text-red-600 text-sm font-medium flex items-center gap-2">
+              <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+              {errorMsg}
+            </p>
+          </div>
+        )}
+        {/* Login Button */}
         <button
           type="submit"
-          className="bg-cnsc-primary-color mt-6 text-cnsc-white-color w-full px-6 py-3 text-lg rounded-xl border hover:bg-cnsc-secondary-color transition-colors duration-300 flex items-center justify-center gap-2"
+          className="bg-cnsc-primary-color text-cnsc-white-color w-full px-6 py-4 text-lg font-semibold rounded-2xl border-2 border-cnsc-primary-color hover:bg-cnsc-secondary-color hover:border-cnsc-secondary-color hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 flex items-center justify-center gap-3 shadow-md"
         >
-          <LogIn size={20} />
-          Login
+          <LogIn size={22} />
+          Sign In
         </button>
       </form>
-      <div className="flex items-center justify-center w-full text-sm mt-4">
-        <hr className="flex-1 border-black" />
+
+      {/* Divider and Register */}
+      <div className="flex items-center justify-center w-full text-sm mt-4 relative z-10">
+        <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-500 to-transparent mr-4"></div>
+
         <button
           onClick={onShowRegistration}
-          className="px-3 text-cnsc-primary-color underline-animate font-medium "
+          className="text-cnsc-primary-color text-base font-semibold hover:text-cnsc-secondary-color transition-colors duration-300 relative group"
         >
-          Register
+          Don't have an account?{" "}
+          <span className="underline decoration-2 underline-offset-4 decoration-cnsc-primary-color group-hover:decoration-cnsc-secondary-color">
+            Register here
+          </span>
         </button>
-        <hr className="flex-1 border-black" />
+        <div className="flex-1 h-px bg-gradient-to-l from-transparent via-gray-500 to-transparent ml-4"></div>
       </div>
     </div>
   );

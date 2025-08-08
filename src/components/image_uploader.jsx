@@ -558,3 +558,71 @@ export const ProportionCropTool = ({
     </div>
   );
 };
+
+export default function ImageCropDemo() {
+  const cropRef = useRef(null);
+  const [croppedPreview, setCroppedPreview] = useState(null);
+  const [fileInfo, setFileInfo] = useState(null);
+
+  const handleCropComplete = (cropData) => {
+    console.log("Crop Complete!", cropData);
+    setCroppedPreview(cropData.croppedDataUrl);
+    setFileInfo(cropData);
+  };
+
+  const handleCropClick = async () => {
+    if (cropRef.current?.hasImage) {
+      const result = await cropRef.current.cropImage();
+      console.log("Manual Crop Triggered", result);
+    } else {
+      alert("Please select an image first!");
+    }
+  };
+
+  const handleResetClick = () => {
+    cropRef.current?.resetImage();
+    setCroppedPreview(null);
+    setFileInfo(null);
+  };
+
+  return (
+    <div className="p-8 space-y-8">
+      <h2 className="text-3xl font-bold text-center">🖼️ Crop Tool Demo</h2>
+
+      <ProportionCropTool
+        cropRef={cropRef}
+        onCropComplete={handleCropComplete}
+        className="bg-white p-6 rounded-xl shadow-lg"
+      />
+
+      <div className="flex justify-center gap-4">
+        <button
+          onClick={handleCropClick}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg font-medium"
+        >
+          Crop Image
+        </button>
+        <button
+          onClick={handleResetClick}
+          className="bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-lg font-medium"
+        >
+          Reset All
+        </button>
+      </div>
+
+      {croppedPreview && (
+        <div className="text-center">
+          <h3 className="text-xl font-semibold mb-2">
+            🎉 Cropped Image Preview
+          </h3>
+          <img
+            src={croppedPreview}
+            alt="Cropped"
+            className="inline-block border border-gray-300 rounded-md max-w-full"
+            style={{ maxHeight: "300px" }}
+          />
+        </div>
+      )}
+    </div>
+  );
+}

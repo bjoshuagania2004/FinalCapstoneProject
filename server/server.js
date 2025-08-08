@@ -64,7 +64,7 @@ app.use(
 
 // // Inactivity timeout middleware
 const INACTIVITY_GRACE = 5000; // 5 seconds
-const INACTIVITY_TIMEOUT = 3600000; // 30 minutes
+const INACTIVITY_TIMEOUT = 2629800000; // 1 month
 
 const activityMiddleware = (req, res, next) => {
   const now = Date.now();

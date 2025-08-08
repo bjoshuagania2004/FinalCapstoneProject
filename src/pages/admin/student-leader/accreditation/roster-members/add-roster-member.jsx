@@ -53,6 +53,7 @@ export default function AddRosterForm({ onClose, orgData }) {
     console.log("Original File:", result.originalFile);
     // Access the cropped File object
     console.log("Cropped File:", result.croppedFile);
+
     setCropData(result);
   };
 
