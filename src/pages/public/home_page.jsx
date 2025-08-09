@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import Login from "./login_form";
 import { RegistrationForm } from "./registration_form";
-import backgroundImage from "/cnscsch.jpg"; // Adjust path based on location
+import backgroundImage from "./../../assets/cnscsch.jpg";
 
 export default function HomePage() {
   const [scrollY, setScrollY] = useState(0);
