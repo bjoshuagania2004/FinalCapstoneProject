@@ -15,7 +15,7 @@ const storage = multer.diskStorage({
       req.body?.organizationProfile ||
       req.params?.organizationProfile ||
       "default-folder";
-    const uploadPath = path.join(process.cwd(), "./../public", orgId);
+    const uploadPath = path.join(process.cwd(), "./uploads", orgId);
     ensureDirExists(uploadPath);
     cb(null, uploadPath);
   },
