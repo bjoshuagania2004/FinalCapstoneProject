@@ -1,43 +1,48 @@
 import { useEffect, useState } from "react";
 import AddRosterForm from "./add-roster-member";
-import { API_ROUTER } from "../../../../../App";
+import { API_ROUTER, DOCU_API_ROUTER } from "../../../../../App";
 import axios from "axios";
-import { CodeSquare } from "lucide-react";
 
 export default function StudentLeaderRosters({ orgData }) {
   const [showModal, setShowModal] = useState(false);
   const [rosterData, setRosterData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  console.log(orgData);
-  useEffect(() => {
-    const fetchOrganization = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get(
-          `${API_ROUTER}/getRosterMembers/${orgData._id}`
-        );
-        console.log(response.data);
-        setRosterData(response.data);
-        setError(null);
-      } catch (err) {
-        console.error("Failed to fetch organization info:", err);
-        setError("Failed to load roster members");
-      } finally {
-        setLoading(false);
-      }
-    };
 
+  console.log(orgData);
+
+  const fetchRosterMembers = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(
+        `${API_ROUTER}/getRosterMembers/${orgData._id}`
+      );
+      console.log(response.data);
+      setRosterData(response.data);
+      setError(null);
+    } catch (err) {
+      console.error("Failed to fetch organization info:", err);
+      setError("Failed to load roster members");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     if (orgData._id) {
-      fetchOrganization();
+      fetchRosterMembers();
     }
   }, [orgData._id]);
+
+  const handleMemberAdded = () => {
+    setShowModal(false);
+    fetchRosterMembers(); // Refresh the roster data
+  };
 
   if (loading) {
     return (
       <div className="p-4 bg-gray-50 min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading roster members...</p>
         </div>
       </div>
@@ -63,7 +68,7 @@ export default function StudentLeaderRosters({ orgData }) {
   const rosterMembers = rosterData?.rosterMembers || [];
 
   return (
-    <div className="p-4 bg-gray-50 min-h-screen">
+    <div className="p-4 flex flex-col bg-gray-50 min-h-screen">
       <div className="flex w-full justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Roster Management</h1>
         <button
@@ -88,7 +93,7 @@ export default function StudentLeaderRosters({ orgData }) {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-6 overflow-auto">
           {rosterMembers.map((member) => (
             <RosterMemberCard
               key={member._id}
@@ -104,6 +109,7 @@ export default function StudentLeaderRosters({ orgData }) {
           <AddRosterForm
             orgData={orgData}
             onClose={() => setShowModal(false)}
+            onMemberAdded={handleMemberAdded} // Pass the refresh callback
           />
         </div>
       )}
@@ -112,14 +118,13 @@ export default function StudentLeaderRosters({ orgData }) {
 }
 
 const RosterMemberCard = ({ member, orgId }) => {
-  console.log(`/${orgId}/${member.profilePicture}`);
   return (
     <div className="bg-white rounded-lg flex flex-col gap-2 items-center shadow-md p-6 border border-gray-200 hover:shadow-lg transition-shadow">
       <div className="flex items-center justify-between">
         <img
           src={
             member.profilePicture
-              ? `/${orgId}/${member.profilePicture}`
+              ? `${DOCU_API_ROUTER}/${orgId}/${member.profilePicture}`
               : "/cnsc-logo.png"
           }
           alt="Profile Picture"

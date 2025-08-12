@@ -5,23 +5,30 @@ import * as Controller from "./controller/index.js";
 const router = express.Router();
 const storage = multer.memoryStorage(); // or use diskStorage for local saving
 
-/* ========== STUDENT DEVELOPMENT ORGANIZATION ========== */
+/*
+**********                                **********
+**********                                **********
+          STUDENT DEVELOPMENT ORGANIZATION
+**********                                **********
+**********                                ********** 
+*/
+/* ********** STUDENT DEVELOPMENT ORGANIZATION ********** */
 router.get("/getAllOrganizationProfile", Controller.GetAllOrganizationProfile);
 router.get("/getAllOrganization/", Controller.GetAllOrganization);
 
-/* ========== STUDENT DEVELOPMENT ACCREDITATION ========== */
+/* ********** STUDENT DEVELOPMENT ACCREDITATION ********** */
 router.get("/getAllAccreditationId", Controller.GetAllAccreditationId);
 router.get(
   "/checkAccreditationApprovalStatuses/:orgProfileId",
   Controller.CheckAccreditationApprovalStatus
 );
-/* ========== STUDENT DEVELOPMENT PRESIDENT ========== */
+/* ********** STUDENT DEVELOPMENT PRESIDENT ********** */
 router.post(
   "/approvePresidentProfile/:presidentId",
   Controller.ApprovePresidentProfile
 );
 
-/* ========== STUDENT DEVELOPMENT ROSTER ========== */
+/* ********** STUDENT DEVELOPMENT ROSTER ********** */
 router.get("/getAllroster", Controller.GetRosterAllMembers);
 router.get(
   "/getRosterByOrg/:orgProfileId",
@@ -30,7 +37,15 @@ router.get(
 router.post("/ApproveRosterList/:rosterId", Controller.ApprovedRosterList);
 router.post("/RevisionRosterList/:rosterId", Controller.revisionNoteRosterList);
 
-/* ==========  STUDENT LEADER FINANCIAL REPORT ========== */
+/*
+**********              **********
+**********              **********
+          STUDENT LEADER
+**********              **********
+**********              ********** 
+*/
+
+/* **********  STUDENT LEADER FINANCIAL REPORT ********** */
 router.get("/getFinancialReport/:OrgProfileId", Controller.getFinancialReport);
 router.post(
   "/addReciept",
@@ -38,20 +53,26 @@ router.post(
   Controller.AddReceipt
 );
 
-/* ==========  STUDENT LEADER ACCREDITATION ========== */
+/* **********  STUDENT LEADER ACCREDITATION ********** */
 router.get(
   "/getAccreditationInfo/:orgProfileId",
   Controller.GetAccreditationDetails
 );
 
-/* ========== STUDENT LEADER DOCUMENTS ========== */
+/* ********** STUDENT LEADER PROPOSAL ********** */
+router.get(
+  "/getStudentLeaderProposalById/:accreditationId",
+  Controller.getStudentPpaByAccreditationId
+);
+router.post("/postStudentLeaderProposal", Controller.postStudentLeaderProposal);
+/* ********** STUDENT LEADER DOCUMENTS ********** */
 router.post(
   "/addAccreditationDocument",
   Controller.uploadFileAndAddDocument,
   Controller.AddAccreditationDocument
 );
 
-/* ========== STUDENT LEADER ROSTER MEMBER ========== */
+/* ********** STUDENT LEADER ROSTER MEMBER ********** */
 router.get(
   "/getRosterMembers/:orgProfileId",
   Controller.GetRosterMemberByOrganization
@@ -62,7 +83,7 @@ router.post(
   Controller.AddNewRosterMember
 );
 
-/* ========== STUDENT LEADER PRESIDENT ========== */
+/* ********** STUDENT LEADER PRESIDENT ********** */
 router.post("/addPresident", Controller.AddPresident);
 router.post(
   "/addPresidentProfile/:presidentId",
@@ -72,7 +93,7 @@ router.post(
 router.get("/getPresidents/:orgId", Controller.GetPresidentByOrg);
 router.get("/getPresident/:orgPresidentId", Controller.GetPresidentById);
 
-/* ========== GENERAL ========== */
+/* ********** GENERAL ********** */
 router.post(
   "/uploadOrganizationLogo",
   Controller.uploadFileAndAddDocument,

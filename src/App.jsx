@@ -17,6 +17,7 @@ import StudentDevMainLayout from "./pages/admin/sdu/sdu-main";
 const MAIN_API_ROUTER = import.meta.env.VITE_API_ROUTER;
 
 export const API_ROUTER = `${MAIN_API_ROUTER}/api`;
+export const DOCU_API_ROUTER = `${MAIN_API_ROUTER}/uploads`;
 
 export default function App() {
   return (

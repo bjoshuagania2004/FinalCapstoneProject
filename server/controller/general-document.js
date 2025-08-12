@@ -40,7 +40,6 @@ export const uploadFileAndAddDocument = async (req, res, next) => {
     if (!req.file) {
       return res.status(400).json({ error: "File is required" });
     }
-    console.log("saywhat", req.file);
 
     try {
       const {

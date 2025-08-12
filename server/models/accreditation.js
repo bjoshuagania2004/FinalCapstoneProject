@@ -12,6 +12,7 @@ export const accreditationSchema = new Schema(
     isActive: { type: Boolean, default: true },
     JointStatement: { type: Schema.Types.ObjectId, ref: "Documents" },
     PledgeAgainstHazing: { type: Schema.Types.ObjectId, ref: "Documents" },
+    ConstitutionAndByLaws: { type: Schema.Types.ObjectId, ref: "Documents" },
     Roster: { type: Schema.Types.ObjectId, ref: "Roster" },
     PresidentProfile: { type: Schema.Types.ObjectId, ref: "PresidentProfile" },
   },

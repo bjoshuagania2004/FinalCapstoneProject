@@ -44,6 +44,8 @@ export const AddAccreditationDocument = async (req, res) => {
       accreditation.JointStatement = documentId;
     } else if (docType === "PledgeAgainstHazing") {
       accreditation.PledgeAgainstHazing = documentId;
+    } else if (docType === "ConstituionAndByLaws") {
+      accreditation.ConstitutionAndByLaws = documentId;
     } else {
       return res.status(400).json({ error: "Invalid document type" });
     }
@@ -55,6 +57,7 @@ export const AddAccreditationDocument = async (req, res) => {
       accreditation,
     });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -129,6 +132,7 @@ export const GetAccreditationDetails = async (req, res) => {
         isActive: true,
         JointStatement: null,
         PledgeAgainstHazing: null,
+        ConstitutionAndByLaws: null,
         Roster: null,
         PresidentProfile: null,
       });
@@ -143,6 +147,7 @@ export const GetAccreditationDetails = async (req, res) => {
         "JointStatement",
         "PledgeAgainstHazing",
         "Roster",
+        "ConstitutionAndByLaws",
         "PresidentProfile",
       ])
       .exec();

@@ -13,7 +13,7 @@ import {
 import { useEffect, useState, useRef } from "react";
 import AddStudentPresident from "./add_president";
 import axios from "axios";
-import { API_ROUTER } from "../../../../../App";
+import { API_ROUTER, DOCU_API_ROUTER } from "../../../../../App";
 import { ProportionCropTool } from "./../../../../../components/image_uploader";
 // Loading Component
 const LoadingScreen = () => {
@@ -257,7 +257,7 @@ const CurrentPresidentCard = ({ currentPresident, orgData }) => {
   } = president;
 
   console.log(president);
-  const profilePictureUrl = `/${president.organizationProfile}/${profilePicture}`;
+  const profilePictureUrl = `${DOCU_API_ROUTER}/${president.organizationProfile}/${profilePicture}`;
   console.log("Profile Picture URL:", profilePictureUrl);
   return (
     <div className="">

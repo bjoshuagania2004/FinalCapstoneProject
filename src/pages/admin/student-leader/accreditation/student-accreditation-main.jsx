@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+
 import {
   Upload,
   Download,
@@ -8,30 +9,26 @@ import {
   AlertCircle,
   User,
   Users,
-  DollarSign,
   Building,
   Mail,
   Phone,
   MapPin,
   Award,
-  Calendar,
   Star,
-  CodeSquare,
 } from "lucide-react";
 import axios from "axios";
-import { API_ROUTER } from "../../../../App";
+import { API_ROUTER, DOCU_API_ROUTER } from "../../../../App";
 import DocumentUploader from "../../../../components/document_uploader";
 
 export default function StudentAccreditationMainComponent({ orgId }) {
   const [accreditationData, setAccreditationData] = useState(null);
+
   const [uploadingDocType, setUploadingDocType] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  console.log(orgId);
 
   useEffect(() => {
     const GetAccreditationInformation = async () => {
@@ -44,6 +41,7 @@ export default function StudentAccreditationMainComponent({ orgId }) {
         setIsLoading(true);
         setError(null);
 
+        console.log(`${API_ROUTER}/getAccreditationInfo/${orgId}`);
         const response = await axios.get(
           `${API_ROUTER}/getAccreditationInfo/${orgId}`,
           { withCredentials: true }
@@ -103,6 +101,7 @@ export default function StudentAccreditationMainComponent({ orgId }) {
 
       // Set upload to 100% and update local state
       setUploadProgress(100);
+
       setAccreditationData((prev) => ({
         ...prev,
         [uploadingDocType]: {
@@ -127,124 +126,6 @@ export default function StudentAccreditationMainComponent({ orgId }) {
       if (progressInterval) clearInterval(progressInterval);
     }
   };
-
-  // Loading skeleton component
-  const LoadingSkeleton = () => (
-    <div className="h-full bg-gray-50 p-6 overflow-auto">
-      <div className="max-w-7xl mx-auto">
-        {/* Header Skeleton */}
-        <div className="mb-8">
-          <div className="h-8 bg-gray-200 rounded w-96 mb-2 animate-pulse"></div>
-          <div className="h-4 bg-gray-200 rounded w-64 animate-pulse"></div>
-        </div>
-
-        {/* Main Grid Skeleton */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-          {/* Overall Status Skeleton */}
-          <div className="lg:col-span-2 xl:col-span-3">
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <div className="h-6 bg-gray-200 rounded w-48 mb-4 animate-pulse"></div>
-              <div className="space-y-3">
-                <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
-                <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse"></div>
-              </div>
-            </div>
-          </div>
-
-          {/* President Information Skeleton */}
-          <div className="lg:col-span-1 xl:col-span-2">
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <div className="h-6 bg-gray-200 rounded w-40 mb-4 animate-pulse"></div>
-              <div className="space-y-3">
-                <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
-                <div className="h-4 bg-gray-200 rounded w-2/3 animate-pulse"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/3 animate-pulse"></div>
-              </div>
-            </div>
-          </div>
-
-          {/* DocumentDisplayCard Skeleton */}
-          <div className="lg:col-span-5 xl:col-span-2">
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <div className="h-6 bg-gray-200 rounded w-32 mb-4 animate-pulse"></div>
-              <div className="space-y-4">
-                {[1, 2, 3, 4].map((i) => (
-                  <div
-                    key={i}
-                    className="border border-gray-200 rounded-lg p-4"
-                  >
-                    <div className="h-4 bg-gray-200 rounded w-32 mb-2 animate-pulse"></div>
-                    <div className="h-3 bg-gray-200 rounded w-24 animate-pulse"></div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Organization Info Skeleton */}
-          <div className="lg:col-span-1 xl:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <div className="h-6 bg-gray-200 rounded w-36 mb-4 animate-pulse"></div>
-              <div className="space-y-3">
-                <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
-                <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse"></div>
-              </div>
-            </div>
-          </div>
-
-          {/* Roster Lists Skeleton */}
-          <div className="lg:col-span-2 xl:col-span-2">
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <div className="h-6 bg-gray-200 rounded w-32 mb-4 animate-pulse"></div>
-              <div className="space-y-3">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="flex items-center space-x-3">
-                    <div className="h-8 w-8 bg-gray-200 rounded-full animate-pulse"></div>
-                    <div className="flex-1">
-                      <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse"></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  // Error state component
-  const ErrorState = ({ error, onRetry }) => (
-    <div className="h-full bg-gray-50 p-6 overflow-auto">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Student Organization Accreditation
-          </h1>
-          <p className="text-gray-600">
-            Manage and track your organization's accreditation status
-          </p>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-          <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-            <AlertCircle className="w-8 h-8 text-red-600" />
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Error Loading Data
-          </h3>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={onRetry}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
-    </div>
-  );
 
   // Handle retry
   const handleRetry = () => {
@@ -291,20 +172,10 @@ export default function StudentAccreditationMainComponent({ orgId }) {
 
   // Render main content
   return (
-    <div className="h-full bg-gray-50 mt-4 rounded-t-2xl overflow-auto">
+    <div className="h-full mt-4 -t-2xl overflow-auto">
       <div className="w-full">
-        {/* Header */}
-        {/* <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Student Organization Accreditation
-          </h1>
-          <p className="text-gray-600">
-            Manage and track your organization's accreditation status
-          </p>
-        </div> */}
-
         {/* Main Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-5 gap-3">
           {/* Overall Status - Takes full width on mobile, 3 columns on xl */}
           <div className="lg:col-span-2 xl:col-span-3">
             <OverallStatus accreditationData={accreditationData} />
@@ -359,6 +230,123 @@ export default function StudentAccreditationMainComponent({ orgId }) {
   );
 }
 
+// Loading skeleton component
+function LoadingSkeleton() {
+  return (
+    <div className="h-full bg-gray-50 p-6 overflow-auto">
+      <div className="max-w-7xl mx-auto">
+        {/* Header Skeleton */}
+        <div className="mb-8">
+          <div className="h-8 bg-gray-200  w-96 mb-2 animate-pulse"></div>
+          <div className="h-4 bg-gray-200  w-64 animate-pulse"></div>
+        </div>
+
+        {/* Main Grid Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+          {/* Overall Status Skeleton */}
+          <div className="lg:col-span-2 xl:col-span-3">
+            <div className="bg-white  shadow-sm p-6">
+              <div className="h-6 bg-gray-200  w-48 mb-4 animate-pulse"></div>
+              <div className="space-y-3">
+                <div className="h-4 bg-gray-200  w-full animate-pulse"></div>
+                <div className="h-4 bg-gray-200  w-3/4 animate-pulse"></div>
+                <div className="h-4 bg-gray-200  w-1/2 animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+
+          {/* President Information Skeleton */}
+          <div className="lg:col-span-1 xl:col-span-2">
+            <div className="bg-white  shadow-sm p-6">
+              <div className="h-6 bg-gray-200  w-40 mb-4 animate-pulse"></div>
+              <div className="space-y-3">
+                <div className="h-4 bg-gray-200  w-full animate-pulse"></div>
+                <div className="h-4 bg-gray-200  w-2/3 animate-pulse"></div>
+                <div className="h-4 bg-gray-200  w-1/3 animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+
+          {/* DocumentDisplayCard Skeleton */}
+          <div className="lg:col-span-5 xl:col-span-2">
+            <div className="bg-white  shadow-sm p-6">
+              <div className="h-6 bg-gray-200  w-32 mb-4 animate-pulse"></div>
+              <div className="space-y-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="border border-gray-200  p-4">
+                    <div className="h-4 bg-gray-200  w-32 mb-2 animate-pulse"></div>
+                    <div className="h-3 bg-gray-200  w-24 animate-pulse"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Organization Info Skeleton */}
+          <div className="lg:col-span-1 xl:col-span-1">
+            <div className="bg-white  shadow-sm p-6">
+              <div className="h-6 bg-gray-200  w-36 mb-4 animate-pulse"></div>
+              <div className="space-y-3">
+                <div className="h-4 bg-gray-200  w-full animate-pulse"></div>
+                <div className="h-4 bg-gray-200  w-3/4 animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Roster Lists Skeleton */}
+          <div className="lg:col-span-2 xl:col-span-2">
+            <div className="bg-white  shadow-sm p-6">
+              <div className="h-6 bg-gray-200  w-32 mb-4 animate-pulse"></div>
+              <div className="space-y-3">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="flex items-center space-x-3">
+                    <div className="h-8 w-8 bg-gray-200 -full animate-pulse"></div>
+                    <div className="flex-1">
+                      <div className="h-4 bg-gray-200  w-3/4 animate-pulse"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Error state component
+function ErrorState({ error, onRetry }) {
+  <div className="h-full bg-gray-50 p-6 overflow-auto">
+    <div className="max-w-7xl mx-auto">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          Student Organization Accreditation
+        </h1>
+        <p className="text-gray-600">
+          Manage and track your organization's accreditation status
+        </p>
+      </div>
+
+      <div className="bg-white  shadow-sm p-8 text-center">
+        <div className="mx-auto w-16 h-16 bg-red-100 -full flex items-center justify-center mb-4">
+          <AlertCircle className="w-8 h-8 text-red-600" />
+        </div>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">
+          Error Loading Data
+        </h3>
+        <p className="text-gray-600 mb-4">{error}</p>
+        <button
+          onClick={onRetry}
+          className="inline-flex items-center px-4 py-2 border border-transparent  shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        >
+          Try Again
+        </button>
+      </div>
+    </div>
+  </div>;
+}
+
 function OverallStatus({ accreditationData }) {
   const { overallStatus, organizationProfile } = accreditationData;
 
@@ -390,13 +378,13 @@ function OverallStatus({ accreditationData }) {
     (completedRequirements / requirements.length) * 100;
 
   return (
-    <div className="bg-white rounded-2xl shadow-md p-6 h-full">
+    <div className="bg-white  shadow-md p-6 h-full">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-900">
           Accreditation Status
         </h2>
         <div
-          className={`px-4 py-2 rounded-full flex items-center gap-2 ${getStatusColor(
+          className={`px-4 py-2 -full flex items-center gap-2 ${getStatusColor(
             overallStatus
           )}`}
         >
@@ -413,9 +401,9 @@ function OverallStatus({ accreditationData }) {
             {completedRequirements}/{requirements.length} completed
           </span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-3">
+        <div className="w-full bg-gray-200 -full h-3">
           <div
-            className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+            className="bg-blue-600 h-3 -full transition-all duration-300"
             style={{ width: `${progressPercentage}%` }}
           ></div>
         </div>
@@ -429,14 +417,14 @@ function OverallStatus({ accreditationData }) {
         {requirements.map((req, index) => (
           <div
             key={index}
-            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+            className="flex items-center justify-between p-3 bg-gray-50 "
           >
             <div className="flex items-center gap-3">
               <FileText className="w-5 h-5 text-gray-400" />
               <span className="font-medium text-gray-900">{req.name}</span>
             </div>
             <div
-              className={`px-3 py-1 rounded-full text-sm flex items-center gap-2 ${getStatusColor(
+              className={`px-3 py-1 -full text-sm flex items-center gap-2 ${getStatusColor(
                 req.status
               )}`}
             >
@@ -448,7 +436,7 @@ function OverallStatus({ accreditationData }) {
       </div>
 
       {/* Organization Summary */}
-      <div className="mt-8 p-4 bg-blue-50 rounded-lg">
+      <div className="mt-8 p-4 bg-blue-50 ">
         <h4 className="font-semibold text-blue-900 mb-2">
           Organization Summary
         </h4>
@@ -488,7 +476,7 @@ function PresidentInformation({ accreditationData }) {
 
   if (!president) {
     return (
-      <div className="bg-white rounded-2xl shadow-md p-6 h-full">
+      <div className="bg-white  shadow-md p-6 h-full">
         <h2 className="text-xl font-semibold mb-4">President Information</h2>
         <div className="text-center text-gray-500">
           <User className="w-12 h-12 mx-auto mb-2 text-gray-300" />
@@ -499,17 +487,20 @@ function PresidentInformation({ accreditationData }) {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-md p-6 h-full">
+    <div className="bg-white  shadow-md p-6 h-full">
       <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-        <User className="w-5 h-5" />
         President Information
       </h2>
 
       <div className="space-y-4">
         {/* Profile Picture Placeholder */}
         <div className="flex justify-center mb-4">
-          <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center">
-            <User className="w-10 h-10 text-gray-400" />
+          <div className="w-32 aspect-square -full  bg-gray-200  flex items-center justify-center">
+            <img
+              src={`${DOCU_API_ROUTER}/${president.organizationProfile}/${president.profilePicture}`}
+              alt="President"
+              className="w-full h-full -full"
+            />
           </div>
         </div>
 
@@ -551,10 +542,10 @@ function PresidentInformation({ accreditationData }) {
             {president.talentSkills.map((skill, index) => (
               <div
                 key={index}
-                className="flex justify-between items-center p-2 bg-gray-50 rounded"
+                className="flex justify-between items-center p-2 bg-gray-50 "
               >
                 <span className="text-sm font-medium">{skill.skill}</span>
-                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 -full">
                   {skill.level}
                 </span>
               </div>
@@ -563,7 +554,7 @@ function PresidentInformation({ accreditationData }) {
         </div>
 
         {/* Financial Support */}
-        <div className="mt-4 p-3 bg-green-50 rounded-lg">
+        <div className="mt-4 p-3 bg-green-50 ">
           <div className="flex items-center gap-2">
             <Award className="w-4 h-4 text-green-600" />
             <span className="text-sm font-medium text-green-800">
@@ -577,12 +568,13 @@ function PresidentInformation({ accreditationData }) {
 }
 
 function DocumentDisplayCard({ accreditationData, setUploadingDocType }) {
-  const { JointStatement, PledgeAgainstHazing } = accreditationData;
+  const { JointStatement, PledgeAgainstHazing, ConstitutionAndByLaws } =
+    accreditationData;
 
   const renderDocumentCard = (label, doc, key) => {
     if (doc && doc.fileName) {
       return (
-        <div className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+        <div className="border border-gray-200  p-4 hover:bg-gray-50 transition-colors">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <FileText className="w-8 h-8 text-blue-600" />
@@ -596,7 +588,7 @@ function DocumentDisplayCard({ accreditationData, setUploadingDocType }) {
             </div>
             <div className="flex items-center gap-2">
               <div
-                className={`px-2 py-1 rounded-full text-xs flex items-center gap-1 ${getStatusColor(
+                className={`px-2 py-1 -full text-xs flex items-center gap-1 ${getStatusColor(
                   doc.status
                 )}`}
               >
@@ -615,7 +607,7 @@ function DocumentDisplayCard({ accreditationData, setUploadingDocType }) {
     return (
       <div
         onClick={() => setUploadingDocType(key)}
-        className="border-2 border-dashed border-gray-300 rounded-lg p-8 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
+        className="border-2 border-dashed border-gray-300  p-8 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
       >
         <div className="text-center">
           <Upload className="w-8 h-8 mx-auto text-gray-400 mb-2" />
@@ -627,7 +619,7 @@ function DocumentDisplayCard({ accreditationData, setUploadingDocType }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-md p-6 h-full">
+    <div className="bg-white  shadow-md p-6 h-full">
       <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
         <FileText className="w-5 h-5" />
         Required DocumentDisplayCard
@@ -638,6 +630,11 @@ function DocumentDisplayCard({ accreditationData, setUploadingDocType }) {
           "Joint Statement",
           JointStatement,
           "JointStatement"
+        )}
+        {renderDocumentCard(
+          "Constitution and By-Laws",
+          ConstitutionAndByLaws,
+          "ConstituionAndByLaws"
         )}
         {renderDocumentCard(
           "Pledge Against Hazing",
@@ -653,7 +650,7 @@ function OrganizationInfo({ accreditationData }) {
   const { organizationProfile } = accreditationData;
 
   return (
-    <div className="bg-white rounded-2xl shadow-md p-6 h-full">
+    <div className="bg-white  shadow-md p-6 h-full">
       <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
         <Building className="w-5 h-5" />
         Organization Info
@@ -690,7 +687,7 @@ function OrganizationInfo({ accreditationData }) {
           </div>
         </div>
 
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+        <div className="mt-6 p-4 bg-gray-50 ">
           <h4 className="font-medium text-gray-900 mb-2">
             Adviser Information
           </h4>
@@ -771,7 +768,7 @@ function RosterLists({ accreditationData }) {
   ];
 
   return (
-    <div className="bg-white rounded-2xl shadow-md p-6 h-full">
+    <div className="bg-white  shadow-md p-6 h-full">
       <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
         <Users className="w-5 h-5" />
         Organization Roster
@@ -782,10 +779,10 @@ function RosterLists({ accreditationData }) {
           {mockRosterData.map((member) => (
             <div
               key={member.id}
-              className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+              className="flex items-center justify-between p-4 bg-gray-50 "
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                <div className="w-10 h-10 bg-blue-100 -full flex items-center justify-center">
                   <User className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
@@ -797,7 +794,7 @@ function RosterLists({ accreditationData }) {
               </div>
               <div className="flex items-center gap-2">
                 <span
-                  className={`px-2 py-1 rounded-full text-xs ${getStatusColor(
+                  className={`px-2 py-1 -full text-xs ${getStatusColor(
                     member.status
                   )}`}
                 >
@@ -818,7 +815,7 @@ function RosterLists({ accreditationData }) {
           </p>
           <a
             href="./accreditation/roster-of-members"
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            className="bg-blue-600 text-white px-6 py-2  hover:bg-blue-700 transition-colors"
           >
             Upload Roster
           </a>
@@ -838,20 +835,20 @@ function UploadDocument({
 }) {
   return (
     <div className="absolute inset-0 h-full flex items-center justify-center 1w-full bg-black/50 backdrop-blur-sm">
-      <div className=" bg-white min-w-xl mx-auto p-6 border border-gray-300 rounded-xl">
+      <div className=" bg-white min-w-xl mx-auto p-6 border border-gray-300 -xl">
         <h3 className="text-lg font-medium">{title}</h3>
         <DocumentUploader onFileSelect={onFileSelect} title={title} />
 
         <div className="flex justify-end mt-4 gap-4">
           <button
             onClick={onCancel}
-            className="bg-gray-200 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-300"
+            className="bg-gray-200 text-gray-700 px-5 py-2  hover:bg-gray-300"
           >
             Cancel
           </button>
           <button
             onClick={onSubmit}
-            className={`${buttonClass} text-white px-6 py-2 rounded-lg transition-colors font-medium`}
+            className={`${buttonClass} text-white px-6 py-2  transition-colors font-medium`}
           >
             {buttonLabel}
           </button>

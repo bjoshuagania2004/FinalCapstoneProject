@@ -6,7 +6,7 @@ import {
   organizationProfileSchema,
 } from "./organization.js";
 import { userSchema } from "./users.js";
-import { proposalSchema } from "./proposals.js";
+import { proposalSchema, ProposedActionPlanSchema } from "./proposals.js";
 import { documentSchema } from "./document.js";
 import { accreditationSchema } from "./accreditation.js";
 import { rosterMembersSchema, rosterSchema } from "./roster.js";
@@ -18,6 +18,10 @@ const User = mongoose.model("Users", userSchema);
 const Receipt = mongoose.model("Receipts", ReceiptSchema);
 const Document = mongoose.model("Documents", documentSchema);
 const Proposal = mongoose.model("Proposals", proposalSchema);
+const ProposedActionPlan = mongoose.model(
+  "ProposedActionPlan",
+  ProposedActionPlanSchema
+);
 const Roster = mongoose.model("Roster", rosterSchema);
 const RosterMember = mongoose.model("RosterMembers", rosterMembersSchema);
 const Organization = mongoose.model("Organizations", organizationSchema);
@@ -48,6 +52,7 @@ export {
   Organization,
   Accreditation,
   Accomplishment,
+  ProposedActionPlan,
   FinancialReport,
   PresidentProfile,
   OrganizationProfile,

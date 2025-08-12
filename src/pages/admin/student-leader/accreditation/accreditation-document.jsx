@@ -7,7 +7,8 @@ import axios from "axios";
 import { API_ROUTER } from "../../../../App";
 
 export default function Documents({ accreditationData, orgId }) {
-  const { JointStatement, PledgeAgainstHazing } = accreditationData || {};
+  const { JointStatement, PledgeAgainstHazing, ConstituionAndByLaws } =
+    accreditationData || {};
 
   const [uploadingDocType, setUploadingDocType] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -82,6 +83,11 @@ export default function Documents({ accreditationData, orgId }) {
       <h2 className="text-xl font-semibold">Organization Documents</h2>
 
       {renderOrUploadBox("Joint Statement", JointStatement, "JointStatement")}
+      {renderOrUploadBox(
+        "Constitution and By-Laws",
+        ConstituionAndByLaws,
+        "Constitution and By-Laws"
+      )}
       {renderOrUploadBox(
         "Pledge Against Hazing",
         PledgeAgainstHazing,

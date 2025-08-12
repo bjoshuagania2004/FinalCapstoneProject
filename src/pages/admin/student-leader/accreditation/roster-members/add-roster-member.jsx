@@ -4,7 +4,7 @@ import { ProportionCropTool } from "../../../../../components/image_uploader";
 import axios from "axios";
 import { API_ROUTER } from "../../../../../App";
 
-export default function AddRosterForm({ onClose, orgData }) {
+export default function AddRosterForm({ onClose, orgData, onMemberAdded }) {
   // Initial state for resetting
   const initialState = {
     organizationProfile: "",
@@ -128,14 +128,18 @@ export default function AddRosterForm({ onClose, orgData }) {
       );
       console.log("Success:", response);
       alert("Roster submitted successfully!");
-
-      // Reset form after successful submission
-      resetForm();
+      // Call the callback to refresh parent component data
+      if (onMemberAdded) {
+        onMemberAdded();
+      } else {
+        onClose(); // Fallback to just closing if callback not provided
+      }
     } catch (error) {
       console.error("Error during submit:", error);
       alert("Error processing submission. Please try again.");
     } finally {
       setIsProcessing(false);
+      onClose();
     }
   };
 

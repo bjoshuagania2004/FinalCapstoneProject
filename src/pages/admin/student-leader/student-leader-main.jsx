@@ -25,7 +25,7 @@ import {
   Plus,
 } from "lucide-react";
 import axios from "axios";
-import { API_ROUTER } from "../../../App";
+import { API_ROUTER, DOCU_API_ROUTER } from "../../../App";
 import InitialRegistration from "./initial-registration";
 import StudentLeaderPresidentListComponent from "./accreditation/presidents/president";
 import StudentLeaderRosters from "./accreditation/roster-members/roster-member";
@@ -34,6 +34,7 @@ import StudentHomePage from "./home";
 import FinancialReport from "./accreditation/financial-report.jsx/financial-report";
 import { ProportionCropTool } from "../../../components/image_uploader";
 import AccreditationDocuments from "./accreditation/documents";
+import { StudentProposedPlan } from "./accreditation/propose-plan/proposed-plan";
 
 export default function StudentLeaderMainPage() {
   const [orgData, setOrgData] = useState({});
@@ -70,12 +71,13 @@ function StudentAccreditationNavigationPage() {
     { to: "documents", label: "Accreditation Documents" },
     { to: "roster-of-members", label: "Roster of Members" },
     { to: "president-information", label: "President's Information Sheet" },
+    { to: "PPA", label: "Proposed Action Plan" },
   ];
 
   return (
-    <div className="h-full flex flex-col p-4">
+    <div className="h-full flex flex-col ">
       {/* Navigation */}
-      <nav className="flex gap-4 p-4 bg-white rounded-t-2xl pb-4 border-b">
+      <nav className="flex gap-4 px-6 py-4 bg-white  ">
         {tabs.map((tab) => (
           <NavLink
             key={tab.to}
@@ -84,8 +86,8 @@ function StudentAccreditationNavigationPage() {
             className={({ isActive }) =>
               `text-lg font-semibold px-4 pt-2 ${
                 isActive
-                  ? "border-b-2 border-blue-600 text-blue-600"
-                  : "text-gray-600 hover:text-blue-500"
+                  ? "border-b-2 border-cnsc-primary-color text-cnsc-primary-color"
+                  : "text-gray-600 hover:text-cnsc-primary-color"
               }`
             }
           >
@@ -218,7 +220,7 @@ function StudentComponents({
   }
 
   return (
-    <div className="flex flex-col  w-full h-full bg-gray-200 overflow-hidden ">
+    <div className="flex flex-col   w-full h-full bg-gray-200 overflow-hidden ">
       <Routes>
         <Route index element={<StudentHomePage />} />
         <Route
@@ -230,15 +232,7 @@ function StudentComponents({
             </div>
           }
         />
-        <Route
-          path="sandbox"
-          element={
-            <div className="p-4">
-              <h1 className="text-2xl font-bold">Sandbox</h1>
-              <p>Sandbox content</p>
-            </div>
-          }
-        />
+
         <Route
           path="initial-registration"
           element={
@@ -288,6 +282,15 @@ function StudentComponents({
               />
             }
           />
+          <Route
+            path="PPA"
+            element={
+              <StudentProposedPlan
+                orgData={orgData}
+                accreditationData={accreditationData}
+              />
+            }
+          />
         </Route>
         <Route
           path="accomplishment"
@@ -328,7 +331,9 @@ function StudentNavigation({ orgData }) {
   }
 
   const imageSrc =
-    orgData._id && orgData.orgLogo ? `/${orgData._id}/${orgData.orgLogo}` : "";
+    orgData._id && orgData.orgLogo
+      ? `${DOCU_API_ROUTER}/${orgData._id}/${orgData.orgLogo}`
+      : "";
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [croppedData, setCroppedData] = useState(null);
@@ -436,7 +441,44 @@ function StudentNavigation({ orgData }) {
         </div>
 
         <nav className="flex flex-col space-y-2">
-          {navigationItems.map((item) => (
+          {[
+            {
+              key: "home",
+              icon: <Home className="mr-2 w-5 h-5" />,
+              label: "Reports/Dashboard",
+              path: "/student-leader",
+            },
+            {
+              key: "accreditations",
+              icon: <FolderOpen className="mr-2 w-5 h-5" />,
+              label: "Accreditations",
+              path: "/student-leader/accreditation",
+            },
+            {
+              key: "accomplishments",
+              icon: <File className="mr-2 w-5 h-5" />,
+              label: "Accomplishments",
+              path: "/student-leader/accomplishment",
+            },
+            {
+              key: "proposals",
+              icon: <FileText className="mr-2 w-5 h-5" />,
+              label: "Proposals",
+              path: "/student-leader/proposal",
+            },
+            {
+              key: "post",
+              icon: <PenSquare className="mr-2 w-5 h-5" />,
+              label: "Post",
+              path: "/student-leader/post",
+            },
+            {
+              key: "logs",
+              icon: <Clock className="mr-2 w-5 h-5" />,
+              label: "Logs",
+              path: "/student-leader/log",
+            },
+          ].map((item) => (
             <NavLink
               key={item.key}
               to={item.path}
@@ -609,42 +651,3 @@ function LogoutButton() {
     </>
   );
 }
-
-const navigationItems = [
-  {
-    key: "home",
-    icon: <Home className="mr-2 w-5 h-5" />,
-    label: "Reports/Dashboard",
-    path: "/student-leader",
-  },
-  {
-    key: "accreditations",
-    icon: <FolderOpen className="mr-2 w-5 h-5" />,
-    label: "Accreditations",
-    path: "/student-leader/accreditation",
-  },
-  {
-    key: "accomplishments",
-    icon: <File className="mr-2 w-5 h-5" />,
-    label: "Accomplishments",
-    path: "/student-leader/accomplishment",
-  },
-  {
-    key: "proposals",
-    icon: <FileText className="mr-2 w-5 h-5" />,
-    label: "Proposals",
-    path: "/student-leader/proposal",
-  },
-  {
-    key: "post",
-    icon: <PenSquare className="mr-2 w-5 h-5" />,
-    label: "Post",
-    path: "/student-leader/post",
-  },
-  {
-    key: "logs",
-    icon: <Clock className="mr-2 w-5 h-5" />,
-    label: "Logs",
-    path: "/student-leader/log",
-  },
-];

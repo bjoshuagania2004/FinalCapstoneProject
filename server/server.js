@@ -45,7 +45,7 @@ app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true }));
 
 // Serve static files
-app.use("/public", express.static(path.resolve(__dirname, "public")));
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // // Session setup with MongoDB store
 app.use(

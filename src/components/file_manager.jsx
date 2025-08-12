@@ -11,6 +11,7 @@ import {
   ZoomIn,
   ZoomOut,
 } from "lucide-react";
+import { API_ROUTER } from "../App";
 
 const ImageCropper = ({ src, onCrop, onCancel, originalFileName }) => {
   const containerRef = useRef(null);
@@ -775,6 +776,23 @@ export const ReusableMultiFileUpload = ({ fields, onFileChange }) => {
           </div>
         );
       })}
+    </div>
+  );
+};
+
+export const DocumentViewer = ({ fileUrl }) => {
+  return (
+    <div>
+      {/* For images */}
+      <img src={`${API_ROUTER}/${fileUrl}`} alt="Document" width="400" />
+
+      {/* For PDF */}
+      <iframe
+        src={`${API_ROUTER}/${fileUrl}`}
+        width="100%"
+        height="600px"
+        title="PDF Viewer"
+      ></iframe>
     </div>
   );
 };

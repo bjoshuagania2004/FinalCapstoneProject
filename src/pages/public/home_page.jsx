@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X } from "lucide-react";
 import Login from "./login_form";
 import { RegistrationForm } from "./registration_form";
 import backgroundImage from "./../../assets/cnscsch.jpg";
