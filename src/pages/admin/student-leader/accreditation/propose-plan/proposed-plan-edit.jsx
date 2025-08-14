@@ -1,34 +1,38 @@
 import React, { useEffect, useState } from "react";
+import { ChevronDown, Search, CheckCircle, X } from "lucide-react";
 import axios from "axios";
 import { API_ROUTER, DOCU_API_ROUTER } from "../../../../../App";
 
-import { ChevronDown, Search, CheckCircle, X } from "lucide-react";
-
-export function AddProposedActionPlan({
+export default function EditPpa({
+  selectedProposal,
   orgData,
   accreditationData,
   onClose,
   onFinish,
 }) {
+  const [selectedOrganizations, setSelectedOrganizations] = useState(
+    selectedProposal?.collaboratingEntities || []
+  );
   const [formData, setFormData] = useState({
-    activityTitle: "",
-    briefDetails: "",
-    alignedOrgObjectives: "",
-    alignedSDG: [],
-    budgetaryRequirements: "",
-    collaboratingEntities: [],
-    venue: "",
-    proposedDate: "",
-    overallStatus: "Pending",
+    activityTitle: selectedProposal?.activityTitle || "",
+    briefDetails: selectedProposal?.briefDetails || "",
+    alignedOrgObjectives: selectedProposal?.alignedOrgObjectives || "",
+    alignedSDG: selectedProposal?.alignedSDG || [],
+    budgetaryRequirements: selectedProposal?.budgetaryRequirements || "",
+    collaboratingEntities: selectedProposal?.collaboratingEntities || [],
+    venue: selectedProposal?.venue || "",
+    proposedDate: selectedProposal?.proposedDate || "",
+    overallStatus: selectedProposal?.overallStatus || "Pending",
     organizationProfile: orgData._id,
     organization: orgData.organization,
     accreditation: accreditationData._id,
-    documents: [],
+    documents: selectedProposal?.documents || [],
   });
-  const [showPopUp, setShowPopUp] = useState(false);
+
+  console.log(selectedProposal._id);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
-  const [selectedOrganizations, setSelectedOrganizations] = useState([]);
+  const [showPopUp, setShowPopUp] = useState(false);
 
   const handleOrgSelection = (selectedOrgs) => {
     const selectedOrgIds = selectedOrgs.map((org) => org._id);
@@ -61,7 +65,6 @@ export function AddProposedActionPlan({
     }));
   };
 
-  // Submit handler
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -70,7 +73,7 @@ export function AddProposedActionPlan({
 
     try {
       const response = await axios.post(
-        `${API_ROUTER}/postStudentLeaderProposal/`,
+        `${API_ROUTER}/UpdateStudentLeaderProposal/${selectedProposal._id}`,
         formData
       );
       console.log("Success:", response.data);
@@ -96,9 +99,9 @@ export function AddProposedActionPlan({
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-lg w-full flex flex-col max-w-4xl max-h-[90vh] overflow-hidden">
-        <div className=" flex justify-between px-4 p-6 border-b">
+        <div className="flex justify-between px-4 p-6 border-b">
           <h2 className="text-2xl font-bold text-gray-900">
-            Add New Proposed Action Plan
+            Edit Proposed Action Plan
           </h2>
           <X size={24} onClick={onClose} />
         </div>
@@ -151,6 +154,7 @@ export function AddProposedActionPlan({
                 className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent"
               />
             </div>
+
             {/* Budgetary Requirements */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -166,6 +170,7 @@ export function AddProposedActionPlan({
                 placeholder="e.g., ₱50,000 - ₱100,000"
               />
             </div>
+
             {/* Aligned SDG */}
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -271,12 +276,15 @@ export function AddProposedActionPlan({
               />
             </div>
 
-            {/* Cooperating Entities */}
+            {/* Collaborating Entities */}
             <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Collaborating Entities
+              </label>
               <OrganizationDropdown
                 selectedOrgs={selectedOrganizations}
                 onSelectOrgs={handleOrgSelection}
-                excludeOrgId={orgData?._id}
+                excludeOrgId={formData.organizationProfile}
               />
             </div>
 
@@ -284,7 +292,7 @@ export function AddProposedActionPlan({
             <div className="mt-8 flex gap-4">
               <button
                 onClick={onClose}
-                className="flex-1 py-3 px-4 border border-gray-200 rounded-md font-medium text-gray-700 hover:bg-gray-50 transition duration-200"
+                className="flex-1 py-3 px-4 border border-gray-300 rounded-md font-medium text-gray-700 hover:bg-gray-50 transition duration-200"
               >
                 Cancel
               </button>
@@ -298,16 +306,15 @@ export function AddProposedActionPlan({
                     : "bg-amber-600 hover:bg-amber-700 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
                 } text-white transition duration-200`}
               >
-                {isSubmitting ? "Adding Proposal..." : "Add Proposal"}
+                {isSubmitting ? "Updating Proposal..." : "Save Changes"}
               </button>
             </div>
           </div>
         </div>
       </div>
-
       {/* Upload Status Popup */}
       {showPopUp && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-60">
+        <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-60">
           <div className="bg-white rounded-lg shadow-xl p-8 flex flex-col items-center justify-center max-w-sm w-full mx-4">
             {!uploadSuccess ? (
               <>
@@ -323,10 +330,10 @@ export function AddProposedActionPlan({
               <>
                 <CheckCircle size={48} className="text-green-500 mb-4" />
                 <p className="text-lg font-medium text-gray-800">
-                  Upload Complete!
+                  Update Complete!
                 </p>
                 <p className="text-sm text-gray-600 text-center mt-2">
-                  Your proposal has been successfully submitted
+                  Your proposal has been successfully updated
                 </p>
               </>
             )}
@@ -336,6 +343,7 @@ export function AddProposedActionPlan({
     </div>
   );
 }
+
 function OrganizationDropdown({ selectedOrgs, onSelectOrgs, excludeOrgId }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [orgs, setOrgs] = useState([]);
@@ -461,13 +469,9 @@ function OrganizationDropdown({ selectedOrgs, onSelectOrgs, excludeOrgId }) {
 
   return (
     <div className="flex flex-col w-full gap-4">
-      <label className="block text-sm font-medium text-gray-700 mb-2">
-        Cooperating Entities
-      </label>
-
       {/* Selected Organizations Display */}
       {selectedOrgs.length > 0 && (
-        <div className="bg-amber-50 border border-gray-100 rounded-lg p-3 mb-2">
+        <div className="">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-amber-800">
               Selected Organizations ({selectedOrgs.length})
@@ -480,7 +484,7 @@ function OrganizationDropdown({ selectedOrgs, onSelectOrgs, excludeOrgId }) {
               Clear All
             </button>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1">
             {selectedOrgs.map((org) => (
               <div
                 key={org._id}

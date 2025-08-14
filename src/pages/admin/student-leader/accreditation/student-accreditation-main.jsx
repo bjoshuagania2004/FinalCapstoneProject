@@ -15,6 +15,7 @@ import {
   MapPin,
   Award,
   Star,
+  Codesandbox,
 } from "lucide-react";
 import axios from "axios";
 import { API_ROUTER, DOCU_API_ROUTER } from "../../../../App";
@@ -41,13 +42,11 @@ export default function StudentAccreditationMainComponent({ orgId }) {
         setIsLoading(true);
         setError(null);
 
-        console.log(`${API_ROUTER}/getAccreditationInfo/${orgId}`);
         const response = await axios.get(
           `${API_ROUTER}/getAccreditationInfo/${orgId}`,
           { withCredentials: true }
         );
 
-        console.log(response.data);
         setAccreditationData(response.data);
       } catch (err) {
         console.error("Error fetching accreditation info:", err);
@@ -200,13 +199,8 @@ export default function StudentAccreditationMainComponent({ orgId }) {
             />
           </div>
 
-          {/* Organization Info */}
-          <div className="lg:col-span-3 ">
-            <OrganizationInfo accreditationData={accreditationData} />
-          </div>
-
           {/* Roster Lists */}
-          <div className="lg:col-span-5">
+          <div className="lg:col-span-3">
             <RosterLists accreditationData={accreditationData} />
           </div>
         </div>
@@ -360,8 +354,14 @@ function OverallStatus({ accreditationData }) {
       status: accreditationData.PledgeAgainstHazing?.status || "Not Submitted",
     },
     {
-      name: "Organization Roster",
-      status: accreditationData.Roster?.status || "Not Submitted",
+      name: "Constitution And By-Laws",
+      status:
+        accreditationData.ConstitutionAndByLaws?.status || "Not Submitted",
+    },
+
+    {
+      name: "Roster Members",
+      status: accreditationData.Roster?.overAllStatus || "Incomplete",
     },
     {
       name: "President Profile",
@@ -369,16 +369,22 @@ function OverallStatus({ accreditationData }) {
         ? "Submitted"
         : "Not Submitted",
     },
+    {
+      name: "Finacial Report",
+      status: accreditationData.FinancialReport?.isActive
+        ? "Active"
+        : "Inactive",
+    },
   ];
 
-  const completedRequirements = requirements.filter(
-    (req) => req.status === "Approved" || req.status === "Submitted"
+  const completedRequirements = requirements.filter((req) =>
+    ["approved", "submitted", "active"].includes(req.status?.toLowerCase())
   ).length;
   const progressPercentage =
     (completedRequirements / requirements.length) * 100;
 
   return (
-    <div className="bg-white  shadow-md p-6 h-full">
+    <div className="bg-white  border border-gray-400 p-6 h-full">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-900">
           Accreditation Status
@@ -434,39 +440,6 @@ function OverallStatus({ accreditationData }) {
           </div>
         ))}
       </div>
-
-      {/* Organization Summary */}
-      <div className="mt-8 p-4 bg-blue-50 ">
-        <h4 className="font-semibold text-blue-900 mb-2">
-          Organization Summary
-        </h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div>
-            <span className="text-blue-700 font-medium">Name:</span>
-            <span className="text-blue-900 ml-2">
-              {organizationProfile.orgName}
-            </span>
-          </div>
-          <div>
-            <span className="text-blue-700 font-medium">Acronym:</span>
-            <span className="text-blue-900 ml-2">
-              {organizationProfile.orgAcronym}
-            </span>
-          </div>
-          <div>
-            <span className="text-blue-700 font-medium">Department:</span>
-            <span className="text-blue-900 ml-2">
-              {organizationProfile.orgDepartment}
-            </span>
-          </div>
-          <div>
-            <span className="text-blue-700 font-medium">Course:</span>
-            <span className="text-blue-900 ml-2">
-              {organizationProfile.orgCourse}
-            </span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
@@ -476,7 +449,7 @@ function PresidentInformation({ accreditationData }) {
 
   if (!president) {
     return (
-      <div className="bg-white  shadow-md p-6 h-full">
+      <div className="bg-white  border border-gray-400 p-6 h-full">
         <h2 className="text-xl font-semibold mb-4">President Information</h2>
         <div className="text-center text-gray-500">
           <User className="w-12 h-12 mx-auto mb-2 text-gray-300" />
@@ -487,7 +460,7 @@ function PresidentInformation({ accreditationData }) {
   }
 
   return (
-    <div className="bg-white  shadow-md p-6 h-full">
+    <div className="bg-white  border border-gray-400 p-6 h-full">
       <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
         President Information
       </h2>
@@ -619,7 +592,7 @@ function DocumentDisplayCard({ accreditationData, setUploadingDocType }) {
   };
 
   return (
-    <div className="bg-white  shadow-md p-6 h-full">
+    <div className="bg-white  border border-gray-400 p-6 h-full">
       <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
         <FileText className="w-5 h-5" />
         Required DocumentDisplayCard
@@ -646,144 +619,75 @@ function DocumentDisplayCard({ accreditationData, setUploadingDocType }) {
   );
 }
 
-function OrganizationInfo({ accreditationData }) {
-  const { organizationProfile } = accreditationData;
-
-  return (
-    <div className="bg-white  shadow-md p-6 h-full">
-      <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-        <Building className="w-5 h-5" />
-        Organization Info
-      </h2>
-
-      <div className="space-y-4">
-        <div>
-          <h3 className="font-medium text-gray-900 mb-2">
-            {organizationProfile.orgName}
-          </h3>
-          <p className="text-2xl font-bold text-blue-600">
-            {organizationProfile.orgAcronym}
-          </p>
-        </div>
-
-        <div className="space-y-2 text-sm">
-          <div>
-            <span className="text-gray-500">Class:</span>
-            <span className="ml-2 font-medium">
-              {organizationProfile.orgClass}
-            </span>
-          </div>
-          <div>
-            <span className="text-gray-500">Department:</span>
-            <span className="ml-2 font-medium">
-              {organizationProfile.orgDepartment}
-            </span>
-          </div>
-          <div>
-            <span className="text-gray-500">Course:</span>
-            <span className="ml-2 font-medium">
-              {organizationProfile.orgCourse}
-            </span>
-          </div>
-        </div>
-
-        <div className="mt-6 p-4 bg-gray-50 ">
-          <h4 className="font-medium text-gray-900 mb-2">
-            Adviser Information
-          </h4>
-          <div className="space-y-2 text-sm">
-            <div>
-              <span className="text-gray-500">Name:</span>
-              <span className="ml-2 font-medium">
-                {organizationProfile.adviserName}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Mail className="w-4 h-4 text-gray-400" />
-              <span className="text-gray-900">
-                {organizationProfile.adviserEmail}
-              </span>
-            </div>
-            <div>
-              <span className="text-gray-500">Department:</span>
-              <span className="ml-2 font-medium">
-                {organizationProfile.adviserDepartment}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-4 text-xs text-gray-500">
-          <p>
-            Created:{" "}
-            {new Date(organizationProfile.createdAt).toLocaleDateString()}
-          </p>
-          <p>
-            Updated:{" "}
-            {new Date(organizationProfile.updatedAt).toLocaleDateString()}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function RosterLists({ accreditationData }) {
-  const mockRosterData = [
-    {
-      id: 1,
-      name: "Sarah Jane Dela Cruz",
-      position: "President",
-      year: "4th Year",
-      status: "Active",
-    },
-    {
-      id: 2,
-      name: "John Michael Santos",
-      position: "Vice President",
-      year: "3rd Year",
-      status: "Active",
-    },
-    {
-      id: 3,
-      name: "Maria Elena Rodriguez",
-      position: "Secretary",
-      year: "2nd Year",
-      status: "Active",
-    },
-    {
-      id: 4,
-      name: "Carlos Antonio Reyes",
-      position: "Treasurer",
-      year: "3rd Year",
-      status: "Active",
-    },
-    {
-      id: 5,
-      name: "Ana Lucia Mendoza",
-      position: "Auditor",
-      year: "4th Year",
-      status: "Active",
-    },
-  ];
+  const [rosterData, setRosterData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
+  const fetchRosterMembers = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(
+        `${API_ROUTER}/getRosterMembers/${accreditationData.organizationProfile._id}`
+      );
+      setRosterData(response.data.rosterMembers || []);
+      setError(null);
+    } catch (err) {
+      console.error("Failed to fetch roster members:", err);
+      setError("Failed to load roster members");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  console.log(accreditationData);
+
+  // Load data when component mounts
+  useEffect(() => {
+    if (accreditationData?.organizationProfile?._id) {
+      fetchRosterMembers();
+    }
+  }, [accreditationData]);
+
+  const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case "active":
+        return "bg-green-100 text-green-800 rounded-full";
+      case "inactive":
+        return "bg-red-100 text-red-800 rounded-full";
+      default:
+        return "bg-gray-100 text-gray-800 rounded-full";
+    }
+  };
   return (
-    <div className="bg-white  shadow-md p-6 h-full">
+    <div className="bg-white border border-gray-400 p-6 h-full">
       <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
         <Users className="w-5 h-5" />
         Organization Roster
       </h2>
 
-      {accreditationData.Roster ? (
+      {loading ? (
+        <p>Loading roster...</p>
+      ) : error ? (
+        <p className="text-red-500">{error}</p>
+      ) : rosterData.length > 0 ? (
         <div className="space-y-4">
-          {mockRosterData.map((member) => (
+          {rosterData.map((member) => (
             <div
-              key={member.id}
-              className="flex items-center justify-between p-4 bg-gray-50 "
+              key={member._id}
+              className="flex items-center justify-between p-4 bg-gray-50"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-100 -full flex items-center justify-center">
-                  <User className="w-5 h-5 text-blue-600" />
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                  <img
+                    src={
+                      member.profilePicture
+                        ? `${DOCU_API_ROUTER}/${accreditationData.organizationProfile._id}/${member.profilePicture}`
+                        : "/cnsc-logo.png"
+                    }
+                    alt="Profile Picture"
+                    className="max-h-32 aspect-square border object-cover rounded"
+                  />
                 </div>
                 <div>
                   <h3 className="font-medium text-gray-900">{member.name}</h3>
@@ -794,7 +698,7 @@ function RosterLists({ accreditationData }) {
               </div>
               <div className="flex items-center gap-2">
                 <span
-                  className={`px-2 py-1 -full text-xs ${getStatusColor(
+                  className={`px-2 py-1 text-xs ${getStatusColor(
                     member.status
                   )}`}
                 >
@@ -815,7 +719,7 @@ function RosterLists({ accreditationData }) {
           </p>
           <a
             href="./accreditation/roster-of-members"
-            className="bg-blue-600 text-white px-6 py-2  hover:bg-blue-700 transition-colors"
+            className="bg-blue-600 text-white px-6 py-2 hover:bg-blue-700 transition-colors"
           >
             Upload Roster
           </a>
@@ -824,7 +728,6 @@ function RosterLists({ accreditationData }) {
     </div>
   );
 }
-
 function UploadDocument({
   title = "Upload a Document",
   buttonLabel = "Submit",

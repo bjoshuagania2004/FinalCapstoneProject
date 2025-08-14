@@ -4,12 +4,11 @@ import { API_ROUTER, DOCU_API_ROUTER } from "../../../../../App";
 import axios from "axios";
 
 export default function StudentLeaderRosters({ orgData }) {
-  const [showModal, setShowModal] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [activeModal, setActiveModal] = useState(null); // 'add', 'edit', 'import', etc.
   const [rosterData, setRosterData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  console.log(orgData);
 
   const fetchRosterMembers = async () => {
     try {
@@ -35,9 +34,28 @@ export default function StudentLeaderRosters({ orgData }) {
   }, [orgData._id]);
 
   const handleMemberAdded = () => {
-    setShowModal(false);
+    setActiveModal(null);
     fetchRosterMembers(); // Refresh the roster data
   };
+
+  const handleDropdownAction = (action) => {
+    setShowDropdown(false);
+    setActiveModal(action);
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showDropdown && !event.target.closest(".dropdown-container")) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showDropdown]);
 
   if (loading) {
     return (
@@ -67,27 +85,93 @@ export default function StudentLeaderRosters({ orgData }) {
 
   const rosterMembers = rosterData?.rosterMembers || [];
 
+  const dropdownItems = [
+    {
+      id: "add",
+      label: "Add Roster Member",
+      icon: "👤",
+    },
+    {
+      id: "Completion",
+      label: "Submit For Completion",
+      icon: "📊",
+    },
+    {
+      id: "export",
+      label: "Export Roster as Spread Sheet",
+      icon: "📤",
+    },
+  ];
+
   return (
     <div className="p-4 flex flex-col bg-gray-50 min-h-screen">
       <div className="flex w-full justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Roster Management</h1>
-        <button
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
-          onClick={() => setShowModal(true)}
-        >
-          Add Roster Member
-        </button>
+        <div className="">
+          <h1 className="text-2xl font-bold text-gray-900">
+            Roster Management
+          </h1>
+          <h1 className="text-sm font-bold text-gray-900">
+            Status: {rosterData.roster.isComplete ? "Complete" : "Not Complete"}
+          </h1>
+        </div>
+        {/* Dropdown Container */}
+        <div className="relative w-64  dropdown-container">
+          <button
+            className={`bg-cnsc-primary-color justify-between w-full  hover:bg-cnsc-primary-color/90 text-white px-4 py-2 transition-colors flex items-center gap-2 ${
+              showDropdown ? "rounded-t-lg" : "rounded-lg"
+            }`}
+            onClick={() => setShowDropdown(!showDropdown)}
+          >
+            Actions
+            <svg
+              className={`w-4 h-4 transition-transform ${
+                showDropdown ? "rotate-180" : ""
+              }`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
+
+          {/* Dropdown Menu */}
+          {showDropdown && (
+            <div className="absolute right-0 rounded-b-lg w-64 bg-white shadow-lg border border-gray-300 z-10">
+              <div className="flex flex-col gap-1">
+                {dropdownItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => handleDropdownAction(item.id)}
+                    className="w-full text-left px-4 py-3  flex hover:bg-amber-200 items-center gap-3 transition-colors duration-300"
+                  >
+                    <span className="text-lg">{item.icon}</span>
+                    <span className={`font-medium text-black`}>
+                      {item.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {!rosterData || rosterMembers.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-gray-500 mb-2">No roster has been started yet.</p>
           <p className="text-gray-400 mb-4">
-            Click the button below to begin creating your student leader roster.
+            Click the Actions button above to begin creating your student leader
+            roster.
           </p>
           <button
             className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
-            onClick={() => setShowModal(true)}
+            onClick={() => setActiveModal("add")}
           >
             Start Roster
           </button>
@@ -104,20 +188,88 @@ export default function StudentLeaderRosters({ orgData }) {
         </div>
       )}
 
-      {showModal && (
+      {/* Modal Rendering */}
+      {activeModal === "add" && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
           <AddRosterForm
             orgData={orgData}
-            onClose={() => setShowModal(false)}
-            onMemberAdded={handleMemberAdded} // Pass the refresh callback
+            onClose={() => setActiveModal(null)}
+            onMemberAdded={handleMemberAdded}
           />
         </div>
+      )}
+
+      {activeModal === "Completion" && (
+        <SubmitForCompletion
+          rosterId={rosterData.roster._id}
+          onFinish={() => setActiveModal(null)}
+          onClose={() => setActiveModal(null)}
+        /> // closes when user cancels />
+      )}
+
+      {activeModal === "export" && (
+        <SubmitForCompletion
+          rosterId={rosterData.roster._id}
+          onFinish={() => setActiveModal(null)}
+          onClose={() => setActiveModal(null)}
+        />
       )}
     </div>
   );
 }
 
+const SubmitForCompletion = ({ rosterId, onClose }) => {
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleSubmit = async () => {
+    setIsProcessing(true);
+
+    try {
+      // Send form data to backend
+      const response = await axios.post(
+        `${API_ROUTER}/CompleteStudentRoster/${rosterId}`
+      );
+      console.log("Success:", response);
+      alert("Roster submitted successfully!");
+
+      // Wait 1 second before refreshing/closing
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      onClose();
+    } catch (error) {
+      console.error("Error during submit:", error);
+      alert("Error processing submission. Please try again.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="h-1/4 w-full max-w-xl bg-white flex flex-col justify-center items-center rounded-xl p-6">
+        <h1 className="text-lg font-semibold mb-6">Submit for completion?</h1>
+        <div className="flex gap-4">
+          <button
+            onClick={handleSubmit}
+            disabled={isProcessing}
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
+          >
+            {isProcessing ? "Processing..." : "Confirm"}
+          </button>
+          <button
+            onClick={onClose}
+            className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded-lg"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const RosterMemberCard = ({ member, orgId }) => {
+  console.log(`${DOCU_API_ROUTER}/${orgId}/${member.profilePicture}`);
   return (
     <div className="bg-white rounded-lg flex flex-col gap-2 items-center shadow-md p-6 border border-gray-200 hover:shadow-lg transition-shadow">
       <div className="flex items-center justify-between">

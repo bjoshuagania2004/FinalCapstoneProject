@@ -131,7 +131,7 @@ export default function StudentLeaderPresidentListComponent({
   // Show error message if there's an error
   if (error) {
     return (
-      <div className="flex flex-col h-full w-full items-center justify-center min-h-96">
+      <div className="flex flex-col  h-full w-full items-center justify-center min-h-96">
         <div className="text-center">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg
@@ -154,7 +154,7 @@ export default function StudentLeaderPresidentListComponent({
           <p className="text-sm text-gray-600 mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            className="px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
           >
             Retry
           </button>
@@ -162,26 +162,21 @@ export default function StudentLeaderPresidentListComponent({
       </div>
     );
   }
-
   return (
     <div className="flex flex-col mt-4 h-full w-full gap-4 overflow-auto">
-      {/* Conditionally render AddPresident if there's no current one */}
-
-      {/* Display all presidents */}
-
-      {orgData.orgPresident ? (
-        <CurrentPresidentCard
-          currentPresident={currentPresident}
-          orgData={orgData}
-        />
-      ) : (
-        // If there is no current president, show the add card
-        <div className="h-full flex flex-col gap-4">
-          <div
-            className="bg-white h-full rounded-lg shadow-md hover:shadow-lg transition-all duration-300 p-6 relative cursor-pointer group border-2 border-dashed border-gray-300 hover:border-indigo-400"
-            onClick={handleAdd}
-          >
-            <div className="flex flex-col items-center h-full space-y-4">
+      <div className="grid grid-cols-4 gap-4">
+        {/* Current President takes 2 columns */}
+        <div className="col-span-2">
+          {orgData.orgPresident ? (
+            <CurrentPresidentCard
+              currentPresident={currentPresident}
+              orgData={orgData}
+            />
+          ) : (
+            <div
+              className="bg-white gap-4 flex flex-col justify-center items-center  transition-all duration-300 p-6 relative cursor-pointer group border-2 border-dashed border-gray-300 hover:border-indigo-400"
+              onClick={handleAdd}
+            >
               <div className="w-32 h-32 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-full flex items-center justify-center border-2 border-indigo-200 group-hover:border-indigo-400 transition-all duration-300 group-hover:scale-105">
                 <Plus
                   size={48}
@@ -197,12 +192,26 @@ export default function StudentLeaderPresidentListComponent({
                 </p>
               </div>
             </div>
-          </div>
+          )}
         </div>
-      )}
 
+        {/* Previous Presidents each take 1 column */}
+        {presidents.map((president, index) => (
+          <div key={index} className="col-span-1">
+            <PresidentCard
+              president={president}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onUploadPhoto={handleUploadPhoto}
+              showActions={president.isCurrent}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Modal */}
       {showAddForm && (
-        <div className="absolute justify-center z-1 flex items-center inset-0 backdrop-blur-xs bg-black/20">
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/30 backdrop-blur-sm">
           <AddStudentPresident
             orgInfo={orgData}
             AccreditationId={accreditationData._id}
@@ -211,25 +220,11 @@ export default function StudentLeaderPresidentListComponent({
               setShowAddForm(false);
               setUploadComplete(true);
               window.location.reload();
-              setTimeout(() => setUploadComplete(false), 3000); // hide after 3 seconds
+              setTimeout(() => setUploadComplete(false), 3000);
             }}
           />
         </div>
       )}
-
-      <h1 className="text-xl font-black text-center">Previous Presidents</h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 justify-center gap-6">
-        {presidents.map((president, index) => (
-          <PresidentCard
-            key={index}
-            president={president}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onUploadPhoto={handleUploadPhoto}
-            showActions={president.isCurrent}
-          />
-        ))}
-      </div>
     </div>
   );
 }
@@ -250,204 +245,167 @@ const CurrentPresidentCard = ({ currentPresident, orgData }) => {
     age = "N/A",
     sex = "N/A",
     religion = "N/A",
+    nationality = "N/A",
     profilePicture = "/cnscsch.jpg",
     presentAddress = {},
+    contactNo = "N/A",
+    facebookAccount = "",
+    parentGuardian = "N/A",
+    sourceOfFinancialSupport = "N/A",
     talentSkills = [],
     classSchedule = [],
   } = president;
 
-  console.log(president);
   const profilePictureUrl = `${DOCU_API_ROUTER}/${president.organizationProfile}/${profilePicture}`;
-  console.log("Profile Picture URL:", profilePictureUrl);
+
   return (
-    <div className="">
-      <div className="bg-white w-full">
-        {/* Main Content */}
-        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-8">
-            <div className="flex flex-col lg:flex-row items-center gap-8">
-              {/* Profile Image */}
-              <div className="relative group">
-                <div
-                  className="relative w-40 h-40 rounded-full overflow-hidden cursor-pointer ring-4 ring-white shadow-xl transition-transform duration-300 group-hover:scale-105"
-                  onClick={handleImageClick}
-                >
-                  <img
-                    src={profilePictureUrl}
-                    alt="President"
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                    <div className="text-white text-center">
-                      <User className="w-8 h-8 mx-auto mb-2" />
-                      <p className="text-sm font-medium">View Profile</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Basic Info */}
-              <div className="text-center lg:text-left text-white">
-                <h2 className="text-3xl font-bold mb-2">{name}</h2>
-                <p className="text-xl text-blue-100 mb-4">
-                  {course} • {year}
-                </p>
-                <p className="text-lg text-blue-200 mb-4">{department}</p>
-
-                {/* Quick Stats */}
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div className="bg-white bg-opacity-20 rounded-lg p-3">
-                    <p className="text-sm text-blue-100">Age</p>
-                    <p className="text-lg font-semibold">{age}</p>
-                  </div>
-                  <div className="bg-white bg-opacity-20 rounded-lg p-3">
-                    <p className="text-sm text-blue-100">Sex</p>
-                    <p className="text-lg font-semibold">{sex}</p>
-                  </div>
-                  <div className="bg-white bg-opacity-20 rounded-lg p-3">
-                    <p className="text-sm text-blue-100">Religion</p>
-                    <p className="text-lg font-semibold">{religion}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+    <div className=" mx-auto bg-white ">
+      {/* Header Section */}
+      <div className="bg-blue-600 px-6 py-8">
+        <div className="flex flex-col md:flex-row items-center gap-6">
+          {/* Profile Image */}
+          <div
+            className="w-32 h-32 rounded-full overflow-hidden cursor-pointer ring-4 ring-white  hover:scale-105 transition-transform duration-200"
+            onClick={handleImageClick}
+          >
+            <img
+              src={profilePictureUrl}
+              alt="President"
+              className="w-full h-full object-cover"
+            />
           </div>
 
-          {/* Content Sections */}
-          <div className="p-8">
-            <div className="grid lg:grid-cols-2 gap-8">
-              {/* Talents & Skills */}
-              <div className="bg-gray-50 rounded-xl p-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <Award className="w-6 h-6 text-blue-600" />
-                  <h3 className="text-2xl font-semibold text-gray-800">
-                    Talents & Skills
-                  </h3>
-                </div>
+          {/* Basic Info */}
+          <div className="text-center md:text-left text-white">
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">{name}</h1>
+            <p className="text-lg text-blue-100 mb-1">{course}</p>
+            <p className="text-blue-200">
+              {year} • {department}
+            </p>
+          </div>
+        </div>
+      </div>
 
-                {talentSkills.length > 0 ? (
-                  <div className="space-y-3">
-                    {talentSkills.map((talent, index) => (
-                      <div
-                        key={index}
-                        className="flex justify-between items-center p-3 bg-white rounded-lg shadow-sm border border-gray-200"
-                      >
-                        <span className="font-medium text-gray-700">
-                          {talent.skill}
-                        </span>
-                        <span
-                          className={`px-3 py-1 rounded-full text-sm font-medium ${
-                            talent.level === "Expert"
-                              ? "bg-green-100 text-green-800"
-                              : talent.level === "Advanced"
-                              ? "bg-blue-100 text-blue-800"
-                              : talent.level === "Intermediate"
-                              ? "bg-yellow-100 text-yellow-800"
-                              : "bg-gray-100 text-gray-800"
-                          }`}
-                        >
-                          {talent.level}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <Award className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                    <p className="text-gray-500">No skills listed yet</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Class Schedule */}
-              <div className="bg-gray-50 rounded-xl p-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <Calendar className="w-6 h-6 text-blue-600" />
-                  <h3 className="text-2xl font-semibold text-gray-800">
-                    Class Schedule
-                  </h3>
-                </div>
-
-                {classSchedule.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse">
-                      <thead>
-                        <tr className="bg-gray-200">
-                          <th className="text-left p-3 font-semibold text-gray-700 rounded-tl-lg">
-                            Subject
-                          </th>
-                          <th className="text-left p-3 font-semibold text-gray-700">
-                            Day
-                          </th>
-                          <th className="text-left p-3 font-semibold text-gray-700">
-                            Time
-                          </th>
-                          <th className="text-left p-3 font-semibold text-gray-700 rounded-tr-lg">
-                            Place
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {classSchedule.map((schedule, index) => (
-                          <tr
-                            key={schedule._id || index}
-                            className={`${
-                              index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                            } hover:bg-blue-50 transition-colors duration-200`}
-                          >
-                            <td className="p-3 border-b border-gray-200">
-                              <div className="font-medium text-gray-800">
-                                {schedule.subject}
-                              </div>
-                            </td>
-                            <td className="p-3 border-b border-gray-200">
-                              <div className="text-gray-600">
-                                {schedule.day}
-                              </div>
-                            </td>
-                            <td className="p-3 border-b border-gray-200">
-                              <div className="flex items-center gap-2 text-gray-600">
-                                <Clock className="w-4 h-4" />
-                                {schedule.time}
-                              </div>
-                            </td>
-                            <td className="p-3 border-b border-gray-200">
-                              <div className="flex items-center gap-2 text-gray-600">
-                                <MapPin className="w-4 h-4" />
-                                {schedule.place}
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                    <p className="text-gray-500">No schedule available</p>
-                  </div>
-                )}
-              </div>
+      {/* Content Grid */}
+      <div className="p-6 grid md:grid-cols-2 gap-6">
+        {/* Personal Information */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+            Personal Information
+          </h3>
+          <div className="space-y-3 text-sm">
+            <div className="flex justify-between">
+              <span className="text-gray-600">Age:</span>
+              <span className="font-medium">{age}</span>
             </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Sex:</span>
+              <span className="font-medium">{sex}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Religion:</span>
+              <span className="font-medium">{religion}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Nationality:</span>
+              <span className="font-medium">{nationality}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Contact:</span>
+              <span className="font-medium">{contactNo}</span>
+            </div>
+          </div>
+        </div>
 
-            {/* Address Section */}
-            {presentAddress?.fullAddress && (
-              <div className="mt-8 bg-gray-50 rounded-xl p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <MapPin className="w-6 h-6 text-blue-600" />
-                  <h3 className="text-2xl font-semibold text-gray-800">
-                    Address
-                  </h3>
-                </div>
-                <p className="text-gray-700">{presentAddress.fullAddress}</p>
+        {/* Additional Information */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+            Additional Information
+          </h3>
+          <div className="space-y-3 text-sm">
+            <div className="flex justify-between">
+              <span className="text-gray-600">Parent/Guardian:</span>
+              <span className="font-medium">{parentGuardian}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Financial Support:</span>
+              <span className="font-medium">{sourceOfFinancialSupport}</span>
+            </div>
+            {facebookAccount && (
+              <div className="flex justify-between">
+                <span className="text-gray-600">Facebook:</span>
+                <a
+                  href={facebookAccount}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline font-medium truncate max-w-32"
+                >
+                  View Profile
+                </a>
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Enhanced Modal */}
+      {/* Address Section */}
+      {presentAddress?.fullAddress && (
+        <div className="px-6 pb-4">
+          <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2 mb-3">
+            Address
+          </h3>
+          <p className="text-sm text-gray-700">{presentAddress.fullAddress}</p>
+        </div>
+      )}
+
+      {/* Skills Section */}
+      {talentSkills.length > 0 && (
+        <div className="px-6 pb-4">
+          <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2 mb-3">
+            Skills & Talents
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {talentSkills.map((talent, index) => (
+              <span
+                key={index}
+                className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
+              >
+                {talent.skill} ({talent.level})
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Class Schedule */}
+      {classSchedule.length > 0 && (
+        <div className="px-6 pb-6">
+          <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2 mb-3">
+            Class Schedule
+          </h3>
+          <div className="space-y-2">
+            {classSchedule.map((schedule, index) => (
+              <div
+                key={schedule._id || index}
+                className="flex justify-between items-center p-3 bg-gray-50 rounded-lg text-sm"
+              >
+                <div>
+                  <span className="font-medium text-gray-800">
+                    {schedule.subject}
+                  </span>
+                  <span className="text-gray-600 ml-2">• {schedule.day}</span>
+                </div>
+                <div className="text-right text-gray-600">
+                  <div>{schedule.time}</div>
+                  <div className="text-xs">{schedule.place}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Modal */}
       {isModalOpen && (
         <UploadPresidentProfilePicture
           isOpen={isModalOpen}
@@ -548,7 +506,7 @@ export function UploadPresidentProfilePicture({
       onClick={closeModal}
     >
       <div
-        className="bg-white rounded-2xl shadow-xl w-full max-w-lg relative"
+        className="bg-white   w-full max-w-lg relative"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -596,13 +554,12 @@ const PresidentCard = ({
   president,
   onEdit,
   onDelete,
-  orgPresident,
   onUploadPhoto,
   showActions = false, // Default to false
 }) => {
   if (!president) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6 text-center">
+      <div className="bg-white rounded-lg p-6 text-center">
         <div className="text-gray-500">
           <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-4"></div>
           <p>No president assigned</p>
@@ -612,7 +569,7 @@ const PresidentCard = ({
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md h-full w-full hover:shadow-lg transition-shadow duration-200 p-6  relative">
+    <div className="bg-white   h-full w-full  duration-200 p-4 relative">
       {/* Action buttons - only show for current president */}
       {showActions && (
         <div className="absolute top-3 right-3 flex gap-1">

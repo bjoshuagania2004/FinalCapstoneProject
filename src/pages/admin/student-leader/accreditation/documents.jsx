@@ -36,7 +36,7 @@ export default function AccreditationDocuments({ orgData }) {
             withCredentials: true,
           }
         );
-        console.log(data.ConstitutionAndByLaws);
+        console.log(data);
         setAccreditationData(data);
       } catch (err) {
         console.error("Error fetching accreditation info:", err);

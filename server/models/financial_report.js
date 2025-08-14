@@ -31,6 +31,7 @@ export const financialReportSchema = new mongoose.Schema(
 
     initialBalance: Number,
     endingBalance: Number,
+    isActive: Boolean,
 
     reimbursements: [
       {

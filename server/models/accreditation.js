@@ -10,6 +10,7 @@ export const accreditationSchema = new Schema(
     },
     overallStatus: { type: String, default: "Pending" },
     isActive: { type: Boolean, default: true },
+    FinancialReport: { type: Schema.Types.ObjectId, ref: "FinancialReport" },
     JointStatement: { type: Schema.Types.ObjectId, ref: "Documents" },
     PledgeAgainstHazing: { type: Schema.Types.ObjectId, ref: "Documents" },
     ConstitutionAndByLaws: { type: Schema.Types.ObjectId, ref: "Documents" },

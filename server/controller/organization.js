@@ -2,6 +2,7 @@ import { Organization, OrganizationProfile, User } from "../models/index.js";
 import { customAlphabet } from "nanoid";
 import { NodeEmail } from "../middleware/emailer.js";
 const verificationStore = {};
+
 export const PostOrganizationalLogo = async (req, res) => {
   try {
     const { orgId } = req.body;
@@ -91,7 +92,7 @@ export const GetAllOrganizationProfile = async (req, res) => {
     if (scope === "local") {
       query.orgClass = "Local";
     } else if (scope === "systemwide") {
-      query.orgClass = "System Wide";
+      query.orgClass = "System-wide";
     }
 
     const organizationProfiles = await OrganizationProfile.find(query);

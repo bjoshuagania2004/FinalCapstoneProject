@@ -11,8 +11,6 @@ import {
   Tag,
 } from "lucide-react";
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -283,13 +281,13 @@ export default function FinancialReport({ orgData }) {
   const expenseBreakdown = financialReport ? createExpenseBreakdown() : [];
 
   return (
-    <div className="h-full w-full pt-4 bg-transparent rounded-2xl flex ">
-      <div className="bg-white flex flex-col flex-1 p-6 rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+    <div className="h-full w-full pt-4 bg-transparent flex gap-4 ">
+      <div className="bg-white flex flex-col flex-1 p-6   shadow-lg border border-gray-100 overflow-hidden">
         {/* Header */}
         <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
           {/* Left Section: Icon and Title */}
           <div className="flex items-center gap-4">
-            <div className="p-2 bg-blue-100 rounded-xl shadow-sm">
+            <div className="p-2 bg-blue-100 ">
               <DollarSign className="w-6 h-6 text-blue-600" />
             </div>
             <h2 className="text-2xl font-semibold text-gray-800">
@@ -298,15 +296,15 @@ export default function FinancialReport({ orgData }) {
           </div>
 
           {/* Right Section: Button */}
-          <button className="bg-cnsc-secondary-color text-white px-5 py-2.5 font-semibold rounded-xl shadow-md hover:bg-blue-700 transition duration-200">
+          <button className="bg-amber-500 text-white px-5 py-2.5 font-semibold ">
             Summarize Report
           </button>
         </div>
 
         {/* Summary Cards */}
-        <div className="flex flex-wrap gap-4 mb-6">
+        <div className="flex flex-wrap gap-4">
           {/* Current Balance */}
-          <div className="bg-gradient-to-r from-blue-50 to-blue-100 flex-1 min-w-[200px] p-4 rounded-lg border border-blue-200 shadow-sm">
+          <div className="bg-gradient-to-r from-blue-50 to-blue-100 flex-1 min-w-[200px] p-4 border border-blue-200 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-blue-600 font-medium">
@@ -321,7 +319,7 @@ export default function FinancialReport({ orgData }) {
           </div>
 
           {/* Reimbursements */}
-          <div className="bg-gradient-to-r from-green-50 to-green-100 flex-1 min-w-[200px] p-4 rounded-lg border border-green-200 shadow-sm">
+          <div className="bg-gradient-to-r from-green-50 to-green-100 flex-1 min-w-[200px] p-4  border border-green-200 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-green-600 font-medium">
@@ -336,7 +334,7 @@ export default function FinancialReport({ orgData }) {
           </div>
 
           {/* Disbursements */}
-          <div className="bg-gradient-to-r from-red-50 to-red-100 flex-1 min-w-[200px] p-4 rounded-lg border border-red-200 shadow-sm">
+          <div className="bg-gradient-to-r from-red-50 to-red-100 flex-1 min-w-[200px] p-4  border border-red-200 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-red-600 font-medium">
@@ -420,12 +418,12 @@ export default function FinancialReport({ orgData }) {
       </div>
 
       {/* Reimbursements and Disbursements */}
-      <div className="flex flex-col flex-1 gap-6 h-full overflow-hidden">
+      <div className="flex flex-col flex-1 gap-4 h-full overflow-hidden">
         {/* Reimbursements */}
-        <div className="bg-white p-0 rounded-2xl shadow-lg border overflow-hidden border-gray-100 flex-1 flex flex-col">
-          <div className="sticky flex justify-between w-full top-0 z-10 bg-white p-6 border-b border-gray-100 items-center gap-3">
+        <div className="bg-white p-0  border overflow-hidden border-gray-100 flex-1 flex flex-col">
+          <div className="sticky flex justify-between w-full top-0 z-10 bg-white p-6 border-b border-gray-400 items-center gap-3">
             <div className="flex gap-2 items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
+              <div className="p-2.5 bg-green-100 rounded-lg">
                 <TrendingUp className="w-5 h-5 text-green-600" />
               </div>
               <h2 className="text-xl font-bold text-gray-800">
@@ -436,12 +434,12 @@ export default function FinancialReport({ orgData }) {
             {/* Right Section: Button */}
             <button
               onClick={() => handleAddClick("reimbursement")}
-              className="bg-green-600 text-white px-5 py-2.5 font-semibold rounded-xl shadow-md hover:bg-green-700 transition duration-200"
+              className="bg-green-700 text-white px-5 py-2.5 font-semibold  hover:bg-green-700 transition duration-200"
             >
               Add Reimbursement
             </button>
           </div>
-          <div className="flex-1 p-6 pt-0 overflow-auto flex flex-col gap-3">
+          <div className="flex-1 p-4 overflow-auto flex flex-col gap-3">
             {financialReport.reimbursements.length === 0 ? (
               <div className="text-center text-gray-500 py-8">
                 No reimbursements found
@@ -450,7 +448,7 @@ export default function FinancialReport({ orgData }) {
               financialReport.reimbursements.map((item, index) => (
                 <div
                   key={`reimbursement-${index}`}
-                  className="bg-green-50 p-4 rounded-lg border border-green-200"
+                  className="bg-green-50 p-4  border border-green-200"
                 >
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="font-medium text-gray-800">
@@ -462,8 +460,7 @@ export default function FinancialReport({ orgData }) {
                   </div>
                   <div className="flex justify-between items-center text-sm text-gray-600">
                     <span>
-                      {" "}
-                      Date Reimbursed:{" "}
+                      Date Reimbursed:
                       {new Date(item.date).toLocaleDateString()}
                     </span>
                   </div>
@@ -475,22 +472,22 @@ export default function FinancialReport({ orgData }) {
         </div>
 
         {/* Disbursements */}
-        <div className="bg-white p-0 rounded-2xl shadow-lg border border-gray-100 flex-1 flex flex-col overflow-hidden">
-          <div className="sticky justify-between top-0 z-10 bg-white p-6 border-b border-gray-100 flex items-center gap-3">
-            <div className="flex items-center gap-4">
-              <div className="p-2 bg-red-100 rounded-lg">
+        <div className="bg-white  shadow-lg border border-gray-100 flex-1 flex flex-col overflow-hidden">
+          <div className="sticky justify-between top-0 z-10 bg-white  p-4 border-b border-gray-400 flex items-center">
+            <div className="flex items-center gap-2">
+              <div className="p-2.5 bg-red-100 rounded-lg">
                 <TrendingDown className="w-5 h-5 text-red-600" />
               </div>
               <h2 className="text-xl font-bold text-gray-800">Disbursements</h2>
             </div>
             <button
               onClick={() => handleAddClick("disbursement")}
-              className="bg-red-600 text-white px-5 py-2.5 font-semibold rounded-xl shadow-md hover:bg-red-700 transition duration-200"
+              className="bg-red-700 text-white px-5 py-2.5 font-semibold  shadow-md hover:bg-red-700 transition duration-200"
             >
               Add Disbursement
             </button>
           </div>
-          <div className="flex-1 p-6 pt-0 overflow-auto flex flex-col gap-3">
+          <div className="flex-1 p-4 overflow-auto flex flex-col gap-3">
             {financialReport.disbursements.length === 0 ? (
               <div className="text-center text-gray-500 py-8">
                 No disbursements found
@@ -499,7 +496,7 @@ export default function FinancialReport({ orgData }) {
               financialReport.disbursements.map((item, index) => (
                 <div
                   key={`disbursement-${index}`}
-                  className="bg-red-50 p-4 rounded-lg border border-red-200"
+                  className="bg-red-50 p-4  border border-red-200"
                 >
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="font-medium text-gray-800">

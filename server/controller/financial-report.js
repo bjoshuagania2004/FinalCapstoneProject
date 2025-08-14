@@ -1,4 +1,4 @@
-import { Receipt, FinancialReport } from "../models/index.js";
+import { Receipt, FinancialReport, Accreditation } from "../models/index.js";
 
 export const getFinancialReport = async (req, res) => {
   try {
@@ -8,13 +8,13 @@ export const getFinancialReport = async (req, res) => {
       return res.status(400).json({ error: "Missing organizationProfile." });
     }
 
+    // 1️⃣ Ensure Financial Report exists
     let report = await FinancialReport.findOne({
       organizationProfile: OrgProfileId,
     })
       .populate("reimbursements")
       .populate("disbursements");
 
-    // If not found, create a new one
     if (!report) {
       report = new FinancialReport({
         organizationProfile: OrgProfileId,
@@ -26,9 +26,19 @@ export const getFinancialReport = async (req, res) => {
       await report.save();
 
       // Repopulate after saving
-      report = await FinancialReport.findById(report._id).populate(
-        "reimbursements"
-      );
+      report = await FinancialReport.findById(report._id)
+        .populate("reimbursements")
+        .populate("disbursements");
+    }
+
+    // 2️⃣ Ensure Accreditation has the FinancialReport linked
+    let accreditation = await Accreditation.findOne({
+      organizationProfile: OrgProfileId,
+    });
+
+    if (accreditation && !accreditation.FinancialReport) {
+      accreditation.FinancialReport = report._id;
+      await accreditation.save();
     }
 
     return res.status(200).json(report);

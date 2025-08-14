@@ -34,6 +34,7 @@ router.get(
   "/getRosterByOrg/:orgProfileId",
   Controller.GetRosterMembersByOrganizationIdSDU
 );
+router.post("/CompleteStudentRoster/:rosterId", Controller.CompleteRosterList);
 router.post("/ApproveRosterList/:rosterId", Controller.ApprovedRosterList);
 router.post("/RevisionRosterList/:rosterId", Controller.revisionNoteRosterList);
 
@@ -65,6 +66,10 @@ router.get(
   Controller.getStudentPpaByAccreditationId
 );
 router.post("/postStudentLeaderProposal", Controller.postStudentLeaderProposal);
+router.post(
+  "/UpdateStudentLeaderProposal/:ProposalId",
+  Controller.updateStudentLeaderProposal
+);
 /* ********** STUDENT LEADER DOCUMENTS ********** */
 router.post(
   "/addAccreditationDocument",

@@ -1,9 +1,4 @@
-import {
-  RosterMember,
-  Organization,
-  Roster,
-  OrganizationProfile,
-} from "../models/index.js";
+import { RosterMember, Accreditation, Roster } from "../models/index.js";
 
 export const ApprovedRosterList = async (req, res) => {
   console.log("Approving roster list...", req.params);
@@ -218,16 +213,25 @@ export const GetRosterMemberByOrganization = async (req, res) => {
         organizationProfile: orgProfileId,
         createdAt: new Date(),
       });
-
       await roster.save();
     }
 
-    // Step 3: Find all roster members linked to this roster
+    // Step 3: Ensure accreditation has the roster linked
+    let accreditation = await Accreditation.findOne({
+      organizationProfile: orgProfileId,
+    });
+
+    if (accreditation && !accreditation.Roster) {
+      accreditation.Roster = roster._id;
+      await accreditation.save();
+    }
+
+    // Step 4: Find all roster members linked to this roster
     const members = await RosterMember.find({ roster: roster._id });
 
     return res.status(200).json({
       message: "Roster members fetched successfully.",
-      rosterId: roster._id,
+      roster,
       rosterMembers: members,
     });
   } catch (error) {

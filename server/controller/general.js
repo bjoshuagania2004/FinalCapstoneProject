@@ -1,6 +1,4 @@
-import { Organization, OrganizationProfile, User } from "../models/index.js";
-import { customAlphabet } from "nanoid";
-import { NodeEmail } from "../middleware/emailer.js";
+import { User } from "../models/index.js";
 
 export const GetUserInformation = async (req, res) => {
   const { userId } = req.params;
@@ -56,7 +54,7 @@ export const Login = async (req, res) => {
       user: req.session.user,
     });
   } catch (err) {
-    console.error("Login error:", err);
+    console.log("Login error:", err);
     return res.status(500).json({ message: "Internal server error" });
   }
 };

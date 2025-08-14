@@ -20,7 +20,6 @@ export const GetAllAccreditationId = async (req, res) => {
 };
 
 export const AddAccreditationDocument = async (req, res) => {
-  console.log(req.body);
   try {
     const { accreditationId, docType } = req.body; // docType must be one of the valid fields
     const documentId = res.locals.documentId; // from file upload middleware
@@ -44,7 +43,7 @@ export const AddAccreditationDocument = async (req, res) => {
       accreditation.JointStatement = documentId;
     } else if (docType === "PledgeAgainstHazing") {
       accreditation.PledgeAgainstHazing = documentId;
-    } else if (docType === "ConstituionAndByLaws") {
+    } else if (docType === "ConstitutionAndByLaws") {
       accreditation.ConstitutionAndByLaws = documentId;
     } else {
       return res.status(400).json({ error: "Invalid document type" });
@@ -145,6 +144,7 @@ export const GetAccreditationDetails = async (req, res) => {
       .populate([
         "organizationProfile",
         "JointStatement",
+        "FinancialReport",
         "PledgeAgainstHazing",
         "Roster",
         "ConstitutionAndByLaws",

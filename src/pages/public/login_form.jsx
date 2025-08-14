@@ -9,6 +9,8 @@ export default function Login({ navigate, onShowRegistration }) {
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
+  console.log(username);
+  console.log(password);
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -18,7 +20,7 @@ export default function Login({ navigate, onShowRegistration }) {
         { withCredentials: true }
       );
 
-      console.log(response.data);
+      console.log("response moto", response.data);
 
       const role = response.data.user.position;
       if (role === "student-leader") {

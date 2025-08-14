@@ -44,7 +44,7 @@ export default function HomePage() {
 
 function OrganzationComponent() {
   return (
-    <div className="text-center p-8">
+    <div className="text-center min-h-screen bg-white p-8">
       <h2 className="text-3xl font-bold text-blue-800 mb-4">Organizations</h2>
       <p className="text-base text-blue-600">
         Browse all student organizations and their information.
@@ -54,7 +54,7 @@ function OrganzationComponent() {
 }
 function EventCalendarComponent() {
   return (
-    <div className="text-center p-8">
+    <div className="text-center min-h-screen bg-violet-100 p-8">
       <h2 className="text-3xl font-bold text-purple-800 mb-4">
         Latest Posts & Updates
       </h2>
@@ -66,7 +66,7 @@ function EventCalendarComponent() {
 }
 function PostComponent() {
   return (
-    <div className="text-center p-8">
+    <div className="text-center min-h-screen bg-lime-200 p-8">
       <h2 className="text-3xl font-bold text-green-800 mb-4">Event Calendar</h2>
       <p className="text-base text-green-600">
         View upcoming events and important dates.

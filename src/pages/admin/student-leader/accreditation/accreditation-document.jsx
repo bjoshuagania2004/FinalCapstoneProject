@@ -3,8 +3,6 @@ import DocumentUploader, {
   DocumentDisplayCard,
 } from "../../../../components/document_uploader";
 import { Copy, Upload } from "lucide-react";
-import axios from "axios";
-import { API_ROUTER } from "../../../../App";
 
 export default function Documents({ accreditationData, orgId }) {
   const { JointStatement, PledgeAgainstHazing, ConstituionAndByLaws } =

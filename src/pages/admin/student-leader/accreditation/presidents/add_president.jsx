@@ -10,6 +10,1006 @@ import { departments } from "../../initial-registration";
 import axios from "axios";
 import { API_ROUTER } from "../../../../../App";
 
+export default function AddStudentPresident({
+  orgInfo,
+  AccreditationId,
+  onSuccess,
+}) {
+  // Initialize birthdate to 18 years ago
+  const getDefaultBirthdate = () => {
+    const today = new Date();
+    today.setFullYear(today.getFullYear() - 18);
+    return today.toISOString().split("T")[0];
+  };
+
+  const [formData, setFormData] = useState({
+    // Personal Information
+    firstName: "",
+    middleName: "",
+    lastName: "",
+    birthDate: getDefaultBirthdate(),
+    age: "",
+    sex: "",
+    religion: "",
+    customReligion: "",
+    nationality: "",
+    birthPlace: "",
+
+    // Academic Information
+    department: "",
+    course: "",
+    yearLevel: "",
+
+    // Address Information (handled by PhilippineAddressForm)
+
+    // Guardian Information
+    guardianFirstName: "",
+    guardianMiddleName: "",
+    guardianLastName: "",
+    addressPhoneNo: "",
+
+    // Contact & Financial Information
+    sourceOfFinancialSupport: "",
+    contactNo: "",
+    facebookAccount: "",
+  });
+
+  const [classSchedules, setClassSchedules] = useState([
+    { subject: "", place: "", time: "", day: "" },
+  ]);
+
+  const [talentSkills, setTalentSkills] = useState([{ skill: "", level: "" }]);
+
+  const [countries, setCountries] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isUploadDone, setIsUploadDone] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({});
+
+  const formRef = useRef();
+
+  // Constants
+  const financialSupportOptions = [
+    "Parents/Family",
+    "Scholarship",
+    "Part-time Job",
+    "Student Loan",
+    "Government Aid",
+    "Self-funded",
+    "Other",
+  ];
+
+  const skillLevels = ["Beginner", "Intermediate", "Advanced", "Expert"];
+
+  const religionOptions = [
+    "Christianity",
+    "Islam",
+    "Hinduism",
+    "Buddhism",
+    "Judaism",
+    "Atheism",
+    "Agnosticism",
+    "Other",
+  ];
+
+  // Initialize form data with org info
+  useEffect(() => {
+    if (orgInfo) {
+      setFormData((prev) => ({
+        ...prev,
+        department: orgInfo.orgDepartment || "",
+        course: orgInfo.orgCourse || "",
+      }));
+    }
+  }, [orgInfo]);
+
+  // Fetch countries for nationality dropdown
+  useEffect(() => {
+    const fetchCountries = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(
+          "https://restcountries.com/v3.1/all?fields=name,demonyms"
+        );
+        const data = await response.json();
+
+        const nationalities = data
+          .map((country) => country.demonyms?.eng?.m)
+          .filter(Boolean)
+          .sort();
+
+        const uniqueNationalities = [...new Set(nationalities)];
+        const countryList = uniqueNationalities.map((nationality) => ({
+          value: nationality,
+          label: nationality,
+        }));
+
+        setCountries(countryList);
+      } catch (error) {
+        console.error("Error fetching countries:", error);
+        // Fallback list
+        setCountries([
+          { value: "Filipino", label: "Filipino" },
+          { value: "American", label: "American" },
+          { value: "Canadian", label: "Canadian" },
+          { value: "British", label: "British" },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCountries();
+  }, []);
+
+  // Calculate age whenever birthdate changes
+  useEffect(() => {
+    if (formData.birthDate) {
+      const age = calculateAge(formData.birthDate);
+      setFormData((prev) => ({ ...prev, age }));
+    }
+  }, [formData.birthDate]);
+
+  // Utility Functions
+  const calculateAge = (birthDate) => {
+    const birth = new Date(birthDate);
+    const today = new Date();
+
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birth.getDate())
+    ) {
+      age--;
+    }
+
+    return age;
+  };
+
+  const validateFacebookUrl = (url) => {
+    if (!url) return true; // Optional field
+    const fbPattern =
+      /^(https?:\/\/)?(www\.)?(facebook|fb|m\.facebook)\.com\/.+/i;
+    return fbPattern.test(url);
+  };
+
+  const validatePhoneNumber = (phone) => {
+    if (!phone) return false;
+    // Philippine mobile number format (11 digits starting with 09)
+    const phonePattern = /^(09|\+639)\d{9}$/;
+    return phonePattern.test(phone) || phone.length >= 10;
+  };
+
+  const validateEmail = (email) => {
+    if (!email) return true; // Optional
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailPattern.test(email);
+  };
+
+  // Validation Function
+  const validateForm = () => {
+    const errors = {};
+
+    // Required personal information
+    if (!formData.firstName.trim()) errors.firstName = "First name is required";
+    if (!formData.lastName.trim()) errors.lastName = "Last name is required";
+    if (!formData.birthDate) errors.birthDate = "Birth date is required";
+    if (!formData.sex) errors.sex = "Sex is required";
+    if (!formData.nationality) errors.nationality = "Nationality is required";
+    if (!formData.birthPlace.trim())
+      errors.birthPlace = "Birthplace is required";
+
+    // Age validation
+    const age = calculateAge(formData.birthDate);
+    if (age < 16) errors.birthDate = "Must be at least 16 years old";
+    if (age > 100) errors.birthDate = "Please enter a valid birth date";
+
+    // Academic information
+    if (!formData.department) errors.department = "Department is required";
+    if (!formData.course) errors.course = "Course is required";
+    if (!formData.yearLevel) errors.yearLevel = "Year level is required";
+
+    // Religion validation (if Other is selected, customReligion must be provided)
+    if (formData.religion === "Other" && !formData.customReligion.trim()) {
+      errors.customReligion = "Please specify religion";
+    }
+
+    // Contact information
+    if (!formData.contactNo.trim()) {
+      errors.contactNo = "Contact number is required";
+    } else if (!validatePhoneNumber(formData.contactNo)) {
+      errors.contactNo = "Please enter a valid phone number";
+    }
+
+    // Financial support
+    if (!formData.sourceOfFinancialSupport) {
+      errors.sourceOfFinancialSupport =
+        "Source of financial support is required";
+    }
+
+    // Facebook URL validation
+    if (
+      formData.facebookAccount &&
+      !validateFacebookUrl(formData.facebookAccount)
+    ) {
+      errors.facebookAccount = "Please enter a valid Facebook URL";
+    }
+
+    // Address validation (assuming PhilippineAddressForm has validation)
+    if (formRef.current) {
+      try {
+        const addressData = formRef.current.getFormData();
+        if (!addressData.presentAddress || !addressData.permanentAddress) {
+          errors.address = "Both present and permanent addresses are required";
+        }
+      } catch (error) {
+        errors.address = "Please complete address information";
+      }
+    }
+
+    // Class schedule validation (at least one complete entry)
+    const validSchedules = classSchedules.filter(
+      (cls) => cls.subject && cls.place && cls.time && cls.day
+    );
+    if (validSchedules.length === 0) {
+      errors.classSchedule = "At least one complete class schedule is required";
+    }
+
+    return errors;
+  };
+
+  // Event Handlers
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Clear validation error for this field
+    if (validationErrors[name]) {
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+
+  const handleClassChange = (index, e) => {
+    const { name, value } = e.target;
+    const updated = [...classSchedules];
+    updated[index][name] = value;
+    setClassSchedules(updated);
+
+    // Add new blank row if current row is complete
+    if (
+      index === classSchedules.length - 1 &&
+      updated[index].subject &&
+      updated[index].place &&
+      updated[index].time &&
+      updated[index].day
+    ) {
+      setClassSchedules([
+        ...updated,
+        { subject: "", place: "", time: "", day: "" },
+      ]);
+    }
+
+    // Clear class schedule validation error
+    if (validationErrors.classSchedule) {
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.classSchedule;
+        return newErrors;
+      });
+    }
+  };
+
+  const handleSkillChange = (index, e) => {
+    const { name, value } = e.target;
+    const updated = [...talentSkills];
+    updated[index][name] = value;
+    setTalentSkills(updated);
+
+    // Add new blank row if current row is complete
+    if (
+      index === talentSkills.length - 1 &&
+      updated[index].skill &&
+      updated[index].level
+    ) {
+      setTalentSkills([...updated, { skill: "", level: "" }]);
+    }
+  };
+
+  const removeClassSchedule = (index) => {
+    if (classSchedules.length > 1) {
+      setClassSchedules(classSchedules.filter((_, i) => i !== index));
+    }
+  };
+
+  const removeSkill = (index) => {
+    if (talentSkills.length > 1) {
+      setTalentSkills(talentSkills.filter((_, i) => i !== index));
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Clear previous validation errors
+    setValidationErrors({});
+
+    // Validate form
+    const errors = validateForm();
+
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      // Scroll to first error
+      const firstErrorElement = document.querySelector(".border-red-500");
+      if (firstErrorElement) {
+        firstErrorElement.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      setIsUploadDone(false);
+
+      // Get address data
+      const addressData = formRef.current.getFormData();
+
+      // Calculate final age
+      const finalAge = calculateAge(formData.birthDate);
+
+      // Prepare data for submission
+      const mergedData = {
+        organizationProfile: orgInfo._id,
+        organization: orgInfo.organization,
+        name: `${formData.firstName} ${formData.middleName} ${formData.lastName}`.trim(),
+        department: formData.department,
+        course: formData.course,
+        year: formData.yearLevel,
+        birthDate: formData.birthDate,
+        age: finalAge,
+        sex: formData.sex,
+        religion:
+          formData.religion === "Other"
+            ? formData.customReligion
+            : formData.religion,
+        nationality: formData.nationality,
+        birthplace: formData.birthPlace,
+        currentAddress: addressData.presentAddress,
+        permanentAddress: addressData.permanentAddress,
+        parentGuardian:
+          `${formData.guardianFirstName} ${formData.guardianMiddleName} ${formData.guardianLastName}`.trim(),
+        addressPhoneNo: formData.addressPhoneNo || null,
+        sourceOfFinancialSupport: formData.sourceOfFinancialSupport,
+        contactNo: formData.contactNo,
+        facebookAccount: formData.facebookAccount || null,
+        talentSkills: talentSkills.filter(
+          (skill) => skill.skill && skill.level
+        ),
+        classSchedule: classSchedules.filter(
+          (cls) => cls.subject && cls.place && cls.time && cls.day
+        ),
+        AccreditationId: AccreditationId,
+      };
+
+      // Simulate upload delay
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      const response = await axios.post(
+        `${API_ROUTER}/addPresident`,
+        mergedData
+      );
+      console.log("Success:", response.data);
+
+      setIsUploading(false);
+      setIsUploadDone(true);
+
+      // Auto-hide success message and call onSuccess
+      setTimeout(() => {
+        setIsUploadDone(false);
+        onSuccess();
+      }, 3000);
+    } catch (error) {
+      console.error("Upload error:", error);
+      setIsUploading(false);
+
+      // Handle specific error cases
+      if (error.response?.data?.message) {
+        alert(`Error: ${error.response.data.message}`);
+      } else {
+        alert("An error occurred while submitting the form. Please try again.");
+      }
+    }
+  };
+
+  // Helper function to get error styling
+  const getFieldErrorClass = (fieldName) => {
+    return validationErrors[fieldName]
+      ? "border-red-500 ring-red-500"
+      : "border-gray-300";
+  };
+
+  // Render error message
+  const renderFieldError = (fieldName) => {
+    if (validationErrors[fieldName]) {
+      return (
+        <p className="text-red-500 text-xs mt-1">
+          {validationErrors[fieldName]}
+        </p>
+      );
+    }
+    return null;
+  };
+
+  if (isUploading) {
+    return (
+      <div className="max-w-3/4 min-w-1/4 min-h-1/4 flex flex-col items-center justify-center mx-auto p-6 bg-white shadow-lg rounded-lg">
+        <div className="text-lg font-semibold text-gray-800 mb-4">
+          Uploading...
+        </div>
+        <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (isUploadDone) {
+    return (
+      <div className="max-w-3/4 min-w-1/4 min-h-1/4 flex flex-col items-center justify-center mx-auto p-6 bg-white shadow-lg rounded-lg">
+        <div className="text-lg font-semibold text-gray-800 mb-4">
+          Upload Complete!
+        </div>
+        <div className="p-4 rounded-full bg-green-200 text-green-700">
+          <Check size={24} />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-3/4 min-w-1/4 min-h-1/4 flex flex-col items-center max-h-9/10 overflow-auto mx-auto p-6 space-y-6 bg-white shadow-lg rounded-lg">
+      <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
+        President Profile Form
+      </h2>
+
+      <form onSubmit={handleSubmit} className="flex flex-col gap-6 w-full">
+        {/* Personal Information Section */}
+        <div className="border p-6 rounded-lg bg-blue-50">
+          <h3 className="text-xl font-semibold mb-6 text-blue-800">
+            Personal Information
+          </h3>
+
+          {/* Name Section */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                First Name *
+              </label>
+              <input
+                type="text"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleInputChange}
+                className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 ${getFieldErrorClass(
+                  "firstName"
+                )}`}
+              />
+              {renderFieldError("firstName")}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Middle Name
+              </label>
+              <input
+                type="text"
+                name="middleName"
+                value={formData.middleName}
+                onChange={handleInputChange}
+                className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Last Name *
+              </label>
+              <input
+                type="text"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleInputChange}
+                className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 ${getFieldErrorClass(
+                  "lastName"
+                )}`}
+              />
+              {renderFieldError("lastName")}
+            </div>
+          </div>
+
+          {/* Demographic Information */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Birthplace *
+              </label>
+              <input
+                type="text"
+                name="birthPlace"
+                value={formData.birthPlace}
+                onChange={handleInputChange}
+                className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 ${getFieldErrorClass(
+                  "birthPlace"
+                )}`}
+              />
+              {renderFieldError("birthPlace")}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Birth Date *
+              </label>
+              <input
+                type="date"
+                name="birthDate"
+                value={formData.birthDate}
+                onChange={handleInputChange}
+                max={new Date().toISOString().split("T")[0]}
+                className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 ${getFieldErrorClass(
+                  "birthDate"
+                )}`}
+              />
+              {formData.age && (
+                <p className="text-xs text-gray-600 mt-1">
+                  Age: {formData.age} years old
+                </p>
+              )}
+              {renderFieldError("birthDate")}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Sex *
+              </label>
+              <select
+                name="sex"
+                value={formData.sex}
+                onChange={handleInputChange}
+                className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 ${getFieldErrorClass(
+                  "sex"
+                )}`}
+              >
+                <option value="">Select...</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+              {renderFieldError("sex")}
+            </div>
+          </div>
+
+          {/* Religion and Nationality */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Religion
+              </label>
+              <div className="flex flex-col gap-2 md:flex-row">
+                <select
+                  name="religion"
+                  value={formData.religion}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select a religion</option>
+                  {religionOptions.map((religion) => (
+                    <option key={religion} value={religion}>
+                      {religion}
+                    </option>
+                  ))}
+                </select>
+                {formData.religion === "Other" && (
+                  <div className="w-full">
+                    <input
+                      type="text"
+                      name="customReligion"
+                      placeholder="Please specify"
+                      value={formData.customReligion}
+                      onChange={handleInputChange}
+                      className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 ${getFieldErrorClass(
+                        "customReligion"
+                      )}`}
+                    />
+                    {renderFieldError("customReligion")}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Nationality *
+              </label>
+              <select
+                name="nationality"
+                value={formData.nationality}
+                onChange={handleInputChange}
+                disabled={loading}
+                className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 ${getFieldErrorClass(
+                  "nationality"
+                )}`}
+              >
+                <option value="">
+                  {loading ? "Loading..." : "Select Nationality..."}
+                </option>
+                {countries.map((country) => (
+                  <option key={country.value} value={country.value}>
+                    {country.label}
+                  </option>
+                ))}
+              </select>
+              {renderFieldError("nationality")}
+            </div>
+          </div>
+
+          {/* Academic Information */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Department *
+              </label>
+              <select
+                name="department"
+                value={formData.department}
+                onChange={handleInputChange}
+                className={`w-full p-2 border rounded focus:ring-2 focus:ring-green-500 ${getFieldErrorClass(
+                  "department"
+                )}`}
+              >
+                <option value="">Select Department...</option>
+                {Object.keys(departments || {}).map((dept) => (
+                  <option key={dept} value={dept}>
+                    {dept}
+                  </option>
+                ))}
+              </select>
+              {renderFieldError("department")}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Course *
+              </label>
+              <select
+                name="course"
+                value={formData.course}
+                onChange={handleInputChange}
+                disabled={!formData.department}
+                className={`w-full p-2 border rounded focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 ${getFieldErrorClass(
+                  "course"
+                )}`}
+              >
+                <option value="">Select Course...</option>
+                {formData.department &&
+                  departments?.[formData.department]?.map((course) => (
+                    <option key={course} value={course}>
+                      {course}
+                    </option>
+                  ))}
+              </select>
+              {renderFieldError("course")}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Year Level *
+              </label>
+              <select
+                name="yearLevel"
+                value={formData.yearLevel}
+                onChange={handleInputChange}
+                className={`w-full p-2 border rounded focus:ring-2 focus:ring-green-500 ${getFieldErrorClass(
+                  "yearLevel"
+                )}`}
+              >
+                <option value="">Select Year...</option>
+                <option value="1st Year">1st Year</option>
+                <option value="2nd Year">2nd Year</option>
+                <option value="3rd Year">3rd Year</option>
+                <option value="4th Year">4th Year</option>
+                <option value="5th Year">5th Year</option>
+              </select>
+              {renderFieldError("yearLevel")}
+            </div>
+          </div>
+        </div>
+
+        {/* Address Section */}
+        <PhilippineAddressForm ref={formRef} />
+        {validationErrors.address && (
+          <div className="text-red-500 text-sm">{validationErrors.address}</div>
+        )}
+
+        {/* Guardian Information */}
+        <div className="border p-4 rounded-lg bg-yellow-50">
+          <h3 className="text-lg font-semibold mb-4 text-yellow-800">
+            Guardian Information
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Guardian First Name
+              </label>
+              <input
+                type="text"
+                name="guardianFirstName"
+                value={formData.guardianFirstName}
+                onChange={handleInputChange}
+                className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-yellow-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Guardian Middle Name
+              </label>
+              <input
+                type="text"
+                name="guardianMiddleName"
+                value={formData.guardianMiddleName}
+                onChange={handleInputChange}
+                className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-yellow-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Guardian Last Name
+              </label>
+              <input
+                type="text"
+                name="guardianLastName"
+                value={formData.guardianLastName}
+                onChange={handleInputChange}
+                className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-yellow-500"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-600">
+              Address Phone Number (Optional)
+            </label>
+            <input
+              type="tel"
+              name="addressPhoneNo"
+              value={formData.addressPhoneNo}
+              onChange={handleInputChange}
+              className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-yellow-500"
+            />
+          </div>
+        </div>
+
+        {/* Financial & Contact Information */}
+        <div className="border p-4 rounded-lg bg-purple-50">
+          <h3 className="text-lg font-semibold mb-4 text-purple-800">
+            Financial & Contact Information
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Source of Financial Support *
+              </label>
+              <select
+                name="sourceOfFinancialSupport"
+                value={formData.sourceOfFinancialSupport}
+                onChange={handleInputChange}
+                className={`w-full p-2 border rounded focus:ring-2 focus:ring-purple-500 ${getFieldErrorClass(
+                  "sourceOfFinancialSupport"
+                )}`}
+              >
+                <option value="">Select...</option>
+                {financialSupportOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+              {renderFieldError("sourceOfFinancialSupport")}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Contact Number *
+              </label>
+              <input
+                type="tel"
+                name="contactNo"
+                value={formData.contactNo}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, "");
+                  handleInputChange({ target: { name: "contactNo", value } });
+                }}
+                placeholder="09XXXXXXXXX"
+                className={`w-full p-2 border rounded focus:ring-2 focus:ring-purple-500 ${getFieldErrorClass(
+                  "contactNo"
+                )}`}
+              />
+              {renderFieldError("contactNo")}
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-600">
+                Facebook Account (URL)
+              </label>
+              <input
+                type="url"
+                name="facebookAccount"
+                value={formData.facebookAccount}
+                onChange={handleInputChange}
+                placeholder="https://facebook.com/your-profile"
+                className={`w-full p-2 border rounded focus:ring-2 focus:ring-purple-500 ${getFieldErrorClass(
+                  "facebookAccount"
+                )}`}
+              />
+              {renderFieldError("facebookAccount")}
+            </div>
+          </div>
+        </div>
+
+        {/* Talents & Skills */}
+        <div className="border p-4 rounded-lg bg-indigo-50">
+          <h3 className="text-lg font-semibold mb-4 text-indigo-800">
+            Talents & Skills (Optional)
+          </h3>
+          {talentSkills.map((skill, index) => (
+            <div key={index} className="flex gap-2 mb-2">
+              <input
+                type="text"
+                name="skill"
+                placeholder="Skill/Talent"
+                value={skill.skill}
+                onChange={(e) => handleSkillChange(index, e)}
+                className="flex-1 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500"
+              />
+              <select
+                name="level"
+                value={skill.level}
+                onChange={(e) => handleSkillChange(index, e)}
+                className="p-2 border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="">Level</option>
+                {skillLevels.map((level) => (
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
+                ))}
+              </select>
+              {talentSkills.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeSkill(index)}
+                  className="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 focus:ring-2 focus:ring-red-500"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Class Schedule */}
+        <div className="border p-4 rounded-lg bg-gray-50">
+          <h3 className="text-lg font-semibold mb-4 text-gray-800">
+            Class Schedule *
+          </h3>
+          {validationErrors.classSchedule && (
+            <div className="text-red-500 text-sm mb-2">
+              {validationErrors.classSchedule}
+            </div>
+          )}
+          <div className="overflow-auto">
+            <table className="w-full border border-gray-300 text-sm">
+              <thead className="bg-gray-200 text-gray-700">
+                <tr>
+                  <th className="p-2 text-left border">Subject</th>
+                  <th className="p-2 text-left border">Place</th>
+                  <th className="p-2 text-left border">Time</th>
+                  <th className="p-2 text-left border">Day</th>
+                  <th className="p-2 text-left border">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {classSchedules.map((cls, index) => (
+                  <tr key={index} className="even:bg-white odd:bg-gray-50">
+                    <td className="p-2 border">
+                      <input
+                        type="text"
+                        name="subject"
+                        placeholder="Subject"
+                        value={cls.subject}
+                        onChange={(e) => handleClassChange(index, e)}
+                        className="w-full px-2 py-1.5 border border-gray-300 rounded focus:ring focus:ring-gray-500"
+                      />
+                    </td>
+                    <td className="p-2 border">
+                      <input
+                        type="text"
+                        name="place"
+                        placeholder="Place"
+                        value={cls.place}
+                        onChange={(e) => handleClassChange(index, e)}
+                        className="w-full px-2 py-1.5 border border-gray-300 rounded focus:ring focus:ring-gray-500"
+                      />
+                    </td>
+                    <td className="p-2 border">
+                      <input
+                        type="time"
+                        name="time"
+                        value={cls.time}
+                        onChange={(e) => handleClassChange(index, e)}
+                        className="w-full px-2 py-1.5 border border-gray-300 rounded focus:ring focus:ring-gray-500"
+                      />
+                    </td>
+                    <td className="p-2 border">
+                      <select
+                        name="day"
+                        value={cls.day}
+                        onChange={(e) => handleClassChange(index, e)}
+                        className="w-full px-2 py-1.5 border border-gray-300 rounded focus:ring focus:ring-gray-500"
+                      >
+                        <option value="">Select Day</option>
+                        <option value="Monday">Monday</option>
+                        <option value="Tuesday">Tuesday</option>
+                        <option value="Wednesday">Wednesday</option>
+                        <option value="Thursday">Thursday</option>
+                        <option value="Friday">Friday</option>
+                        <option value="Saturday">Saturday</option>
+                        <option value="Sunday">Sunday</option>
+                      </select>
+                    </td>
+                    <td className="p-2 border text-center">
+                      {classSchedules.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeClassSchedule(index)}
+                          className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 focus:ring-2 focus:ring-red-500"
+                        >
+                          ×
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-xs text-gray-600 mt-2">
+            * At least one complete class schedule entry is required
+          </p>
+        </div>
+
+        {/* Validation Summary */}
+        {Object.keys(validationErrors).length > 0 && (
+          <div className="border border-red-300 bg-red-50 p-4 rounded-lg">
+            <h4 className="text-red-800 font-semibold mb-2">
+              Please fix the following errors:
+            </h4>
+            <ul className="text-red-700 text-sm space-y-1">
+              {Object.entries(validationErrors).map(([field, error]) => (
+                <li key={field}>• {error}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Submit Button */}
+        <button
+          type="submit"
+          disabled={isUploading}
+          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 focus:ring-4 focus:ring-blue-300"
+        >
+          {isUploading ? "Submitting..." : "Submit Application"}
+        </button>
+      </form>
+    </div>
+  );
+}
+
 export const PhilippineAddressForm = forwardRef((props, ref) => {
   const [addresses, setAddresses] = useState({
     present: {
@@ -281,6 +1281,8 @@ export const PhilippineAddressForm = forwardRef((props, ref) => {
     }
   };
 
+  // In your render:
+
   const getFormData = () => {
     // Get human-readable address data
     const getReadableAddress = (addressType) => {
@@ -513,782 +1515,3 @@ export const PhilippineAddressForm = forwardRef((props, ref) => {
     </div>
   );
 });
-
-export default function AddStudentPresident({
-  orgInfo,
-  AccreditationId,
-  onSuccess,
-}) {
-  const [formData, setFormData] = useState({
-    // Name fields
-    firstName: "",
-    middleName: "",
-    lastName: "",
-
-    department: "",
-    course: "",
-    yearLevel: "",
-    birthDate: "",
-    age: "",
-    sex: "",
-    religion: "",
-    customReligion: "", // Temporary internal use only
-
-    nationality: "",
-
-    // Birthplace fields
-    birthPlace: "",
-
-    // Present Address fields
-    presentStreet: "",
-    presentBarangay: "",
-    presentCity: "",
-    presentProvince: "",
-    presentCountry: "",
-
-    // Permanent Address fields
-    permanentStreet: "",
-    permanentBarangay: "",
-    permanentCity: "",
-    permanentProvince: "",
-    permanentCountry: "",
-
-    // Guardian fields
-    guardianFirstName: "",
-    guardianMiddleName: "",
-    guardianLastName: "",
-
-    addressPhoneNo: "", // Optional
-    sourceOfFinancialSupport: "",
-    contactNo: "",
-    facebookAccount: "",
-  });
-
-  useEffect(() => {
-    if (orgInfo) {
-      setFormData((prev) => ({
-        ...prev,
-        department: orgInfo.orgDepartment || "",
-        course: orgInfo.orgCourse || "",
-      }));
-    }
-  }, [orgInfo]);
-
-  const [classSchedules, setClassSchedules] = useState([
-    { subject: "", place: "", time: "", day: "" },
-  ]);
-
-  const [talentSkills, setTalentSkills] = useState([{ skill: "", level: "" }]);
-  const [isUploading, setIsUploading] = useState(false);
-  const [isUploadDone, setIsUploadDone] = useState(false);
-
-  const [countries, setCountries] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  // Financial support options
-  const financialSupportOptions = [
-    "Parents/Family",
-    "Scholarship",
-    "Part-time Job",
-    "Student Loan",
-    "Government Aid",
-    "Self-funded",
-    "Other",
-  ];
-
-  // Skill levels
-  const skillLevels = ["Beginner", "Intermediate", "Advanced", "Expert"];
-
-  // Fetch countries for nationality dropdown
-  useEffect(() => {
-    const fetchCountries = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(
-          "https://restcountries.com/v3.1/all?fields=name,demonyms"
-        );
-        const data = await response.json();
-
-        const nationalities = data
-          .map((country) => country.demonyms?.eng?.m) // Get English masculine demonym
-          .filter(Boolean) // Remove any undefined/null
-          .sort(); // Sort alphabetically
-
-        // Remove duplicates using Set
-        const uniqueNationalities = [...new Set(nationalities)];
-
-        const countryList = uniqueNationalities.map((nationality) => ({
-          value: nationality,
-          label: nationality,
-        }));
-
-        setCountries(countryList);
-      } catch (error) {
-        console.error("Error fetching countries:", error);
-        // Fallback list
-        setCountries([
-          { value: "Philippines", label: "Philippines" },
-          { value: "United States", label: "United States" },
-          { value: "Canada", label: "Canada" },
-          { value: "United Kingdom", label: "United Kingdom" },
-        ]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCountries();
-  }, []);
-
-  const handleInputChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-  };
-
-  const handleClassChange = (index, e) => {
-    const updated = [...classSchedules];
-    updated[index][e.target.name] = e.target.value;
-    setClassSchedules(updated);
-
-    // Add new blank row if the current one is fully filled
-    if (
-      index === classSchedules.length - 1 &&
-      updated[index].subject &&
-      updated[index].place &&
-      updated[index].time &&
-      updated[index].day
-    ) {
-      setClassSchedules([
-        ...updated,
-        { subject: "", place: "", time: "", day: "" },
-      ]);
-    }
-  };
-
-  const handleSkillChange = (index, e) => {
-    const updated = [...talentSkills];
-    updated[index][e.target.name] = e.target.value;
-    setTalentSkills(updated);
-
-    // Add new blank row if the current one is fully filled
-    if (
-      index === talentSkills.length - 1 &&
-      updated[index].skill &&
-      updated[index].level
-    ) {
-      setTalentSkills([...updated, { skill: "", level: "" }]);
-    }
-  };
-
-  const removeClassSchedule = (index) => {
-    if (classSchedules.length > 1) {
-      setClassSchedules(classSchedules.filter((_, i) => i !== index));
-    }
-  };
-
-  const removeSkill = (index) => {
-    if (talentSkills.length > 1) {
-      setTalentSkills(talentSkills.filter((_, i) => i !== index));
-    }
-  };
-
-  const validateFacebookUrl = (url) => {
-    const fbPattern =
-      /^(https?:\/\/)?(www\.)?(facebook|fb|m\.facebook)\.com\/.+/i;
-    return fbPattern.test(url) || url === "";
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    // Validate Facebook URL
-    if (
-      formData.facebookAccount &&
-      !validateFacebookUrl(formData.facebookAccount)
-    ) {
-      alert("Please enter a valid Facebook URL");
-      return;
-    }
-
-    const permanentAddressdata = formRef.current.getFormData().permanentAddress;
-    const currentAddressdata = formRef.current.getFormData().presentAddress;
-
-    const birthDate = new Date(formData.birthDate);
-    const today = new Date();
-
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-
-    const mergedData = {
-      organizationProfile: orgInfo._id,
-      organization: orgInfo.organization,
-      name: `${formData.firstName} ${formData.middleName} ${formData.lastName}`.trim(),
-      department: formData.department,
-      course: formData.course,
-      year: formData.yearLevel,
-      birthDate: formData.birthDate,
-      age: age,
-      sex: formData.sex,
-      religion:
-        formData.religion === "Other"
-          ? formData.customReligion
-          : formData.religion,
-      nationality: formData.nationality,
-      birthplace: formData.birthPlace,
-      currentAddress: currentAddressdata,
-      AccreditationId: AccreditationId,
-      permanentAddress: permanentAddressdata,
-      parentGuardian:
-        `${formData.guardianFirstName} ${formData.guardianMiddleName} ${formData.guardianLastName}`.trim(),
-      addressPhoneNo: formData.addressPhoneNo || null,
-      sourceOfFinancialSupport: formData.sourceOfFinancialSupport,
-      talentSkills: talentSkills.filter((skill) => skill.skill && skill.level),
-      contactNo: formData.contactNo,
-      facebookAccount: formData.facebookAccount,
-      classSchedule: classSchedules.filter(
-        (cls) => cls.subject && cls.place && cls.time && cls.day
-      ),
-    };
-
-    try {
-      // Show uploading popup
-      setIsUploading(true);
-      setIsUploadDone(false);
-
-      // Optional delay to simulate upload delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      const response = await axios.post(
-        `${API_ROUTER}/addPresident`,
-        mergedData
-      );
-      console.log("Success:", response.data);
-
-      // Show success popup
-      setIsUploading(false);
-      setIsUploadDone(true);
-
-      // Hide success popup after 3 seconds and call onSuccess
-      setTimeout(() => {
-        setIsUploadDone(false);
-        onSuccess(); // Callback after success
-      }, 3000);
-    } catch (error) {
-      console.error("Upload error:", error);
-      setIsUploading(false);
-      alert("An error occurred while uploading.");
-    }
-  };
-
-  const formRef = useRef();
-
-  return (
-    <div className="max-w-3/4 min-w-1/4 min-h-1/4  flex flex-col   items-center max-h-9/10 overflow-auto mx-auto p-6 space-y-6  bg-white shadow-lg rounded-lg">
-      {!isUploading && !isUploadDone && (
-        <>
-          <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
-            President Profile Form
-          </h2>
-          <div className="flex flex-col gap-6 ">
-            <div className="border p-6 rounded-lg col-span-2 bg-blue-50">
-              <h3 className="text-xl font-semibold mb-6 text-blue-800">
-                Personal Information
-              </h3>
-
-              {/* Name Section */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    First Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Middle Name
-                  </label>
-                  <input
-                    type="text"
-                    name="middleName"
-                    value={formData.middleName}
-                    onChange={handleInputChange}
-                    className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Last Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              {/* Demographic Information */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Birthplace *
-                  </label>
-                  <input
-                    type="text"
-                    name="birthplace"
-                    value={formData.Birthplace}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    birthDate *
-                  </label>
-                  <input
-                    type="date"
-                    name="age"
-                    value={formData.age}
-                    onChange={handleInputChange}
-                    required
-                    min="1"
-                    max="120"
-                    className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Sex *
-                  </label>
-                  <select
-                    name="sex"
-                    value={formData.sex}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select...</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Religion and Nationality */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Religion
-                  </label>
-                  <div className="flex flex-col gap-2 md:flex-row">
-                    <select
-                      name="religion"
-                      value={formData.religion}
-                      onChange={handleInputChange}
-                      className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">Select a religion</option>
-                      <option value="Christianity">Christianity</option>
-                      <option value="Islam">Islam</option>
-                      <option value="Hinduism">Hinduism</option>
-                      <option value="Buddhism">Buddhism</option>
-                      <option value="Judaism">Judaism</option>
-                      <option value="Atheism">Atheism</option>
-                      <option value="Agnosticism">Agnosticism</option>
-                      <option value="Other">Other</option>
-                    </select>
-                    {formData.religion === "Other" && (
-                      <input
-                        type="text"
-                        name="customReligion"
-                        placeholder="Please specify"
-                        value={formData.customReligion}
-                        onChange={handleInputChange}
-                        className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
-                      />
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Nationality *
-                  </label>
-                  <select
-                    name="nationality"
-                    value={formData.nationality}
-                    onChange={handleInputChange}
-                    required
-                    disabled={loading}
-                    className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                  >
-                    <option value="">
-                      {loading ? "Loading..." : "Select Nationality..."}
-                    </option>
-                    {countries.map((country) => (
-                      <option key={country.value} value={country.value}>
-                        {country.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Academic Information */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Department *
-                  </label>
-                  <select
-                    name="department"
-                    value={formData.department}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full p-2 border rounded focus:ring-2 focus:ring-green-500"
-                  >
-                    <option value="">Select Department...</option>
-                    {Object.keys(departments).map((dept) => (
-                      <option key={dept} value={dept}>
-                        {dept}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Course *
-                  </label>
-                  <select
-                    name="course"
-                    value={formData.course}
-                    onChange={handleInputChange}
-                    required
-                    disabled={!formData.department}
-                    className="w-full p-2 border rounded focus:ring-2 focus:ring-green-500"
-                  >
-                    <option value="">Select Course...</option>
-                    {formData.department &&
-                      departments[formData.department].map((course) => (
-                        <option key={course} value={course}>
-                          {course}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Year Level *
-                  </label>
-                  <select
-                    name="yearLevel"
-                    value={formData.yearLevel}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full p-2 border rounded focus:ring-2 focus:ring-green-500"
-                  >
-                    <option value="">Select Year...</option>
-                    <option value="1st Year">1st Year</option>
-                    <option value="2nd Year">2nd Year</option>
-                    <option value="3rd Year">3rd Year</option>
-                    <option value="4th Year">4th Year</option>
-                    <option value="5th Year">5th Year</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* Addresses */}
-            <PhilippineAddressForm ref={formRef} />
-            {/* Guardian Information */}
-            <div className="border p-4 rounded-lg bg-yellow-50">
-              <h3 className="text-lg font-semibold mb-4 text-yellow-800">
-                Guardian Information
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Guardian First Name
-                  </label>
-                  <input
-                    type="text"
-                    name="guardianFirstName"
-                    value={formData.guardianFirstName}
-                    onChange={handleInputChange}
-                    className="w-full p-2 border rounded focus:ring-2 focus:ring-yellow-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Guardian Middle Name
-                  </label>
-                  <input
-                    type="text"
-                    name="guardianMiddleName"
-                    value={formData.guardianMiddleName}
-                    onChange={handleInputChange}
-                    className="w-full p-2 border rounded focus:ring-2 focus:ring-yellow-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Guardian Last Name
-                  </label>
-                  <input
-                    type="text"
-                    name="guardianLastName"
-                    value={formData.guardianLastName}
-                    onChange={handleInputChange}
-                    className="w-full p-2 border rounded focus:ring-2 focus:ring-yellow-500"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600">
-                  Address Phone Number (Optional)
-                </label>
-                <input
-                  type="tel"
-                  name="addressPhoneNo"
-                  value={formData.addressPhoneNo}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border rounded focus:ring-2 focus:ring-yellow-500"
-                />
-              </div>
-            </div>
-            {/* Financial & Contact Information */}
-            <div className="border p-4 rounded-lg bg-purple-50">
-              <h3 className="text-lg font-semibold mb-4 text-purple-800">
-                Financial & Contact Information
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Source of Financial Support *
-                  </label>
-                  <select
-                    name="sourceOfFinancialSupport"
-                    value={formData.sourceOfFinancialSupport}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full p-2 border rounded focus:ring-2 focus:ring-purple-500"
-                  >
-                    <option value="">Select...</option>
-                    {financialSupportOptions.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Contact Number *
-                  </label>
-                  <input
-                    type="text"
-                    name="contactNo"
-                    value={formData.contactNo}
-                    onChange={(e) => {
-                      const onlyNums = e.target.value.replace(/\D/g, "");
-                      handleInputChange({
-                        target: {
-                          name: "contactNo",
-                          value: onlyNums,
-                        },
-                      });
-                    }}
-                    required
-                    className="w-full p-2 border rounded focus:ring-2 focus:ring-purple-500"
-                    inputMode="numeric"
-                    pattern="\d*"
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-600">
-                    Facebook Account (URL)
-                  </label>
-                  <input
-                    type="url"
-                    name="facebookAccount"
-                    value={formData.facebookAccount}
-                    onChange={handleInputChange}
-                    placeholder="https://facebook.com/your-profile"
-                    className="w-full p-2 border rounded focus:ring-2 focus:ring-purple-500"
-                  />
-                </div>
-              </div>
-            </div>
-            {/* Talents & Skills */}
-            <div className="border p-4 rounded-lg bg-indigo-50">
-              <h3 className="text-lg font-semibold mb-4 text-indigo-800">
-                Talents & Skills
-              </h3>
-              {talentSkills.map((skill, index) => (
-                <div key={index} className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    name="skill"
-                    placeholder="Skill/Talent"
-                    value={skill.skill}
-                    onChange={(e) => handleSkillChange(index, e)}
-                    className="flex-1 p-2 border rounded focus:ring-2 focus:ring-indigo-500"
-                  />
-                  <select
-                    name="level"
-                    value={skill.level}
-                    onChange={(e) => handleSkillChange(index, e)}
-                    className="p-2 border rounded focus:ring-2 focus:ring-indigo-500"
-                  >
-                    <option value="">Level</option>
-                    {skillLevels.map((level) => (
-                      <option key={level} value={level}>
-                        {level}
-                      </option>
-                    ))}
-                  </select>
-                  {talentSkills.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeSkill(index)}
-                      className="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 focus:ring-2 focus:ring-red-500"
-                    >
-                      ×
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-            {/* Class Schedule */}
-            <div className="border p-4 rounded-lg bg-gray-50">
-              <h3 className="text-lg font-semibold mb-4 text-gray-800">
-                Class Schedule
-              </h3>
-              <div className="overflow-auto">
-                <table className="w-full border border-gray-300 text-sm">
-                  <thead className="bg-gray-200 text-gray-700">
-                    <tr>
-                      <th className="p-2 text-left border">Subject</th>
-                      <th className="p-2 text-left border">Place</th>
-                      <th className="p-2 text-left border">Time</th>
-                      <th className="p-2 text-left border">Day</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {classSchedules.map((cls, index) => (
-                      <tr key={index} className="even:bg-white odd:bg-gray-50">
-                        <td className="p-2 border">
-                          <input
-                            type="text"
-                            name="subject"
-                            placeholder="Subject"
-                            value={cls.subject}
-                            onChange={(e) => handleClassChange(index, e)}
-                            className="w-full px-2 py-1.5 rounded focus:ring focus:ring-gray-500 "
-                          />
-                        </td>
-                        <td className="p-2 border">
-                          <input
-                            type="text"
-                            name="place"
-                            placeholder="Place"
-                            value={cls.place}
-                            onChange={(e) => handleClassChange(index, e)}
-                            className="w-full px-2 py-1.5 rounded focus:ring focus:ring-gray-500 "
-                          />
-                        </td>
-                        <td className="p-2 border">
-                          <input
-                            type="time"
-                            name="time"
-                            value={cls.time}
-                            onChange={(e) => handleClassChange(index, e)}
-                            className="w-full px-2 py-1.5 rounded focus:ring focus:ring-gray-500 "
-                          />
-                        </td>
-                        <td className="p-2 border">
-                          <div className="flex gap-2">
-                            <select
-                              name="day"
-                              value={cls.day}
-                              onChange={(e) => handleClassChange(index, e)}
-                              className="w-full px-2 py-1.5 rounded focus:ring focus:ring-gray-500 "
-                            >
-                              <option value="" disabled>
-                                Select Day
-                              </option>
-                              <option value="Monday">Monday</option>
-                              <option value="Tuesday">Tuesday</option>
-                              <option value="Wednesday">Wednesday</option>
-                              <option value="Thursday">Thursday</option>
-                              <option value="Friday">Friday</option>
-                              <option value="Saturday">Saturday</option>
-                            </select>
-                            {classSchedules.length > 1 && (
-                              <button
-                                type="button"
-                                onClick={() => removeClassSchedule(index)}
-                                className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 focus:ring-2 focus:ring-red-500"
-                              >
-                                ×
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <button
-              onClick={handleSubmit}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 focus:ring-4 focus:ring-blue-300"
-            >
-              Submit Application
-            </button>
-          </div>
-        </>
-      )}
-
-      {isUploading && (
-        <div className="flex flex-col items-center justify-center text-center space-y-4">
-          <div className="text-lg font-semibold text-gray-800">
-            Uploading...
-          </div>
-          {/* Optionally add spinner */}
-          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-        </div>
-      )}
-
-      {isUploadDone && (
-        <div className="flex flex-col items-center justify-center text-center space-y-4">
-          <div className="text-lg font-semibold text-gray-800">
-            Upload Complete
-          </div>
-          {/* Optionally add spinner */}
-          <div className="p-4 rounded-full  bg-green-200 text-green-700 ">
-            <Check size={24} className="font-bold " />
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}

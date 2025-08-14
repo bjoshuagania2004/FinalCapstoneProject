@@ -14,7 +14,7 @@ export default function InitialRegistrationComponent({ user, onComplete }) {
     orgClass: "System-wide",
     orgDepartment: "",
     orgCourse: "",
-    specialization: "",
+    orgSpecialization: "",
     studentGovDepartment: "", // New field for student government department
     userId: user?.userId,
   });
@@ -47,7 +47,7 @@ export default function InitialRegistrationComponent({ user, onComplete }) {
     // Auto-populate adviser department when student government department is selected
     if (
       name === "studentGovDepartment" &&
-      formData.specialization === "Student government"
+      formData.orgSpecialization === "Student government"
     ) {
       setFormData((prev) => ({
         ...prev,
@@ -65,7 +65,7 @@ export default function InitialRegistrationComponent({ user, onComplete }) {
       orgClass: value,
       orgDepartment: "",
       orgCourse: "",
-      specialization: "",
+      orgSpecialization: "",
       studentGovDepartment: "", // Reset student government department
       adviserDepartment: "",
     }));
@@ -75,7 +75,7 @@ export default function InitialRegistrationComponent({ user, onComplete }) {
     const { value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      specialization: value,
+      orgSpecialization: value,
       studentGovDepartment: "",
       orgDepartment: value === "Student government" ? "" : prev.orgDepartment, // Reset if "Student government"
     }));
@@ -107,16 +107,17 @@ export default function InitialRegistrationComponent({ user, onComplete }) {
       if (!formData.orgCourse)
         newErrors.orgCourse = "Organization course is required";
     } else if (formData.orgClass === "System-wide") {
-      if (!formData.specialization.trim())
-        newErrors.specialization = "Specialization is required";
+      if (!formData.orgSpecialization.trim())
+        newErrors.orgSpecialization = "Specialization is required";
 
       // Handle Student Government case
-      if (formData.specialization === "Student government") {
+      if (formData.orgSpecialization === "Student government") {
         if (!formData.studentGovDepartment.trim()) {
           newErrors.studentGovDepartment =
             "Department is required for student government";
         } else {
           // ✅ Assign studentGovDepartment to orgDepartment
+          formData.orgSpecialization = formdata.orgSpecialization;
           formData.orgDepartment = formData.studentGovDepartment;
         }
       }
@@ -332,29 +333,29 @@ export default function InitialRegistrationComponent({ user, onComplete }) {
                       Specialization <span className="text-red-500">*</span>
                     </label>
                     <select
-                      name="specialization"
-                      value={formData.specialization}
+                      name="orgSpecialization"
+                      value={formData.orgSpecialization}
                       onChange={handleSpecializationChange}
                       className={`${"w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"} ${
-                        errors.specialization ? "border-red-500" : ""
+                        errors.orgSpecialization ? "border-red-500" : ""
                       }`}
                     >
                       <option value="">Select Specialization</option>
-                      {specializations.map((spec) => (
+                      {orgSpecializations.map((spec) => (
                         <option key={spec} value={spec}>
                           {spec}
                         </option>
                       ))}
                     </select>
-                    {errors.specialization && (
+                    {errors.orgSpecialization && (
                       <p className="text-red-500 text-sm px-4">
-                        {errors.specialization}
+                        {errors.orgSpecialization}
                       </p>
                     )}
                   </div>
 
                   {/* Student Government Department Field */}
-                  {formData.specialization === "Student government" && (
+                  {formData.orgSpecialization === "Student government" && (
                     <div className="flex flex-col flex-1  gap-2">
                       <label className="block text-lg font-medium text-gray-700">
                         Department <span className="text-red-500">*</span>{" "}
@@ -454,7 +455,7 @@ export default function InitialRegistrationComponent({ user, onComplete }) {
                   disabled={
                     (formData.orgClass === "Local" && formData.orgDepartment) ||
                     (formData.orgClass === "System-wide" &&
-                      formData.specialization === "Student government" &&
+                      formData.orgSpecialization === "Student government" &&
                       formData.studentGovDepartment)
                   }
                 >
@@ -476,7 +477,7 @@ export default function InitialRegistrationComponent({ user, onComplete }) {
                   </p>
                 )}
                 {formData.orgClass === "System-wide" &&
-                  formData.specialization === "Student government" &&
+                  formData.orgSpecialization === "Student government" &&
                   formData.studentGovDepartment && (
                     <p className="text-blue-600 text-sm px-4">
                       Auto-populated from student government department
@@ -565,7 +566,7 @@ export const departments = {
   ],
 };
 
-const specializations = [
+const orgSpecializations = [
   "Academic",
   "Lifestyle",
   "Fraternity/Sorority",

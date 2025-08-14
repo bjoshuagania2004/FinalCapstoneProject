@@ -11,6 +11,7 @@ import {
 import axios from "axios";
 import { API_ROUTER } from "../../../../../App";
 import { AddProposedActionPlan } from "./proposed-plan-add";
+import EditPpa from "./proposed-plan-edit";
 
 export function StudentProposedPlan({ orgData, accreditationData }) {
   const [proposals, setProposals] = useState([]);
@@ -23,50 +24,34 @@ export function StudentProposedPlan({ orgData, accreditationData }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchProposals = async () => {
-      setLoading(true);
-      try {
-        const response = await axios.get(
-          `${API_ROUTER}/getStudentLeaderProposalById/${accreditationData._id}`
-        );
-        console.log(response.data);
-        setProposals(response.data);
+  const fetchProposals = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(
+        `${API_ROUTER}/getStudentLeaderProposalById/${accreditationData._id}`
+      );
+      console.log(response.data);
+      setProposals(response.data);
+      setError(null);
+    } catch (err) {
+      console.error("Failed to fetch proposals:", err);
+      if (err.status === 404 || err.response?.status === 404) {
+        setProposals([]);
         setError(null);
-      } catch (err) {
-        console.error("Failed to fetch proposals:", err);
-        if (err.status === 404 || err.response?.status === 404) {
-          setProposals([]);
-          setError(null);
-        } else {
-          setError("Failed to load proposals");
-        }
-      } finally {
-        setLoading(false);
+      } else {
+        setError("Failed to load proposals");
       }
-    };
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     if (accreditationData._id) {
       fetchProposals();
     }
   }, [accreditationData._id]);
-  const saveEdit = () => {
-    setProposals(
-      proposals.map((p) =>
-        p._id === selectedProposal._id
-          ? {
-              ...p,
-              ...editForm,
-              proposedDate: editForm.proposedDate + "T00:00:00.000Z",
-              updatedAt: new Date().toISOString(),
-            }
-          : p
-      )
-    );
-    setShowEditModal(false);
-    setSelectedProposal(null);
-    setEditForm({});
-  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case "Approved":
@@ -81,6 +66,7 @@ export function StudentProposedPlan({ orgData, accreditationData }) {
         return "bg-gray-100 text-gray-800";
     }
   };
+
   const handleEdit = (proposal) => {
     setSelectedProposal(proposal);
     setEditForm({
@@ -94,6 +80,7 @@ export function StudentProposedPlan({ orgData, accreditationData }) {
     });
     setShowEditModal(true);
   };
+
   const handleDelete = (proposal) => {
     setSelectedProposal(proposal);
     setShowDeleteModal(true);
@@ -114,7 +101,6 @@ export function StudentProposedPlan({ orgData, accreditationData }) {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
-      day: "numeric",
     });
   };
 
@@ -402,10 +388,11 @@ export function StudentProposedPlan({ orgData, accreditationData }) {
       {/* Edit Modal */}
       {showEditModal && (
         <EditPpa
-          editForm={editForm}
-          setEditForm={setEditForm}
-          saveEdit={saveEdit}
+          selectedProposal={selectedProposal}
+          orgData={orgData}
           onClose={() => setShowEditModal(false)}
+          accreditationData={accreditationData}
+          onFinish={() => fetchProposals()}
         />
       )}
 
@@ -452,141 +439,9 @@ export function StudentProposedPlan({ orgData, accreditationData }) {
           orgData={orgData}
           accreditationData={accreditationData}
           onClose={() => setShowManageModal(false)}
+          onFinish={() => fetchProposals()}
         />
       )}
-    </div>
-  );
-}
-
-function EditPpa({ editForm, setEditForm, saveEdit, onClose }) {
-  return (
-    <div className="fixed inset-0 bg-black/10 backdrop-blur-xs flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">Edit Proposal</h3>
-          <button
-            onClick={() => setShowEditModal(false)}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Activity Title
-              </label>
-              <input
-                type="text"
-                value={editForm.activityTitle}
-                onChange={(e) =>
-                  setEditForm({
-                    ...editForm,
-                    activityTitle: e.target.value,
-                  })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Proposed Date
-              </label>
-              <input
-                type="date"
-                value={editForm.proposedDate}
-                onChange={(e) =>
-                  setEditForm({
-                    ...editForm,
-                    proposedDate: e.target.value,
-                  })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Venue
-              </label>
-              <input
-                type="text"
-                value={editForm.venue}
-                onChange={(e) =>
-                  setEditForm({ ...editForm, venue: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Budget Required (PHP)
-              </label>
-              <input
-                type="number"
-                value={editForm.budgetaryRequirements}
-                onChange={(e) =>
-                  setEditForm({
-                    ...editForm,
-                    budgetaryRequirements: Number(e.target.value),
-                  })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Aligned Organizational Objectives
-            </label>
-            <textarea
-              value={editForm.alignedOrgObjectives}
-              onChange={(e) =>
-                setEditForm({
-                  ...editForm,
-                  alignedOrgObjectives: e.target.value,
-                })
-              }
-              rows="3"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Brief Details
-            </label>
-            <textarea
-              value={editForm.briefDetails}
-              onChange={(e) =>
-                setEditForm({ ...editForm, briefDetails: e.target.value })
-              }
-              rows="4"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        </div>
-
-        <div className="flex justify-end space-x-2 mt-6">
-          <button
-            onClick={() => setShowEditModal(false)}
-            className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={saveEdit}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            Save Changes
-          </button>
-        </div>
-      </div>
     </div>
   );
 }
