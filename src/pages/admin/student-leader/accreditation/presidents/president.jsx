@@ -54,22 +54,51 @@ export default function StudentLeaderPresidentListComponent({
   const [showAddForm, setShowAddForm] = useState(false);
   const [uploadComplete, setUploadComplete] = useState(false);
   const [presidents, setPresidents] = useState([]);
-  const [currentPresident, setCurrentPresident] = useState({});
+  const [currentPresident, setCurrentPresident] = useState(null);
+  const [remainingPresidents, setRemainingPresidents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const orgId = orgData.organization;
 
   useEffect(() => {
-    const GetPresident = async () => {
+    const GetAndSetPresidents = async () => {
+      if (!orgId) return;
+
       try {
         setLoading(true);
         setError(null);
+
         const response = await axios.get(
           `${API_ROUTER}/getPresidents/${orgId}`
         );
-        console.log(response.data);
-        setPresidents(response.data);
-        // assuming the backend sends a JSON array of presidents
+        const data = response.data;
+
+        setPresidents(data);
+
+        console.log(orgData);
+        if (orgData?.orgPresident?._id) {
+          const orgPresidentId = orgData.orgPresident._id;
+
+          const matchedPresident = data.find(
+            (president) => president._id === orgPresidentId
+          );
+
+          if (matchedPresident) {
+            setCurrentPresident(matchedPresident);
+
+            // Remaining presidents (exclude current one)
+            const remaining = data.filter(
+              (president) => president._id !== orgPresidentId
+            );
+            setRemainingPresidents(remaining);
+          } else {
+            // No match found → treat all as previous
+            setRemainingPresidents(data);
+          }
+        } else {
+          // No orgPresident → all are previous
+          setRemainingPresidents(data);
+        }
       } catch (error) {
         console.error("Error fetching presidents:", error);
         setError("Failed to load presidents. Please try again.");
@@ -78,34 +107,8 @@ export default function StudentLeaderPresidentListComponent({
       }
     };
 
-    if (orgId) {
-      GetPresident();
-    }
-  }, [orgId]);
-
-  useEffect(() => {
-    if (!orgData?.orgPresident || presidents.length === 0) return;
-
-    // Check if either president profile is null/undefined - if so, allow adding new
-    if (!accreditationData?.PresidentProfile || !orgData.orgPresident) {
-      return; // This allows adding new president
-    }
-
-    const matchedPresident = presidents.find(
-      (president) => president._id === orgData.orgPresident
-    );
-
-    if (matchedPresident) {
-      setCurrentPresident(matchedPresident);
-
-      console.log();
-      // Remove matched president from the list
-      const remainingPresidents = presidents.filter(
-        (president) => president._id !== orgData.orgPresident
-      );
-      setPresidents(remainingPresidents);
-    }
-  }, [orgData?.orgPresident, presidents, accreditationData?.PresidentProfile]);
+    GetAndSetPresidents();
+  }, [orgId, orgData?.orgPresident]);
 
   const handleEdit = (president) => {
     console.log("Edit clicked for:", president.name);
@@ -162,19 +165,20 @@ export default function StudentLeaderPresidentListComponent({
       </div>
     );
   }
+
   return (
     <div className="flex flex-col mt-4 h-full w-full gap-4 overflow-auto">
       <div className="grid grid-cols-4 gap-4">
-        {/* Current President takes 2 columns */}
+        {/* Current President (2 columns) */}
         <div className="col-span-2">
-          {orgData.orgPresident ? (
+          {currentPresident ? (
             <CurrentPresidentCard
               currentPresident={currentPresident}
               orgData={orgData}
             />
           ) : (
             <div
-              className="bg-white gap-4 flex flex-col justify-center items-center  transition-all duration-300 p-6 relative cursor-pointer group border-2 border-dashed border-gray-300 hover:border-indigo-400"
+              className="bg-white gap-4 flex flex-col justify-center items-center p-6 relative cursor-pointer group border-2 border-dashed border-gray-300 hover:border-indigo-400 transition-all duration-300"
               onClick={handleAdd}
             >
               <div className="w-32 h-32 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-full flex items-center justify-center border-2 border-indigo-200 group-hover:border-indigo-400 transition-all duration-300 group-hover:scale-105">
@@ -195,15 +199,15 @@ export default function StudentLeaderPresidentListComponent({
           )}
         </div>
 
-        {/* Previous Presidents each take 1 column */}
-        {presidents.map((president, index) => (
-          <div key={index} className="col-span-1">
+        {/* Previous Presidents (filtered list, excludes current) */}
+        {remainingPresidents.map((president) => (
+          <div key={president._id} className="col-span-1">
             <PresidentCard
               president={president}
               onEdit={handleEdit}
               onDelete={handleDelete}
               onUploadPhoto={handleUploadPhoto}
-              showActions={president.isCurrent}
+              showActions={false} // never show "current" actions
             />
           </div>
         ))}

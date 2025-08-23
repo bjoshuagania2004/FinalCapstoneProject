@@ -1,20 +1,173 @@
-import { User } from "../models/index.js";
+import { NodeEmail } from "../middleware/emailer.js";
+import {
+  User,
+  Accreditation,
+  OrganizationProfile,
+  Organization,
+} from "../models/index.js";
+import dotenv from "dotenv";
+import path from "path";
+import { dirname } from "path";
+
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
+
+export const CheckAccreditationApprovalStatus = async (req, res) => {
+  const { orgProfileId } = req.params;
+
+  try {
+    // Find the accreditation and populate referenced documents
+    const accreditation = await Accreditation.findOne({
+      organizationProfile: orgProfileId,
+    })
+      .populate("Roster")
+      .populate("PresidentProfile")
+      .populate("organizationProfile")
+      .populate("JointStatement")
+      .populate("PledgeAgainstHazing");
+
+    if (!accreditation) {
+      return res.status(404).json({ message: "Accreditation not found." });
+    }
+
+    // ✅ First check Accreditation's overallStatus
+    if (accreditation.overallStatus === "Approved") {
+      return res.status(200).send(null); // send nothing if already approved
+    }
+
+    // Check individual statuses only if accreditation is not approved
+    const rosterStatus = accreditation?.Roster?.overAllStatus;
+    const presidentStatus = accreditation?.PresidentProfile?.overAllStatus;
+    const orgStatus = accreditation?.organizationProfile?.overAllStatus;
+    const jointStatementStatus = accreditation?.JointStatement?.status;
+    const hazingPledgeStatus = accreditation?.PledgeAgainstHazing?.status;
+
+    const allApproved =
+      rosterStatus === "Approved" &&
+      presidentStatus === "Approved" &&
+      orgStatus === "Approved" &&
+      jointStatementStatus === "Approved" &&
+      hazingPledgeStatus === "Approved";
+
+    return res.status(200).json({
+      message: allApproved
+        ? "Everything is approved and complete!"
+        : "Some parts are still pending or need revision.",
+      isEverythingApproved: allApproved,
+      statuses: {
+        roster: rosterStatus,
+        presidentProfile: presidentStatus,
+        organizationProfile: orgStatus,
+        jointStatement: jointStatementStatus,
+        pledgeAgainstHazing: hazingPledgeStatus,
+      },
+    });
+  } catch (error) {
+    console.error("Error checking accreditation status:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const SendAccreditationCompletionEmail = async (req, res) => {
+  const { orgProfileId } = req.params;
+
+  try {
+    // ✅ Find accreditation record tied to the org
+    const accreditation = await Accreditation.findOne({
+      organizationProfile: orgProfileId,
+    });
+
+    if (!accreditation) {
+      return res.status(404).json({ message: "Accreditation not found." });
+    }
+
+    // ✅ Find users linked to the organization (adviser + student leader, etc.)
+    const users = await User.find({ organizationProfile: orgProfileId });
+
+    if (!users || users.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "No users found for this organization." });
+    }
+
+    // Email content
+    const subject = `Accreditation Approved for ${accreditation.organizationProfile.orgName}`;
+    const message = `Good day,
+
+We are pleased to inform you that the accreditation process for "${accreditation.organizationProfile.orgName}" has been completed and approved.
+
+You may now proceed with your official activities under recognized status.
+
+Regards,  
+Student Development Unit`;
+
+    // ✅ Send emails to all users
+    let results = [];
+    for (const user of users) {
+      if (user.email) {
+        const sendResult = await NodeEmail(user.email, subject, message);
+        results.push({
+          recipient: user.position,
+          name: user.name || "N/A",
+          email: user.email,
+          ...sendResult,
+        });
+      }
+    }
+
+    // ✅ Update accreditation status to "Approved"
+    accreditation.overallStatus = "Approved";
+    await accreditation.save();
+
+    return res.status(200).json({
+      message: "Completion emails sent and accreditation marked as Approved.",
+      accreditation: {
+        id: accreditation._id,
+        overallStatus: accreditation.overallStatus,
+      },
+      results,
+    });
+  } catch (error) {
+    console.log("Error sending completion emails:", error);
+    return res.status(500).json({ message: "Failed to send emails", error });
+  }
+};
 
 export const GetUserInformation = async (req, res) => {
   const { userId } = req.params;
 
-  console.log(userId);
   try {
+    // Step 1: Find user
     const user = await User.findOne({ _id: userId });
     if (!user) {
-      return res.status(404).json({ message: "No user found" });
+      return res.status(404).json({ message: "User not found" });
     }
 
-    return res.status(200).json({ user });
+    // Step 2: Find the organization and populate all profiles
+    const organization = await OrganizationProfile.findOne({
+      _id: user.organizationProfile,
+    })
+      .populate("adviser")
+      .populate("orgPresident");
+    if (!organization) {
+      return res.status(404).json({
+        message: "Organization not found for this profile",
+        organization: false,
+      });
+    }
+    console.log(organization);
+
+    return res.status(200).json({
+      message: "Organization profile found",
+      organization,
+    });
   } catch (error) {
-    return res
-      .status(500)
-      .json({ message: "Server error", error: error.message });
+    console.error("Error finding organization by profile:", error);
+    return res.status(500).json({ message: "Server error", error });
   }
 };
 
@@ -64,4 +217,55 @@ export const Logout = (req, res) => {
     res.clearCookie("connect.sid");
     res.json({ message: "Logged out" });
   });
+};
+import OpenAI from "openai";
+import PdfParse from "pdf-parse";
+
+export const getAIFeedback = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    // 👇 Use buffer from multer
+    const pdfBuffer = req.file.buffer;
+    const pdfData = await PdfParse(pdfBuffer);
+    const documentText = pdfData.text;
+
+    const prompt = `
+You are an AI text detector. 
+Analyze the following document and provide structured JSON feedback.
+
+Document content:
+---
+${documentText}
+---
+
+Return ONLY valid JSON in this exact format:
+
+{
+  "feedback": "Short explanation whether the content seems AI-generated or human-written.",
+  "aiGenerated": true or false, // true if majority seems AI generated
+  "aiProbability": number // percentage (0-100) of how likely the text is AI-generated
+}
+`;
+
+    const client = new OpenAI({
+      apiKey: process.env.OPEN_AI_API_KEY,
+      dangerouslyAllowBrowser: true, // ⚠️ only for demo, move to backend later!
+    });
+
+    const response = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
+      response_format: { type: "json_object" }, // force JSON
+    });
+
+    const aiResult = JSON.parse(response.choices[0].message.content);
+
+    res.json(aiResult);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to get AI feedback" });
+  }
 };

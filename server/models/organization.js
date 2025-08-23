@@ -3,8 +3,9 @@ const { Schema } = mongoose;
 
 export const organizationProfileSchema = new Schema(
   {
-    organization: { type: Schema.Types.ObjectId, ref: "Organization" },
+    organization: { type: Schema.Types.ObjectId, ref: "Organizations" },
     orgPresident: { type: Schema.Types.ObjectId, ref: "PresidentProfile" },
+    adviser: { type: Schema.Types.ObjectId, ref: "Advisers" },
     overAllStatus: { type: String, default: "Pending" },
     orgLogo: String,
     orgName: String, // Name used this year
@@ -15,10 +16,7 @@ export const organizationProfileSchema = new Schema(
     orgDepartment: String,
     orgSpecialization: String,
     isActive: { type: Boolean, default: true },
-
-    adviserName: String,
-    adviserEmail: String,
-    adviserDepartment: String,
+    isAllowedForReuse: { type: Boolean, default: true },
   },
   { timestamps: true }
 );

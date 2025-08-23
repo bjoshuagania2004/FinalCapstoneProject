@@ -12,12 +12,32 @@ export const userSchema = new Schema(
 
     organizationProfile: {
       type: Schema.Types.ObjectId,
-      ref: "organizationprofiles",
+      ref: "OrganizationProfile",
     },
 
     Organization: {
       type: Schema.Types.ObjectId,
-      ref: "organizations",
+      ref: "Organizations",
+    },
+  },
+  { timestamps: true }
+);
+
+export const AdviserSchema = new Schema(
+  {
+    name: String,
+    email: String,
+    username: String,
+    deliveryUnit: String,
+
+    organizationProfile: {
+      type: Schema.Types.ObjectId,
+      ref: "OrganizationProfile",
+    },
+
+    Organization: {
+      type: Schema.Types.ObjectId,
+      ref: "Organizations",
     },
   },
   { timestamps: true }

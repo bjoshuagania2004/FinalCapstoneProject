@@ -14,63 +14,58 @@ import {
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { Routes, Route } from "react-router-dom";
-import { API_ROUTER } from "./../../../App";
-
+import { API_ROUTER, DOCU_API_ROUTER } from "./../../../App";
+import { SduAccreditationSettings } from "./accreditation/sdu-accreditation-settings";
+import { SduAccreditationHistoryOverview } from "./accreditation/sdu-accreditation-history";
+import { SduOrganizationInformation } from "./accreditation/sdu-accreditation-organization-profile";
 import {
   SduAccreditationOverview,
-  SduAccreditationDevOrgOverview,
   OrganizationAccreditation,
 } from "./accreditation/sdu-accreditation-overview";
 
-import { SduAccreditationHistoryOverview } from "./accreditation/sdu-accreditation-history";
 import {
   SduRoster,
   SduRosterOverview,
 } from "./accreditation/sdu-accreditation-roster";
+
 import {
   SduPresident,
   SduPresidentOverview,
 } from "./accreditation/sdu-accreditation-president";
+
+import {
+  SduAccreditationDocumentOrganization,
+  SduAccreditationDocumentOverview,
+} from "./accreditation/sdu-accreditation-documents";
+
+import {
+  SduProposedActionPlanOrganization,
+  SduProposedActionPlanOverview,
+} from "./accreditation/sdu-accreditation-proposed-action-plan";
+import { FinancialReportOverview } from "./accreditation/sdu-accreditation-financial-report";
 
 // This should be used in your main App.js router
 export default function StudentDevMainLayout() {
   const [selectedOrg, setSelectedOrg] = useState(null);
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-gray-50">
-      <SduBadge />
-      <div className="flex  h-full justify-between bg-gray-100 w-full overflow-hidden">
-        <StudentDevOrganizationProfileCard
+    <div className="flex h-screen w-screen bg-gray-50">
+      <div className="flex   h-full w-1/5 justify-between bg-cnsc-primary-color  overflow-hidden">
+        <StudentDevMainNavigation />
+      </div>
+      <div className=" w-full h-full">
+        <StudentDevUnitComponent
           selectedOrg={selectedOrg}
           onSelectOrg={setSelectedOrg}
         />
-        <div className="w-3/4 h-full ">
-          <StudentDevUnitComponent selectedOrg={selectedOrg} />
-        </div>
       </div>
     </div>
   );
 }
 
-function SduBadge() {
+function StudentDevUnitComponent({ selectedOrg, onSelectOrg }) {
   return (
-    <div className="flex h-fit bg-cnsc-primary-color text-black items-center  ">
-      <div className="  w-1/4 p-2 bg-cnsc-primary-color flex items-center justify-center">
-        <img src="/cnsc-codex.svg" alt="CNSC Logo" className="h-17 w-auto" />
-        <h1 className="text-white font-black text-xl leading-tight">
-          Welcome Student Development Unit
-        </h1>
-      </div>
-      <div className="h-full w-3/4">
-        <StudentDevMainNavigation />
-      </div>
-    </div>
-  );
-}
-
-function StudentDevUnitComponent({ selectedOrg }) {
-  return (
-    <div className=" flex-1  bg-white h-full overflow-auto">
+    <div className="flex-1 bg-white h-full overflow-auto">
       <Routes>
         {/* Dashboard/Home route */}
         <Route
@@ -97,27 +92,33 @@ function StudentDevUnitComponent({ selectedOrg }) {
         />
 
         {/* Accreditation routes */}
-        <Route path="/accreditation" element={<OrganizationAccreditation />}>
+        <Route
+          path="/accreditation/"
+          element={
+            <OrganizationAccreditation
+              selectedOrg={selectedOrg}
+              onSelectOrg={onSelectOrg}
+            />
+          }
+        >
           <Route
             index
             element={
               selectedOrg ? (
-                <SduAccreditationOverview selectedOrg={selectedOrg} />
+                <SduOrganizationInformation selectedOrg={selectedOrg} />
               ) : (
-                <SduAccreditationDevOrgOverview />
+                <SduAccreditationOverview
+                  selectedOrg={selectedOrg}
+                  onSelectOrg={onSelectOrg}
+                />
               )
             }
           />
           <Route
             path="financial-report"
-            element={
-              selectedOrg ? (
-                <OrganizationFinancialReport selectedOrg={selectedOrg} />
-              ) : (
-                <FinancialReportOverview />
-              )
-            }
+            element={<FinancialReportOverview />}
           />
+
           <Route
             path="roster-of-members"
             element={
@@ -125,6 +126,28 @@ function StudentDevUnitComponent({ selectedOrg }) {
                 <SduRoster selectedOrg={selectedOrg} />
               ) : (
                 <SduRosterOverview />
+              )
+            }
+          />
+          <Route
+            path="document"
+            element={
+              selectedOrg ? (
+                <SduAccreditationDocumentOrganization
+                  selectedOrg={selectedOrg}
+                />
+              ) : (
+                <SduAccreditationDocumentOverview />
+              )
+            }
+          />
+          <Route
+            path="proposed-action-plan"
+            element={
+              selectedOrg ? (
+                <SduProposedActionPlanOrganization selectedOrg={selectedOrg} />
+              ) : (
+                <SduProposedActionPlanOverview />
               )
             }
           />
@@ -138,6 +161,7 @@ function StudentDevUnitComponent({ selectedOrg }) {
               )
             }
           />
+          <Route path="Settings" element={<SduAccreditationSettings />} />
           <Route
             path="history"
             element={
@@ -178,235 +202,6 @@ function StudentDevUnitComponent({ selectedOrg }) {
   );
 }
 
-function StudentDevOrganizationProfileCard({ selectedOrg, onSelectOrg }) {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [orgs, setOrgs] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [searching, setSearching] = useState(false);
-  const [timeoutId, setTimeoutId] = useState(null);
-  const [selectedDepartment, setSelectedDepartment] = useState("");
-  const [selectedProgram, setSelectedProgram] = useState("");
-  const [selectedSpecialization, setSelectedSpecialization] = useState("");
-  const [searchScope, setSearchScope] = useState("");
-
-  // Function to fetch data
-  const fetchData = async () => {
-    try {
-      if (searchTerm.trim() !== "") {
-        setSearching(true);
-      } else {
-        setLoading(true);
-      }
-      const res = await axios.get(
-        `${API_ROUTER}/getAllOrganizationProfile?search=${encodeURIComponent(
-          searchTerm
-        )}&department=${encodeURIComponent(
-          selectedDepartment
-        )}&program=${encodeURIComponent(
-          selectedProgram
-        )}&specialization=${encodeURIComponent(
-          selectedSpecialization
-        )}&scope=${encodeURIComponent(searchScope)}`
-      );
-      setOrgs(res.data);
-    } catch (err) {
-      console.error("Error fetching data:", err);
-      setOrgs([]);
-    } finally {
-      setLoading(false);
-      setSearching(false);
-    }
-  };
-
-  // Effect for search term with debounce
-  useEffect(() => {
-    if (timeoutId) clearTimeout(timeoutId);
-
-    const delay = setTimeout(() => {
-      fetchData();
-    }, 300);
-
-    setTimeoutId(delay);
-
-    return () => {
-      if (delay) clearTimeout(delay);
-    };
-  }, [searchTerm]);
-
-  // Effect for immediate search on dropdown changes and scope changes
-  useEffect(() => {
-    fetchData();
-  }, [
-    selectedDepartment,
-    selectedProgram,
-    selectedSpecialization,
-    searchScope,
-  ]);
-
-  // Reset filters when scope changes
-  useEffect(() => {
-    setSelectedDepartment("");
-    setSelectedProgram("");
-    setSelectedSpecialization("");
-  }, [searchScope]);
-
-  return (
-    <div className="flex h-full overflow-auto flex-1 flex-col p-4 w-full gap-4">
-      <h1 className="text-2xl font-black text-center">CNSC ORGANIZATIONS</h1>
-
-      {/* Radio buttons for search scope */}
-      <div className="flex justify-center gap-6">
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="radio"
-            name="searchScope"
-            value="local"
-            checked={searchScope === "local"}
-            onChange={(e) => setSearchScope(e.target.value)}
-            className="w-4 h-4 text-amber-500 border-amber-400 focus:ring-amber-500"
-          />
-          <span className="text-gray-700 font-medium">Local</span>
-        </label>
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="radio"
-            name="searchScope"
-            value="systemwide"
-            checked={searchScope === "systemwide"}
-            onChange={(e) => setSearchScope(e.target.value)}
-            className="w-4 h-4 text-amber-500 border-amber-400 focus:ring-amber-500"
-          />
-          <span className="text-gray-700 font-medium">System Wide</span>
-        </label>
-      </div>
-
-      {/* Conditional dropdowns based on search scope */}
-      {searchScope === "local" ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Department Dropdown */}
-          <select
-            value={selectedDepartment}
-            onChange={(e) => {
-              setSelectedDepartment(e.target.value);
-              setSelectedProgram(""); // reset program on department change
-            }}
-            className="border-2 border-amber-400 rounded-lg px-4 py-2 w-full focus:outline-none"
-          >
-            <option value="">Select Department</option>
-            {Object.keys(departments).map((dept) => (
-              <option key={dept} value={dept}>
-                {dept}
-              </option>
-            ))}
-          </select>
-
-          {/* Program Dropdown */}
-          <select
-            value={selectedProgram}
-            onChange={(e) => setSelectedProgram(e.target.value)}
-            disabled={!selectedDepartment}
-            className="border-2 border-amber-400 rounded-lg px-4 py-2 w-full focus:outline-none"
-          >
-            <option value="">Select Program</option>
-            {selectedDepartment &&
-              departments[selectedDepartment].map((prog) => (
-                <option key={prog} value={prog}>
-                  {prog}
-                </option>
-              ))}
-          </select>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-4">
-          {/* Specialization Dropdown for System Wide */}
-          <select
-            value={selectedSpecialization}
-            onChange={(e) => setSelectedSpecialization(e.target.value)}
-            className="border-2 border-amber-400 rounded-lg px-4 py-2 w-full focus:outline-none"
-          >
-            <option value="">Select Specialization</option>
-            {specializations.map((spec) => (
-              <option key={spec} value={spec}>
-                {spec}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      <div className="relative ">
-        <input
-          type="text"
-          placeholder="Search organization..."
-          className="w-full px-4 py-3 pr-10 border-2 border-amber-400 rounded-lg focus:outline-none focus:border-amber-500 transition-colors"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-        <Search
-          size={20}
-          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-amber-500"
-        />
-      </div>
-
-      {/* Scrollable Organization List */}
-      <div className="flex-1 p-2 overflow-auto">
-        {loading || searching ? (
-          <div className="flex items-center justify-center">
-            <div className="text-gray-500 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500 mx-auto mb-2"></div>
-              <p>{searching ? "Searching..." : "Loading..."}</p>
-            </div>
-          </div>
-        ) : orgs.length > 0 ? (
-          orgs.map((org) => (
-            <div
-              key={org._id}
-              onClick={() =>
-                selectedOrg?._id === org._id
-                  ? onSelectOrg(null)
-                  : onSelectOrg(org)
-              }
-              className={`bg-white shadow-sm rounded-lg p-4 border cursor-pointer transition-all duration-200 hover:shadow-md mb-4 ${
-                selectedOrg?._id === org._id
-                  ? "ring-2 ring-blue-500 bg-blue-50 border-blue-200"
-                  : "border-gray-200 hover:border-gray-300"
-              }`}
-            >
-              <h3 className="font-semibold text-gray-800 mb-2 line-clamp-2">
-                {org.orgName}
-              </h3>
-              <div className="text-sm text-gray-600">
-                <p className="mb-1">
-                  <span className="font-medium">Adviser:</span>{" "}
-                  {org.adviserName}
-                </p>
-                <p>
-                  <span className="font-medium">Email:</span>{" "}
-                  <a
-                    href={`mailto:${org.adviserEmail}`}
-                    className="text-blue-600 hover:underline"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {org.adviserEmail}
-                  </a>
-                </p>
-              </div>
-            </div>
-          ))
-        ) : (
-          <div className="text-center p-8 text-gray-500">
-            <Search size={48} className="mx-auto mb-4 text-gray-300" />
-            <p>No organizations found</p>
-            {searchTerm && (
-              <p className="text-sm mt-1">Try adjusting your search terms</p>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 function StudentDevMainNavigation() {
   const [activeKey, setActiveKey] = useState("home");
   const navigate = useNavigate();
@@ -443,6 +238,7 @@ function StudentDevMainNavigation() {
       label: "Accreditations",
       path: "/SDU/accreditation",
     },
+
     {
       key: "accomplishments",
       icon: <BookMarked className="w-5 h-5" />,
@@ -470,9 +266,9 @@ function StudentDevMainNavigation() {
   ];
 
   return (
-    <header className=" flex h-full bg-cnsc-primary-color">
-      {/* Navigation */}
-      <nav className="flex h-full w-full    transition-all duration-500 items-center ">
+    <div className="w-full ">
+      <div className="h-24 bg-cnsc-secondary-color"></div>
+      <nav className="flex flex-col w-full transition-all duration-500 items-center ">
         {navigationItems.map((item) => (
           <button
             key={item.key}
@@ -480,11 +276,11 @@ function StudentDevMainNavigation() {
               setActiveKey(item.key);
               navigate(item.path);
             }}
-            className={`group relative  h-full flex items-center gap-3 px-8 py-6
+            className={`group relative w-full  h-full p-4 flex items-center gap-3 
                   ${
                     activeKey === item.key
                       ? "bg-white text-cnsc-primary-color  transform"
-                      : "text-white hover:bg-amber-500 hover:text-black  hover:shadow-md"
+                      : "text-white hover:bg-amber-700 hover:text-black  hover:shadow-md"
                   }`}
           >
             <span
@@ -499,14 +295,10 @@ function StudentDevMainNavigation() {
             <span className="text-sm font-semibold tracking-wide">
               {item.label}
             </span>
-
-            {/* Active indicator */}
           </button>
         ))}
       </nav>
-
-      {/* Decorative bottom border */}
-    </header>
+    </div>
   );
 }
 
@@ -573,80 +365,6 @@ function ProposalsOverview() {
             <div className="text-center text-gray-500">
               <div className="text-4xl mb-2">🥧</div>
               <p>Status pie chart</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function FinancialReportOverview() {
-  return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">
-          Financial Reports Overview
-        </h2>
-        <p className="text-gray-600">
-          Statistics for financial report submissions
-        </p>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-indigo-50 p-6 rounded-lg">
-          <h3 className="text-lg font-semibold mb-4">
-            Financial Report Statistics
-          </h3>
-          <div className="h-48 bg-white rounded border flex items-center justify-center">
-            <div className="text-center text-gray-500">
-              <div className="text-4xl mb-2">💰</div>
-              <p>Financial statistics</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-pink-50 p-6 rounded-lg">
-          <h3 className="text-lg font-semibold mb-4">Submission Timeline</h3>
-          <div className="h-48 bg-white rounded border flex items-center justify-center">
-            <div className="text-center text-gray-500">
-              <div className="text-4xl mb-2">📅</div>
-              <p>Timeline chart</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function PresidentInfoOverview() {
-  return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">
-          President Information Overview
-        </h2>
-        <p className="text-gray-600">
-          Statistics for president information submissions
-        </p>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-indigo-50 p-6 rounded-lg">
-          <h3 className="text-lg font-semibold mb-4">
-            President Information Stats
-          </h3>
-          <div className="h-48 bg-white rounded border flex items-center justify-center">
-            <div className="text-center text-gray-500">
-              <div className="text-4xl mb-2">👤</div>
-              <p>President stats</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-pink-50 p-6 rounded-lg">
-          <h3 className="text-lg font-semibold mb-4">Information Completion</h3>
-          <div className="h-48 bg-white rounded border flex items-center justify-center">
-            <div className="text-center text-gray-500">
-              <div className="text-4xl mb-2">✅</div>
-              <p>Completion rate</p>
             </div>
           </div>
         </div>
@@ -810,25 +528,6 @@ function OrganizationProposals({ selectedOrg }) {
   );
 }
 
-function OrganizationFinancialReport({ selectedOrg }) {
-  return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold text-gray-800 mb-2">
-        Financial Report - {selectedOrg.orgName}
-      </h1>
-      <p className="text-gray-600 mb-6">
-        Financial reporting requirements and submissions
-      </p>
-      <div className="bg-indigo-50 p-6 rounded-lg">
-        <h3 className="text-lg font-semibold mb-4">Financial Report Details</h3>
-        <p>
-          Financial reporting for {selectedOrg.orgName} will be displayed here.
-        </p>
-      </div>
-    </div>
-  );
-}
-
 function OrganizationPresidentInfo({ selectedOrg }) {
   return (
     <div className="p-6">
@@ -884,6 +583,231 @@ function OrganizationPosts({ selectedOrg }) {
           Post creation and management for {selectedOrg.orgName} will be
           displayed here.
         </p>
+      </div>
+    </div>
+  );
+}
+
+export function StudentDevOrganizationProfileCard({
+  selectedOrg,
+  onSelectOrg,
+}) {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [orgs, setOrgs] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [searching, setSearching] = useState(false);
+  const [timeoutId, setTimeoutId] = useState(null);
+  const [selectedDepartment, setSelectedDepartment] = useState("");
+  const [selectedProgram, setSelectedProgram] = useState("");
+  const [selectedSpecialization, setSelectedSpecialization] = useState("");
+  const [searchScope, setSearchScope] = useState("");
+
+  // Function to fetch data
+  const fetchData = async () => {
+    try {
+      if (searchTerm.trim() !== "") {
+        setSearching(true);
+      } else {
+        setLoading(true);
+      }
+      const res = await axios.get(
+        `${API_ROUTER}/getAllOrganizationProfile?search=${encodeURIComponent(
+          searchTerm
+        )}&department=${encodeURIComponent(
+          selectedDepartment
+        )}&program=${encodeURIComponent(
+          selectedProgram
+        )}&specialization=${encodeURIComponent(
+          selectedSpecialization
+        )}&scope=${encodeURIComponent(searchScope)}`
+      );
+      setOrgs(res.data);
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      setOrgs([]);
+    } finally {
+      setLoading(false);
+      setSearching(false);
+    }
+  };
+
+  // Effect for search term with debounce
+  useEffect(() => {
+    if (timeoutId) clearTimeout(timeoutId);
+
+    const delay = setTimeout(() => {
+      fetchData();
+    }, 300);
+
+    setTimeoutId(delay);
+
+    return () => {
+      if (delay) clearTimeout(delay);
+    };
+  }, [searchTerm]);
+
+  // Effect for immediate search on dropdown changes and scope changes
+  useEffect(() => {
+    fetchData();
+  }, [
+    selectedDepartment,
+    selectedProgram,
+    selectedSpecialization,
+    searchScope,
+  ]);
+
+  // Reset filters when scope changes
+  useEffect(() => {
+    setSelectedDepartment("");
+    setSelectedProgram("");
+    setSelectedSpecialization("");
+  }, [searchScope]);
+
+  return (
+    <div className=" border-l border-gray-700 w-full h-full">
+      <h1 className="text-center pt-4 text-2xl text-black font-bold">
+        CNSC Organizations
+      </h1>
+      <div className="flex h-full overflow-auto flex-1  flex-col p-4 w-full gap-4">
+        {/* Radio buttons for search scope */}
+        <div className="flex justify-center gap-6">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="radio"
+              name="searchScope"
+              value="local"
+              checked={searchScope === "local"}
+              onChange={(e) => setSearchScope(e.target.value)}
+              className="w-4 h-4 text-amber-500 border-amber-400 focus:ring-amber-500"
+            />
+            <span className="text-gray-700 font-medium">Local</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="radio"
+              name="searchScope"
+              value="systemwide"
+              checked={searchScope === "systemwide"}
+              onChange={(e) => setSearchScope(e.target.value)}
+              className="w-4 h-4 text-amber-500 border-amber-400 focus:ring-amber-500"
+            />
+            <span className="text-gray-700 font-medium">System Wide</span>
+          </label>
+        </div>
+
+        {/* Conditional dropdowns based on search scope */}
+        {searchScope === "local" ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Department Dropdown */}
+            <select
+              value={selectedDepartment}
+              onChange={(e) => {
+                setSelectedDepartment(e.target.value);
+                setSelectedProgram(""); // reset program on department change
+              }}
+              className="border-2 border-amber-400 rounded-lg px-4 py-2 w-full focus:outline-none"
+            >
+              <option value="">Select Department</option>
+              {Object.keys(departments).map((dept) => (
+                <option key={dept} value={dept}>
+                  {dept}
+                </option>
+              ))}
+            </select>
+
+            {/* Program Dropdown */}
+            <select
+              value={selectedProgram}
+              onChange={(e) => setSelectedProgram(e.target.value)}
+              disabled={!selectedDepartment}
+              className="border-2 border-amber-400 rounded-lg px-4 py-2 w-full focus:outline-none"
+            >
+              <option value="">Select Program</option>
+              {selectedDepartment &&
+                departments[selectedDepartment].map((prog) => (
+                  <option key={prog} value={prog}>
+                    {prog}
+                  </option>
+                ))}
+            </select>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4">
+            {/* Specialization Dropdown for System Wide */}
+            <select
+              value={selectedSpecialization}
+              onChange={(e) => setSelectedSpecialization(e.target.value)}
+              className="border-2 border-amber-400 rounded-lg px-4 py-2 w-full focus:outline-none"
+            >
+              <option value="">Select Specialization</option>
+              {specializations.map((spec) => (
+                <option key={spec} value={spec}>
+                  {spec}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        <div className="relative ">
+          <input
+            type="text"
+            placeholder="Search organization..."
+            className="w-full px-4 py-3 pr-10 border-2 border-amber-400 rounded-lg focus:outline-none focus:border-amber-500 transition-colors"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <Search
+            size={20}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-amber-500"
+          />
+        </div>
+
+        {/* Scrollable Organization List */}
+        <div className="flex flex-col gap-2  overflow-auto">
+          {loading || searching ? (
+            <div className="flex items-center justify-center">
+              <div className="text-gray-500 text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500 mx-auto mb-2"></div>
+                <p>{searching ? "Searching..." : "Loading..."}</p>
+              </div>
+            </div>
+          ) : orgs.length > 0 ? (
+            orgs.map((org) => (
+              <div
+                key={org._id}
+                onClick={() =>
+                  selectedOrg?._id === org._id
+                    ? onSelectOrg(null)
+                    : onSelectOrg(org)
+                }
+                className={`flex gap-4 items-center  rounded-lg p-4 border cursor-pointer transition-all duration-200 hover:shadow-md ${
+                  selectedOrg?._id === org._id
+                    ? " border-cnsc-primary-color border-4 bg-amber-300 "
+                    : " hover:border-gray-300"
+                }`}
+              >
+                <img
+                  src={`${DOCU_API_ROUTER}/${org._id}/${org.orgLogo}`}
+                  alt="Organization Logo"
+                  className="w-12 h-12 object-cover rounded-full"
+                />
+                <h3 className="font-semibold text-gray-800 mb-2 line-clamp-2">
+                  {org.orgName}
+                </h3>
+                <div className="text-sm text-gray-600"></div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center p-8 text-gray-500">
+              <Search size={48} className="mx-auto mb-4 text-gray-300" />
+              <p>No organizations found</p>
+              {searchTerm && (
+                <p className="text-sm mt-1">Try adjusting your search terms</p>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -952,7 +876,7 @@ export const departments = {
   ],
 };
 
-const specializations = [
+export const specializations = [
   "Academic",
   "Lifestyle",
   "Fraternity/Sorority",

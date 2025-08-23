@@ -2,7 +2,9 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { API_ROUTER, DOCU_API_ROUTER } from "../../../../../App";
 
-import { ChevronDown, Search, CheckCircle, X } from "lucide-react";
+import DocumentUploader from "../../../../../components/document_uploader";
+
+import { X, CheckCircle, ChevronDown, Search } from "lucide-react";
 
 export function AddProposedActionPlan({
   orgData,
@@ -10,12 +12,14 @@ export function AddProposedActionPlan({
   onClose,
   onFinish,
 }) {
+  const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     activityTitle: "",
     briefDetails: "",
     alignedOrgObjectives: "",
     alignedSDG: [],
     budgetaryRequirements: "",
+    label: "proposal",
     collaboratingEntities: [],
     venue: "",
     proposedDate: "",
@@ -42,6 +46,20 @@ export function AddProposedActionPlan({
     console.log("Selected organizations:", selectedOrgs);
   };
 
+  const handleFileSelect = (file) => {
+    // log metadata first
+    console.log("File selected:", {
+      name: file.name,
+      size: file.size,
+      type: file.type,
+    });
+
+    setFormData((prev) => ({
+      ...prev,
+      documents: [...prev.documents, file], // keep File objects here
+    }));
+  };
+
   // Handle input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -61,24 +79,78 @@ export function AddProposedActionPlan({
     }));
   };
 
-  // Submit handler
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // Step navigation
+  const nextStep = () => {
+    if (currentStep < 3) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  // Validation for step 1
+  const isStep1Valid = () => {
+    return (
+      formData.activityTitle.trim() &&
+      formData.venue.trim() &&
+      formData.proposedDate.trim() &&
+      formData.budgetaryRequirements.trim() &&
+      formData.alignedSDG.length > 0
+    );
+  };
+
+  // Submit handler - for final step
+  const handleSubmit = async () => {
     setIsSubmitting(true);
     setShowPopUp(true);
     setUploadSuccess(false);
 
+    console.log("=== PROPOSAL SUBMISSION LOG ===");
+    console.log("Form Data (without files):", {
+      ...formData,
+      documents: formData.documents.map((f) => f.name), // just log filenames
+    });
+    console.log("================================");
+
     try {
+      const data = new FormData();
+
+      // Append all non-file fields
+      Object.entries(formData).forEach(([key, value]) => {
+        if (key === "documents") return;
+        if (Array.isArray(value)) {
+          value.forEach((v) => data.append(`${key}[]`, v));
+        } else {
+          data.append(key, value);
+        }
+      });
+
+      // append file(s) correctly as "file"
+      if (formData.documents.length > 0) {
+        data.append("file", formData.documents[0]);
+      }
+
+      console.log("=== FORM DATA PREVIEW (before sending) ===");
+      for (let pair of data.entries()) {
+        console.log(`${pair[0]}:`, pair[1]);
+      }
+      console.log("========================================");
+      // Uncomment when ready to send
       const response = await axios.post(
         `${API_ROUTER}/postStudentLeaderProposal/`,
-        formData
+        data,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
       );
-      console.log("Success:", response.data);
 
-      // Show success state
+      console.log("API Response Success:", response.data);
       setUploadSuccess(true);
 
-      // Hide popup after 2 seconds and close modal
       setTimeout(() => {
         setShowPopUp(false);
         onClose();
@@ -93,213 +165,328 @@ export function AddProposedActionPlan({
     }
   };
 
+  const renderStep1 = () => (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Activity Title */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Activity Title *
+          </label>
+          <input
+            type="text"
+            name="activityTitle"
+            value={formData.activityTitle}
+            onChange={handleInputChange}
+            required
+            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+            placeholder="Enter activity title"
+          />
+        </div>
+
+        {/* Venue */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Venue *
+          </label>
+          <input
+            type="text"
+            name="venue"
+            value={formData.venue}
+            onChange={handleInputChange}
+            required
+            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+            placeholder="Enter venue location"
+          />
+        </div>
+
+        {/* Proposed Date */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Proposed Month *
+          </label>
+          <input
+            type="month"
+            name="proposedDate"
+            value={formData.proposedDate}
+            onChange={handleInputChange}
+            required
+            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+          />
+        </div>
+
+        {/* Budgetary Requirements */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Budgetary Requirements *
+          </label>
+          <input
+            type="text"
+            name="budgetaryRequirements"
+            value={formData.budgetaryRequirements}
+            onChange={handleInputChange}
+            required
+            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+            placeholder="e.g., ₱50,000 - ₱100,000"
+          />
+        </div>
+
+        {/* Cooperating Entities */}
+        <div className="md:col-span-2">
+          <OrganizationDropdown
+            selectedOrgs={selectedOrganizations}
+            onSelectOrgs={handleOrgSelection}
+            excludeOrgId={orgData?._id}
+          />
+        </div>
+
+        {/* Aligned SDG */}
+        <div className="md:col-span-2 text-black">
+          <label className="block text-sm font-medium text-black mb-2">
+            Aligned SDG *
+          </label>
+          <div className="max-h-48 overflow-y-auto">
+            <div className="flex flex-wrap gap-2">
+              {[
+                { value: "SDG 1", label: "SDG 1: No Poverty" },
+                { value: "SDG 2", label: "SDG 2: Zero Hunger" },
+                {
+                  value: "SDG 3",
+                  label: "SDG 3: Good Health and Well-being",
+                },
+                { value: "SDG 4", label: "SDG 4: Quality Education" },
+                { value: "SDG 5", label: "SDG 5: Gender Equality" },
+                {
+                  value: "SDG 6",
+                  label: "SDG 6: Clean Water and Sanitation",
+                },
+                {
+                  value: "SDG 7",
+                  label: "SDG 7: Affordable and Clean Energy",
+                },
+                {
+                  value: "SDG 8",
+                  label: "SDG 8: Decent Work and Economic Growth",
+                },
+                {
+                  value: "SDG 9",
+                  label: "SDG 9: Industry, Innovation and Infrastructure",
+                },
+                { value: "SDG 10", label: "SDG 10: Reduced Inequalities" },
+                {
+                  value: "SDG 11",
+                  label: "SDG 11: Sustainable Cities and Communities",
+                },
+                {
+                  value: "SDG 12",
+                  label: "SDG 12: Responsible Consumption and Production",
+                },
+                { value: "SDG 13", label: "SDG 13: Climate Action" },
+                { value: "SDG 14", label: "SDG 14: Life Below Water" },
+                { value: "SDG 15", label: "SDG 15: Life on Land" },
+                {
+                  value: "SDG 16",
+                  label: "SDG 16: Peace, Justice and Strong Institutions",
+                },
+                {
+                  value: "SDG 17",
+                  label: "SDG 17: Partnerships for the Goals",
+                },
+              ].map((sdg) => (
+                <div key={sdg.value} className="bg-gray-200 rounded-full">
+                  <label className="flex items-center space-x-1 p-2 hover:bg-gray-100 rounded cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.alignedSDG.includes(sdg.value)}
+                      onChange={() => handleSDGChange(sdg.value)}
+                      className="appearance-none h-5 w-5 rounded-full border border-gray-400 checked:bg-gray-500 cursor-pointer"
+                    />
+                    <span className="text-sm">{sdg.label}</span>
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderStep2 = () => (
+    <div className="space-y-6">
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        Upload Supporting Documents
+      </h3>
+
+      <DocumentUploader
+        onFileSelect={handleFileSelect}
+        showReset={true}
+        title="Upload Proposal PDF"
+      />
+
+      {formData.documents.length > 0 && (
+        <div className="mt-4 bg-gray-50 p-4 rounded-lg border">
+          <h4 className="text-sm font-medium text-gray-700 mb-2">
+            Uploaded Documents:
+          </h4>
+          <ul className="list-disc pl-5 text-sm text-gray-600">
+            {formData.documents.map((doc, index) => (
+              <li key={index}>{doc.name}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderStep3 = () => (
+    <div className="space-y-6 ">
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        Review & Submit
+      </h3>
+
+      <div className="bg-gray-50 p-6 rounded-lg space-y-4">
+        <div>
+          <h4 className="font-medium text-gray-900">Activity Details</h4>
+          <p className="text-sm text-gray-600">
+            Title: {formData.activityTitle}
+          </p>
+          <p className="text-sm text-gray-600">Venue: {formData.venue}</p>
+          <p className="text-sm text-gray-600">Date: {formData.proposedDate}</p>
+          <p className="text-sm text-gray-600">
+            Budget: {formData.budgetaryRequirements}
+          </p>
+        </div>
+
+        <div>
+          <h4 className="font-medium text-gray-900">Aligned SDGs</h4>
+          <p className="text-sm text-gray-600">
+            {formData.alignedSDG.join(", ")}
+          </p>
+        </div>
+
+        {selectedOrganizations.length > 0 && (
+          <div>
+            <h4 className="font-medium text-gray-900">
+              Collaborating Organizations
+            </h4>
+            <p className="text-sm text-gray-600">
+              {selectedOrganizations
+                .map((org) => org.orgName || org.organization)
+                .join(", ")}
+            </p>
+          </div>
+        )}
+
+        {formData.documents.length > 0 && (
+          <div>
+            <h4 className="font-medium text-gray-900">Documents</h4>
+            <p className="text-sm text-gray-600">
+              {formData.documents.length} Document(s) uploaded
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-lg w-full flex flex-col max-w-4xl max-h-[90vh] overflow-hidden">
-        <div className=" flex justify-between px-4 p-6 border-b">
-          <h2 className="text-2xl font-bold text-gray-900">
-            Add New Proposed Action Plan
-          </h2>
-          <X size={24} onClick={onClose} />
+        <div className="flex justify-between px-4 p-6 border-b">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">
+              Add New Proposed Action Plan
+            </h2>
+          </div>
+          <X size={24} onClick={onClose} className="cursor-pointer" />
         </div>
 
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Activity Title */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Activity Title *
-              </label>
-              <input
-                type="text"
-                name="activityTitle"
-                value={formData.activityTitle}
-                onChange={handleInputChange}
-                required
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                placeholder="Enter activity title"
-              />
-            </div>
-
-            {/* Venue */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Venue *
-              </label>
-              <input
-                type="text"
-                name="venue"
-                value={formData.venue}
-                onChange={handleInputChange}
-                required
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                placeholder="Enter venue location"
-              />
-            </div>
-
-            {/* Proposed Date */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Proposed Month *
-              </label>
-              <input
-                type="month"
-                name="proposedDate"
-                value={formData.proposedDate}
-                onChange={handleInputChange}
-                required
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-              />
-            </div>
-            {/* Budgetary Requirements */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Budgetary Requirements *
-              </label>
-              <input
-                type="text"
-                name="budgetaryRequirements"
-                value={formData.budgetaryRequirements}
-                onChange={handleInputChange}
-                required
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                placeholder="e.g., ₱50,000 - ₱100,000"
-              />
-            </div>
-            {/* Aligned SDG */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Aligned SDG *
-              </label>
-              <div className="bg-gray-50 border border-gray-300 rounded-md p-4 max-h-48 overflow-y-auto">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {[
-                    { value: "SDG 1", label: "SDG 1: No Poverty" },
-                    { value: "SDG 2", label: "SDG 2: Zero Hunger" },
-                    {
-                      value: "SDG 3",
-                      label: "SDG 3: Good Health and Well-being",
-                    },
-                    { value: "SDG 4", label: "SDG 4: Quality Education" },
-                    { value: "SDG 5", label: "SDG 5: Gender Equality" },
-                    {
-                      value: "SDG 6",
-                      label: "SDG 6: Clean Water and Sanitation",
-                    },
-                    {
-                      value: "SDG 7",
-                      label: "SDG 7: Affordable and Clean Energy",
-                    },
-                    {
-                      value: "SDG 8",
-                      label: "SDG 8: Decent Work and Economic Growth",
-                    },
-                    {
-                      value: "SDG 9",
-                      label: "SDG 9: Industry, Innovation and Infrastructure",
-                    },
-                    { value: "SDG 10", label: "SDG 10: Reduced Inequalities" },
-                    {
-                      value: "SDG 11",
-                      label: "SDG 11: Sustainable Cities and Communities",
-                    },
-                    {
-                      value: "SDG 12",
-                      label: "SDG 12: Responsible Consumption and Production",
-                    },
-                    { value: "SDG 13", label: "SDG 13: Climate Action" },
-                    { value: "SDG 14", label: "SDG 14: Life Below Water" },
-                    { value: "SDG 15", label: "SDG 15: Life on Land" },
-                    {
-                      value: "SDG 16",
-                      label: "SDG 16: Peace, Justice and Strong Institutions",
-                    },
-                    {
-                      value: "SDG 17",
-                      label: "SDG 17: Partnerships for the Goals",
-                    },
-                  ].map((sdg) => (
-                    <label
-                      key={sdg.value}
-                      className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded cursor-pointer"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={formData.alignedSDG.includes(sdg.value)}
-                        onChange={() => handleSDGChange(sdg.value)}
-                        className="h-4 w-4 text-amber-600 focus:ring-amber-500 border-gray-300 rounded"
-                      />
-                      <span className="text-sm text-gray-700">{sdg.label}</span>
-                    </label>
-                  ))}
+        {/* Progress Bar */}
+        <div className="px-6 py-2">
+          <div className="flex items-center justify-evenly mt-4">
+            {[1, 2, 3].map((step) => (
+              <div key={step} className="flex items-center flex-col">
+                <div
+                  className={`w-12 aspect-square rounded-full flex items-center justify-center text-lg font-medium ${
+                    step <= currentStep
+                      ? "bg-amber-600 text-white"
+                      : "bg-gray-200 text-gray-600"
+                  }`}
+                >
+                  {step}
                 </div>
+                {/* Step description directly under circle */}
+                <p className="mt-2 text-sm font-medium text-gray-700">
+                  {step === 1 && "Basic Information"}
+                  {step === 2 && "Document Upload"}
+                  {step === 3 && "Review & Submit"}
+                </p>
+                {step < 3 && (
+                  <div
+                    className={`flex-1 h-1 mx-2 ${
+                      step < currentStep ? "bg-amber-600" : "bg-gray-200"
+                    }`}
+                  />
+                )}
               </div>
-            </div>
+            ))}
           </div>
+        </div>
 
-          {/* Full-width fields */}
-          <div className="mt-6 space-y-6">
-            {/* Brief Details */}
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
+          {currentStep === 1 && renderStep1()}
+          {currentStep === 2 && renderStep2()}
+          {currentStep === 3 && renderStep3()}
+        </div>
+
+        {/* Navigation Buttons */}
+        <div className="p-6 border-t bg-gray-50">
+          <div className="flex justify-between">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Brief Details *
-              </label>
-              <textarea
-                name="briefDetails"
-                value={formData.briefDetails}
-                onChange={handleInputChange}
-                required
-                rows="3"
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                placeholder="Enter brief details about the activity"
-              />
+              {currentStep > 1 && (
+                <button
+                  onClick={prevStep}
+                  className="py-2 px-4 border border-gray-300 rounded-md font-medium text-gray-700 hover:bg-gray-50 transition duration-200"
+                >
+                  Previous
+                </button>
+              )}
             </div>
 
-            {/* Aligned Organization Objectives */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Aligned Organization Objectives *
-              </label>
-              <textarea
-                name="alignedOrgObjectives"
-                value={formData.alignedOrgObjectives}
-                onChange={handleInputChange}
-                required
-                rows="3"
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                placeholder="Describe how this aligns with organizational objectives"
-              />
-            </div>
-
-            {/* Cooperating Entities */}
-            <div>
-              <OrganizationDropdown
-                selectedOrgs={selectedOrganizations}
-                onSelectOrgs={handleOrgSelection}
-                excludeOrgId={orgData?._id}
-              />
-            </div>
-
-            {/* Submit Button */}
-            <div className="mt-8 flex gap-4">
+            <div className="flex gap-2">
               <button
                 onClick={onClose}
-                className="flex-1 py-3 px-4 border border-gray-200 rounded-md font-medium text-gray-700 hover:bg-gray-50 transition duration-200"
+                className="py-2 px-4 border border-gray-200 rounded-md font-medium text-gray-700 hover:bg-gray-50 transition duration-200"
               >
                 Cancel
               </button>
-              <button
-                type="button"
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className={`flex-1 py-3 px-4 rounded-md font-medium ${
-                  isSubmitting
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-amber-600 hover:bg-amber-700 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
-                } text-white transition duration-200`}
-              >
-                {isSubmitting ? "Adding Proposal..." : "Add Proposal"}
-              </button>
+
+              {currentStep < 3 ? (
+                <button
+                  onClick={nextStep}
+                  disabled={currentStep === 1 && !isStep1Valid()}
+                  className={`py-2 px-4 rounded-md font-medium text-white transition duration-200 ${
+                    currentStep === 1 && !isStep1Valid()
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-amber-600 hover:bg-amber-700"
+                  }`}
+                >
+                  Next
+                </button>
+              ) : (
+                <button
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  className={`py-2 px-4 rounded-md font-medium text-white transition duration-200 ${
+                    isSubmitting
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-amber-600 hover:bg-amber-700"
+                  }`}
+                >
+                  {isSubmitting ? "Submitting..." : "Submit Proposal"}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -313,7 +500,7 @@ export function AddProposedActionPlan({
               <>
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mb-4"></div>
                 <p className="text-lg font-medium text-gray-800">
-                  Uploading...
+                  Submitting...
                 </p>
                 <p className="text-sm text-gray-600 text-center mt-2">
                   Please wait while we process your proposal
@@ -323,7 +510,7 @@ export function AddProposedActionPlan({
               <>
                 <CheckCircle size={48} className="text-green-500 mb-4" />
                 <p className="text-lg font-medium text-gray-800">
-                  Upload Complete!
+                  Submission Complete!
                 </p>
                 <p className="text-sm text-gray-600 text-center mt-2">
                   Your proposal has been successfully submitted
@@ -336,6 +523,7 @@ export function AddProposedActionPlan({
     </div>
   );
 }
+
 function OrganizationDropdown({ selectedOrgs, onSelectOrgs, excludeOrgId }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [orgs, setOrgs] = useState([]);
@@ -357,7 +545,7 @@ function OrganizationDropdown({ selectedOrgs, onSelectOrgs, excludeOrgId }) {
         setLoading(true);
       }
       const res = await axios.get(
-        `${API_ROUTER}/getAllOrganizationProfile?search=${encodeURIComponent(
+        `${API_ROUTER}/getAllCollaboratingOrganizationProfile?search=${encodeURIComponent(
           searchTerm
         )}&department=${encodeURIComponent(
           selectedDepartment
@@ -460,7 +648,7 @@ function OrganizationDropdown({ selectedOrgs, onSelectOrgs, excludeOrgId }) {
   };
 
   return (
-    <div className="flex flex-col w-full gap-4">
+    <div className="flex flex-col w-full ">
       <label className="block text-sm font-medium text-gray-700 mb-2">
         Cooperating Entities
       </label>
@@ -517,10 +705,10 @@ function OrganizationDropdown({ selectedOrgs, onSelectOrgs, excludeOrgId }) {
       )}
 
       {/* Organization Dropdown with Integrated Search */}
-      <div className="relative">
+      <div className="relative rounded-xl">
         {/* Dropdown Button with Search Input */}
         <div
-          className="w-full px-4 py-3 border border-gray-300  focus-within:border-gray-500 transition-colors bg-white flex items-center justify-between cursor-pointer"
+          className="w-full rounded-xl px-4 py-3 border border-gray-300  focus-within:border-gray-500 transition-colors bg-white flex items-center justify-between cursor-pointer"
           onClick={handleDropdownClick}
         >
           <div className="flex items-center gap-2 flex-1 min-w-0">

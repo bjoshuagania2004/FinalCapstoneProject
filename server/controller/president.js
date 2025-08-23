@@ -127,10 +127,40 @@ export const ApprovePresidentProfile = async (req, res) => {
     return res.status(500).json({ message: "Internal server error." });
   }
 };
+export const RevisionPresidentProfile = async (req, res) => {
+  const { presidentId } = req.params;
+  const { revisionNotes, status } = req.body;
+
+  console.log("Revision president profile with ID:", presidentId);
+  if (!presidentId) {
+    return res.status(400).json({ message: "President ID is required." });
+  }
+
+  try {
+    const profile = await PresidentProfile.findById(presidentId);
+
+    if (!profile) {
+      return res.status(404).json({ message: "President profile not found." });
+    }
+
+    profile.overAllStatus = status;
+    profile.revisionNotes = revisionNotes;
+
+    await profile.save();
+
+    return res.status(200).json({
+      message: "President profile approved successfully.",
+      updatedProfile: profile,
+    });
+  } catch (error) {
+    console.log("Error approving president profile:", error);
+    return res.status(500).json({ message: "Internal server error." });
+  }
+};
+
 export const UpdatePresidentProfile = async (req, res) => {
   const file = res.locals.fileName;
 
-  console.log("+++++++++++++++++++++++++++++++++++++++", file);
   if (!file) {
     return res.status(400).json({ message: "No file uploaded" });
   }
@@ -206,6 +236,29 @@ export const GetPresidentById = async (req, res) => {
     res.status(200).json(president);
   } catch (error) {
     console.error("Error fetching president by ID:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+export const getPreviousPresidentsByOrg = async (req, res) => {
+  const { orgId } = req.params;
+
+  try {
+    // Find all presidents for the org whose status indicates they are no longer serving
+    const previousPresidents = await PresidentProfile.find({
+      organization: orgId,
+      overAllStatus: { $ne: "Active" }, // Only non-active presidents
+    }).sort({ createdAt: -1 }); // Most recent first
+
+    if (!previousPresidents.length) {
+      return res.status(404).json({
+        message: "No previous presidents found for this organization.",
+      });
+    }
+
+    res.status(200).json(previousPresidents);
+  } catch (error) {
+    console.error("Error fetching previous presidents:", error);
     res.status(500).json({ message: "Server error", error });
   }
 };

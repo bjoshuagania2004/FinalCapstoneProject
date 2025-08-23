@@ -15,171 +15,90 @@ import {
   FileText,
   PenSquare,
   Clock,
-  CodeSquare,
   LogOut,
   X,
-  ReceiptPoundSterling,
-  UserPlus2,
-  UserPlus,
   CameraIcon,
   Plus,
 } from "lucide-react";
+
 import axios from "axios";
 import { API_ROUTER, DOCU_API_ROUTER } from "../../../App";
-import InitialRegistration from "./initial-registration";
+import { InitialRegistration, ReRegistration } from "./initial-registration";
 import StudentLeaderPresidentListComponent from "./accreditation/presidents/president";
 import StudentLeaderRosters from "./accreditation/roster-members/roster-member";
 import StudentAccreditationMainComponent from "./accreditation/student-accreditation-main";
 import StudentHomePage from "./home";
 import FinancialReport from "./accreditation/financial-report.jsx/financial-report";
 import { ProportionCropTool } from "../../../components/image_uploader";
-import AccreditationDocuments from "./accreditation/documents";
+import { AccreditationDocuments } from "./accreditation/accreditation-document";
 import { StudentProposedPlan } from "./accreditation/propose-plan/proposed-plan";
 
 export default function StudentLeaderMainPage() {
+  // User and organization data
+  const { user } = useOutletContext();
+  const [userId, setUserId] = useState(user?.userId || user?._id);
   const [orgData, setOrgData] = useState({});
   const [orgProfileId, setOrgProfileId] = useState("");
-
-  return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden">
-      {/* Header */}
-      <div className="flex min-h-24 bg-amber-600" />
-
-      {/* Main content area */}
-      <div className="flex h-full overflow-auto">
-        <div className="w-1/5 h-full flex flex-col p-4 bg-cnsc-primary-color">
-          <StudentNavigation orgData={orgData} />
-          <LogoutButton />
-        </div>
-
-        <div className="flex-1 h-full overflow-y-auto">
-          <StudentComponents
-            orgData={orgData}
-            setOrgData={setOrgData}
-            orgProfileId={orgProfileId}
-            setOrgProfileId={setOrgProfileId}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-function StudentAccreditationNavigationPage() {
-  const tabs = [
-    { to: ".", label: "Overview", end: true },
-    { to: "financial-report", label: "Financial Report" },
-    { to: "documents", label: "Accreditation Documents" },
-    { to: "roster-of-members", label: "Roster of Members" },
-    { to: "president-information", label: "President's Information Sheet" },
-    { to: "PPA", label: "Proposed Action Plan" },
-  ];
-
-  return (
-    <div className="h-full flex flex-col ">
-      {/* Navigation */}
-      <nav className="flex gap-4 px-6 py-4 bg-white  ">
-        {tabs.map((tab) => (
-          <NavLink
-            key={tab.to}
-            to={tab.to}
-            end={tab.end}
-            className={({ isActive }) =>
-              `text-lg font-semibold px-4 pt-2 ${
-                isActive
-                  ? "border-b-2 border-cnsc-primary-color text-cnsc-primary-color"
-                  : "text-gray-600 hover:text-cnsc-primary-color"
-              }`
-            }
-          >
-            {tab.label}
-          </NavLink>
-        ))}
-      </nav>
-
-      {/* Tab Content */}
-      <div className="h-full overflow-hidden  flex flex-col ">
-        <Outlet />
-      </div>
-    </div>
-  );
-}
-
-function StudentComponents({
-  orgData,
-  setOrgData,
-  orgProfileId,
-  setOrgProfileId,
-}) {
-  const { user } = useOutletContext();
-  const [userId, setUserId] = useState(user.userId);
-  const [userData, setUserData] = useState({});
-  const [isLoading, setIsLoading] = useState(true);
-
-  const [hasNavigated, setHasNavigated] = useState(false);
-  const location = useLocation();
-  const navigate = useNavigate();
-
   const [accreditationData, setAccreditationData] = useState({});
 
+  // Modal state for initial registration
+  const [showInitialRegistration, setShowInitialRegistration] = useState(false);
+  const [showReRegistration, setShowReRegistration] = useState(false);
+
+  // Loading and navigation states
+  const [isLoading, setIsLoading] = useState(true);
+  const location = useLocation();
+
+  // Update userId when user changes
   useEffect(() => {
-    if (user && user._id) {
+    if (user?._id) {
       setUserId(user._id);
     }
   }, [user]);
 
+  // Fetch user data and handle navigation
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchUserData = async () => {
+      if (!userId) return;
+
       try {
-        if (!userId) return;
-
-        setIsLoading(true);
-
         const response = await axios.get(`${API_ROUTER}/userInfo/${userId}`, {
           withCredentials: true,
         });
-        const user = response.data.user;
-        setUserData(user);
 
-        if (!orgProfileId && user.organizationProfile) {
-          setOrgProfileId(user.organizationProfile);
+        const userData = response.data.organization;
+        setOrgData(userData);
+
+        // If no organization profile, show registration popup
+        if (!userData || Object.keys(userData).length === 0) {
+          setShowInitialRegistration(true);
         }
 
-        if (!hasNavigated) {
-          if (
-            !user.organizationProfile &&
-            location.pathname !== "/student-leader/initial-registration"
-          ) {
-            navigate("/student-leader/initial-registration");
-            setHasNavigated(true);
-          } else if (
-            user.organizationProfile &&
-            location.pathname === "/student-leader/initial-registration"
-          ) {
-            navigate("/student-leader");
-            setHasNavigated(true);
-          }
+        // If org profile exists but is inactive, show re-registration
+        if (!userData?.isActive) {
+          setShowReRegistration(true);
         }
 
-        if (user.organizationProfile) {
-          const orgResponse = await axios.get(
-            `${API_ROUTER}/getOrganizationProfile/${user.organizationProfile}`,
-            { withCredentials: true }
-          );
-          setOrgData(orgResponse.data);
+        // Set organization profile ID if available
+        if (userData?._id && !orgProfileId) {
+          setOrgProfileId(userData._id);
         }
-      } catch (err) {
-        console.error("Error fetching data:", err);
+      } catch (error) {
+        console.log("Error fetching user data:", error.response?.data);
+        if (!error.response?.data?.organization) {
+          setShowInitialRegistration(true);
+        }
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchData();
-  }, [userId, location.pathname, navigate, hasNavigated]);
+    fetchUserData();
+  }, [userId, location]);
 
-  // Separate useEffect for accreditation info — runs only when orgProfileId changes
+  // Fetch accreditation data when organization profile ID changes
   useEffect(() => {
-    const GetAccreditationInformation = async () => {
+    const fetchAccreditationData = async () => {
       if (!orgProfileId) return;
 
       try {
@@ -188,41 +107,67 @@ function StudentComponents({
           { withCredentials: true }
         );
         setAccreditationData(response.data);
-      } catch (err) {
-        console.error("Error fetching accreditation info:", err);
+      } catch (error) {
+        console.error("Error fetching accreditation info:", error);
       }
     };
 
-    GetAccreditationInformation();
-  }, [orgProfileId]);
+    fetchAccreditationData();
+  }, [orgProfileId, location]);
 
-  const InitialRegistrationComplete = () => {
-    setHasNavigated(false); // Reset navigation flag
-    navigate("/student-leader");
-  };
-
-  // Show loading spinner while fetching data
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex items-center justify-center h-screen">
         <div className="text-lg">Loading...</div>
       </div>
     );
   }
 
-  // Don't render routes until we have user data and have handled navigation
-  if (!userData || Object.keys(userData).length === 0) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-lg">Loading user data...</div>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex flex-col   w-full h-full bg-gray-200 overflow-hidden ">
+    <div className="flex flex-col h-screen w-screen overflow-hidden">
+      {/* Header */}
+      <div className="flex min-h-12 bg-amber-600" />
+
+      {/* Main content area */}
+      <div className="flex h-full overflow-auto">
+        {/* Sidebar */}
+        <div className="w-1/5 h-full flex flex-col  bg-cnsc-primary-color">
+          <StudentNavigation orgData={orgData} />
+          <LogoutButton />
+        </div>
+
+        {/* Main content */}
+        <div className="flex-1 h-full overflow-y-auto">
+          <StudentRoutes
+            orgData={orgData}
+            accreditationData={accreditationData}
+          />
+        </div>
+      </div>
+
+      {/* Initial Registration Popup */}
+      {showInitialRegistration && (
+        <InitialRegistration
+          user={user}
+          onComplete={() => setShowInitialRegistration(false)}
+        />
+      )}
+      {showReRegistration && (
+        <ReRegistration
+          OrgData={orgData}
+          user={user}
+          onComplete={() => setShowReRegistration(false)}
+        />
+      )}
+    </div>
+  );
+}
+function StudentRoutes({ orgData, accreditationData }) {
+  return (
+    <div className="flex flex-col w-full h-full bg-gray-200 overflow-hidden">
       <Routes>
         <Route index element={<StudentHomePage />} />
+
         <Route
           path="proposal"
           element={
@@ -233,15 +178,6 @@ function StudentComponents({
           }
         />
 
-        <Route
-          path="initial-registration"
-          element={
-            <InitialRegistration
-              user={user}
-              onComplete={InitialRegistrationComplete}
-            />
-          }
-        />
         <Route
           path="accreditation"
           element={<StudentAccreditationNavigationPage />}
@@ -272,7 +208,6 @@ function StudentComponents({
               />
             }
           />
-
           <Route
             path="Documents"
             element={
@@ -292,6 +227,7 @@ function StudentComponents({
             }
           />
         </Route>
+
         <Route
           path="accomplishment"
           element={
@@ -301,6 +237,7 @@ function StudentComponents({
             </div>
           }
         />
+
         <Route
           path="post"
           element={
@@ -310,6 +247,7 @@ function StudentComponents({
             </div>
           }
         />
+
         <Route
           path="log"
           element={
@@ -334,6 +272,7 @@ function StudentNavigation({ orgData }) {
     orgData._id && orgData.orgLogo
       ? `${DOCU_API_ROUTER}/${orgData._id}/${orgData.orgLogo}`
       : "";
+
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [croppedData, setCroppedData] = useState(null);
@@ -415,7 +354,7 @@ function StudentNavigation({ orgData }) {
 
   return (
     <>
-      <div className="bg-cnsc-primary-color h-full w-full flex-col">
+      <div className=" h-full w-full flex-col">
         <div className="text-white mt-2 mb-4 font-bold flex items-center space-x-4 hover:cursor-pointer">
           <div className="w-20 aspect-square rounded-full bg-cnsc-secondary-color flex items-center justify-center text-2xl cursor-pointer overflow-hidden hover:bg-white hover:text-cnsc-primary-color transition-all duration-500">
             {imageSrc ? (
@@ -440,7 +379,7 @@ function StudentNavigation({ orgData }) {
           <h1>{orgData.orgName}</h1>
         </div>
 
-        <nav className="flex flex-col space-y-2">
+        <nav className="flex flex-col ">
           {[
             {
               key: "home",
@@ -484,10 +423,10 @@ function StudentNavigation({ orgData }) {
               to={item.path}
               end={item.key === "home"}
               className={({ isActive }) =>
-                `flex items-center py-4 rounded-lg text-lg font-medium transition-all duration-500 ${
+                `flex items-center py-6 text-lg font-medium transition-all duration-500 ${
                   isActive
-                    ? "px-4 bg-white text-cnsc-primary-color"
-                    : "px-2 text-white hover:bg-amber-500"
+                    ? "px-12 bg-white text-cnsc-primary-color"
+                    : "px-4 text-white hover:bg-amber-500"
                 }`
               }
             >
@@ -556,8 +495,8 @@ function LogoutButton() {
     setIsLoading(true);
     try {
       // Replace with your actual API call
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulated API call
-      // await axios.post(`${API_ROUTER}/logout`, {}, { withCredentials: true });
+      await new Promise((resolve) => setTimeout(resolve, 300)); // Simulated API call
+      await axios.post(`${API_ROUTER}/logout`, {}, { withCredentials: true });
 
       // Optional: redirect or update UI after logout
       window.location.href = "/";
@@ -576,7 +515,7 @@ function LogoutButton() {
       {/* Logout Button */}
       <div
         onClick={handleLogoutClick}
-        className="flex gap-2 items-center justify-center text-xl text-cnsc-primary-color font-bold px-4 w-full bg-white rounded-lg py-2 hover:bg-red-50 hover:text-red-600 transition-all duration-200 cursor-pointer border border-gray-200 hover:border-red-300"
+        className="flex gap-2 items-center justify-center text-xl text-cnsc-primary-color font-bold px-4 w-full bg-white border-12 border-cnsc-primary-color py-2  hover:text-cnsc-secondary-color transition-all duration-500 cursor-pointer  hover:border-white"
       >
         <LogOut size={16} />
         Logout
@@ -649,5 +588,44 @@ function LogoutButton() {
         </div>
       )}
     </>
+  );
+}
+function StudentAccreditationNavigationPage() {
+  const tabs = [
+    { to: ".", label: "Overview", end: true },
+    { to: "financial-report", label: "Financial Report" },
+    { to: "documents", label: "Accreditation Documents" },
+    { to: "roster-of-members", label: "Roster of Members" },
+    { to: "president-information", label: "President's Information Sheet" },
+    { to: "PPA", label: "Proposed Action Plan" },
+  ];
+
+  return (
+    <div className="h-full flex flex-col ">
+      {/* Navigation */}
+      <nav className="flex gap-4 px-6 py-4 bg-white  ">
+        {tabs.map((tab) => (
+          <NavLink
+            key={tab.to}
+            to={tab.to}
+            end={tab.end}
+            className={({ isActive }) =>
+              `text-lg font-semibold px-4 pt-2 ${
+                isActive
+                  ? "border-b-2 border-cnsc-primary-color text-cnsc-primary-color"
+                  : "text-gray-600 hover:text-cnsc-primary-color"
+              }`
+            }
+          >
+            {tab.label}
+          </NavLink>
+        ))}
+      </nav>
+
+      {/* Tab Content */}
+      <div className="h-full overflow-hidden  flex flex-col ">
+        <Outlet />
+      </div>
+    </div>
   );
 }

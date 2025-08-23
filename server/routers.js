@@ -3,8 +3,8 @@ import express from "express";
 import * as Controller from "./controller/index.js";
 
 const router = express.Router();
-const storage = multer.memoryStorage(); // or use diskStorage for local saving
-
+const storage = multer.memoryStorage();
+export const upload = multer({ storage });
 /*
 **********                                **********
 **********                                **********
@@ -14,10 +14,28 @@ const storage = multer.memoryStorage(); // or use diskStorage for local saving
 */
 /* ********** STUDENT DEVELOPMENT ORGANIZATION ********** */
 router.get("/getAllOrganizationProfile", Controller.GetAllOrganizationProfile);
+router.get("/getOrganizationProfile", Controller.GetAllOrganizationProfile);
+router.get("/getAllProposedActionPlan", Controller.getAllProposedActionPlan);
 router.get("/getAllOrganization/", Controller.GetAllOrganization);
+router.get(
+  "/getAllActiveOrganizationProfile/",
+  Controller.GetAllActiveOrganizationsWithDetails
+);
 
 /* ********** STUDENT DEVELOPMENT ACCREDITATION ********** */
+router.post("/UpdateDocument/:documentId", Controller.UpdateDocumentStatus);
+router.post(
+  "/DeactivateAllAccreditation/",
+  Controller.DeactivateAllAccreditations
+);
+
+/* ********** STUDENT DEVELOPMENT DOCUMENTS ********** */
 router.get("/getAllAccreditationId", Controller.GetAllAccreditationId);
+router.get("/getAccreditation/:id", Controller.GetAccreditationById);
+router.post(
+  "/sendAccreditationConfirmationEmail/:orgProfileId",
+  Controller.SendAccreditationCompletionEmail
+);
 router.get(
   "/checkAccreditationApprovalStatuses/:orgProfileId",
   Controller.CheckAccreditationApprovalStatus
@@ -26,6 +44,10 @@ router.get(
 router.post(
   "/approvePresidentProfile/:presidentId",
   Controller.ApprovePresidentProfile
+);
+router.post(
+  "/revisionPresidentProfile/:presidentId",
+  Controller.RevisionPresidentProfile
 );
 
 /* ********** STUDENT DEVELOPMENT ROSTER ********** */
@@ -45,8 +67,11 @@ router.post("/RevisionRosterList/:rosterId", Controller.revisionNoteRosterList);
 **********              **********
 **********              ********** 
 */
+router.get(
+  "/getAllCollaboratingOrganizationProfile",
+  Controller.GetAllOrganizationProfileStudent
+);
 
-/* **********  STUDENT LEADER FINANCIAL REPORT ********** */
 router.get("/getFinancialReport/:OrgProfileId", Controller.getFinancialReport);
 router.post(
   "/addReciept",
@@ -65,7 +90,11 @@ router.get(
   "/getStudentLeaderProposalById/:accreditationId",
   Controller.getStudentPpaByAccreditationId
 );
-router.post("/postStudentLeaderProposal", Controller.postStudentLeaderProposal);
+router.post(
+  "/postStudentLeaderProposal",
+  Controller.uploadFileAndAddDocument,
+  Controller.postStudentLeaderProposal
+);
 router.post(
   "/UpdateStudentLeaderProposal/:ProposalId",
   Controller.updateStudentLeaderProposal
@@ -97,7 +126,10 @@ router.post(
 );
 router.get("/getPresidents/:orgId", Controller.GetPresidentByOrg);
 router.get("/getPresident/:orgPresidentId", Controller.GetPresidentById);
-
+router.get(
+  "/getPreviousPresident/:orgId",
+  Controller.getPreviousPresidentsByOrg
+);
 /* ********** GENERAL ********** */
 router.post(
   "/uploadOrganizationLogo",
@@ -120,6 +152,10 @@ router.post(
   Controller.RegisterUser
 );
 router.post("/initialRegistration", Controller.PostInitialOrganizationProfile);
+router.post("/reRegistration", Controller.ReRegisterOrganizationProfile);
 router.get("/documents/:id", Controller.getDocumentById);
+router.get("/documents/:id", Controller.getDocumentById);
+
+router.post("/CheckUsingAI", upload.single("file"), Controller.getAIFeedback);
 
 export default router;

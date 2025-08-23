@@ -1,21 +1,144 @@
-import { Accreditation } from "../models/index.js";
+import {
+  Accreditation,
+  Document,
+  OrganizationProfile,
+  Adviser,
+} from "../models/index.js";
+
+export const DeactivateAllAccreditations = async (req, res) => {
+  try {
+    const result = await Accreditation.updateMany(
+      {}, // match all documents
+      { $set: { isActive: false } }
+    );
+
+    const resultOrganizationProfile = await OrganizationProfile.updateMany(
+      {}, // match all documents
+      { $set: { isActive: false } }
+    );
+
+    res.status(200).json({
+      message: "All accreditations have been deactivated",
+      modifiedCount: result.modifiedCount,
+    });
+  } catch (error) {
+    console.error("Error deactivating accreditations:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
 
 export const GetAllAccreditationId = async (req, res) => {
   try {
-    const accreditations = await Accreditation.find(
-      {},
-      { _id: 1, organizationProfile: 1 }
-    );
+    const accreditations = await Accreditation.find({}).populate([
+      "organizationProfile",
+      "FinancialReport",
+      "JointStatement",
+      "PledgeAgainstHazing",
+      "ConstitutionAndByLaws",
+      "Roster",
+      "PresidentProfile",
+    ]);
 
-    const ids = accreditations.map((acc) => ({
-      _id: acc._id,
-      organizationProfile: acc.organizationProfile,
-    }));
-
-    res.status(200).json(ids);
+    res.status(200).json(accreditations);
   } catch (error) {
     console.error("Error fetching accreditation IDs:", error);
     res.status(500).json({ error: "Server error" });
+  }
+};
+
+export const GetAccreditationById = async (req, res) => {
+  try {
+    const { id } = req.params; // this is the organizationProfile id
+    console.log("OrganizationProfile ID:", id);
+
+    const accreditation = await Accreditation.findOne({
+      organizationProfile: id,
+    })
+      .populate([
+        "organizationProfile",
+        "FinancialReport",
+        "JointStatement",
+        "PledgeAgainstHazing",
+        "ConstitutionAndByLaws",
+        "Roster",
+        "PresidentProfile",
+      ])
+      .populate({
+        path: "organizationProfile",
+        populate: [
+          { path: "adviser" }, // 👈 populate adviser
+          { path: "orgPresident" }, // (optional, if you also want president info)
+        ],
+      });
+
+    if (!accreditation) {
+      return res.status(404).json({ error: "Accreditation not found" });
+    }
+
+    res.status(200).json(accreditation);
+  } catch (error) {
+    console.error(
+      "Error fetching accreditation by organizationProfile ID:",
+      error
+    );
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+export const UpdateDocumentStatus = async (req, res) => {
+  try {
+    const { documentId } = req.params;
+    const { status, revisionNotes } = req.body;
+
+    if (!documentId) {
+      return res.status(400).json({ error: "Missing documentId" });
+    }
+    if (!status) {
+      return res.status(400).json({ error: "Missing status" });
+    }
+
+    // If status contains "revision", ensure notes exist
+    if (status.toLowerCase().includes("revision")) {
+      if (!revisionNotes || revisionNotes.trim() === "") {
+        return res
+          .status(400)
+          .json({ error: "Missing revision notes for revision status" });
+      }
+
+      const updatedDoc = await Document.findByIdAndUpdate(
+        documentId,
+        { status, revisionNotes },
+        { new: true }
+      );
+
+      if (!updatedDoc) {
+        return res.status(404).json({ error: "Document not found" });
+      }
+
+      return res.status(200).json({
+        message: `Document status updated to ${status} with revision notes`,
+        document: updatedDoc,
+      });
+    }
+
+    // Normal status update (no revision)
+    const updatedDoc = await Document.findByIdAndUpdate(
+      documentId,
+      { status },
+      { new: true }
+    );
+
+    if (!updatedDoc) {
+      return res.status(404).json({ error: "Document not found" });
+    }
+
+    res.status(200).json({
+      message: `Document status updated to ${status}`,
+      document: updatedDoc,
+    });
+  } catch (error) {
+    console.error("Error updating document status:", error);
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -61,60 +184,6 @@ export const AddAccreditationDocument = async (req, res) => {
   }
 };
 
-export const CheckAccreditationApprovalStatus = async (req, res) => {
-  const { orgProfileId } = req.params;
-
-  try {
-    // Find the accreditation and populate referenced documents
-    const accreditation = await Accreditation.findOne({
-      organizationProfile: orgProfileId,
-    })
-      .populate("Roster")
-      .populate("PresidentProfile")
-      .populate("organizationProfile")
-      .populate("JointStatement")
-      .populate("PledgeAgainstHazing");
-
-    console.log("Accreditation data:", accreditation);
-    if (!accreditation) {
-      return res.status(404).json({ message: "Accreditation not found." });
-    }
-
-    const rosterStatus = accreditation?.Roster?.overAllStatus;
-    const presidentStatus = accreditation?.PresidentProfile?.overAllStatus;
-    const orgStatus = accreditation?.organizationProfile?.overAllStatus;
-
-    // Optional: Validate uploaded documents if needed
-    const jointStatementPresent = accreditation?.document?.status;
-    const hazingPledgePresent = accreditation?.document?.status;
-
-    const allApproved =
-      rosterStatus === "Approved" &&
-      presidentStatus === "Approved" &&
-      orgStatus === "Approved" &&
-      jointStatementPresent &&
-      hazingPledgePresent;
-
-    if (allApproved) {
-      return res.json({ message: "Everything is approved and complete!" });
-    } else {
-      return res.status(200).json({
-        message: "Some parts are still pending or need revision.",
-        statuses: {
-          rosterStatus,
-          presidentStatus,
-          orgStatus,
-          jointStatement: !!jointStatementPresent,
-          hazingPledge: !!hazingPledgePresent,
-        },
-      });
-    }
-  } catch (error) {
-    console.error("Error checking accreditation status:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
 export const GetAccreditationDetails = async (req, res) => {
   const orgProfileId = req.params.orgProfileId;
 
@@ -123,8 +192,8 @@ export const GetAccreditationDetails = async (req, res) => {
       organizationProfile: orgProfileId,
     });
 
-    // If not found OR isActive is false, create a new accreditation
-    if (!accreditation || !accreditation.isActive) {
+    // If not found → create new
+    if (!accreditation) {
       accreditation = new Accreditation({
         organizationProfile: orgProfileId,
         overallStatus: "Pending",
@@ -137,9 +206,16 @@ export const GetAccreditationDetails = async (req, res) => {
       });
 
       await accreditation.save();
+    } else if (!accreditation.isActive) {
+      // If found but inactive → return inactive response
+      return res.status(200).json({
+        message: "This accreditation is inactive",
+        accreditationId: accreditation._id,
+        isActive: false,
+      });
     }
 
-    // Always populate after the logic above — whether it was created or found
+    // If active → populate and return
     accreditation = await Accreditation.findById(accreditation._id)
       .populate([
         "organizationProfile",
@@ -152,7 +228,7 @@ export const GetAccreditationDetails = async (req, res) => {
       ])
       .exec();
 
-    res.status(201).json(accreditation);
+    res.status(200).json(accreditation);
   } catch (error) {
     console.error("Error handling accreditation request:", error);
     res.status(500).json({ error: "Server error" });

@@ -23,13 +23,15 @@ import DocumentUploader from "../../../../components/document_uploader";
 
 export default function StudentAccreditationMainComponent({ orgId }) {
   const [accreditationData, setAccreditationData] = useState(null);
-
   const [uploadingDocType, setUploadingDocType] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // New state for "reset popup"
+  const [showResetPopup, setShowResetPopup] = useState(false);
 
   useEffect(() => {
     const GetAccreditationInformation = async () => {
@@ -47,7 +49,13 @@ export default function StudentAccreditationMainComponent({ orgId }) {
           { withCredentials: true }
         );
 
+        console.log(response.data);
         setAccreditationData(response.data);
+
+        // If inactive → show reset popup
+        if (response.data?.isActive === false) {
+          setShowResetPopup(true);
+        }
       } catch (err) {
         console.error("Error fetching accreditation info:", err);
         setError("Failed to load accreditation information. Please try again.");
@@ -58,6 +66,23 @@ export default function StudentAccreditationMainComponent({ orgId }) {
 
     GetAccreditationInformation();
   }, [orgId]);
+
+  // Create new accreditation for this org
+  const handleCreateNewAccreditation = async () => {
+    try {
+      const res = await axios.get(
+        `${API_ROUTER}/getAccreditationInfo/${orgId}`,
+        { withCredentials: true }
+      );
+
+      console.log("New accreditation created:", res.data);
+      setAccreditationData(res.data);
+      setShowResetPopup(false);
+    } catch (err) {
+      console.error("Error creating new accreditation:", err);
+      alert("Failed to create new accreditation.");
+    }
+  };
 
   const handleUploadSubmit = async () => {
     if (!selectedFile || !uploadingDocType) return;
@@ -81,7 +106,6 @@ export default function StudentAccreditationMainComponent({ orgId }) {
     let progressInterval;
 
     try {
-      // Simulate upload progress
       progressInterval = setInterval(() => {
         setUploadProgress((prev) => Math.min(prev + 10, 90));
       }, 200);
@@ -97,8 +121,6 @@ export default function StudentAccreditationMainComponent({ orgId }) {
       );
 
       console.log("Upload success:", response.data);
-
-      // Set upload to 100% and update local state
       setUploadProgress(100);
 
       setAccreditationData((prev) => ({
@@ -110,7 +132,6 @@ export default function StudentAccreditationMainComponent({ orgId }) {
         },
       }));
 
-      // Reset UI state after short delay
       setTimeout(() => {
         setUploadingDocType(null);
         setSelectedFile(null);
@@ -126,66 +147,29 @@ export default function StudentAccreditationMainComponent({ orgId }) {
     }
   };
 
-  // Handle retry
-  const handleRetry = () => {
-    setError(null);
-    setIsLoading(true);
-    // Trigger re-fetch by changing a dependency or calling the effect directly
-    const GetAccreditationInformation = async () => {
-      if (!orgId) {
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        const response = await axios.get(
-          `${API_ROUTER}/getAccreditationInfo/${orgId}`,
-          { withCredentials: true }
-        );
-
-        console.log(response.data);
-        setAccreditationData(response.data);
-      } catch (err) {
-        console.error("Error fetching accreditation info:", err);
-        setError("Failed to load accreditation information. Please try again.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    GetAccreditationInformation();
-  };
-
-  // Render loading state
   if (isLoading) {
     return <LoadingSkeleton />;
   }
 
-  // Render error state
   if (error) {
-    return <ErrorState error={error} onRetry={handleRetry} />;
+    return (
+      <ErrorState error={error} onRetry={() => window.location.reload()} />
+    );
   }
 
-  // Render main content
   return (
     <div className="h-full mt-4 -t-2xl overflow-auto">
       <div className="w-full">
         {/* Main Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-5 gap-3">
-          {/* Overall Status - Takes full width on mobile, 3 columns on xl */}
           <div className="lg:col-span-2 xl:col-span-3">
             <OverallStatus accreditationData={accreditationData} />
           </div>
 
-          {/* President Information */}
           <div className="lg:col-span-1 xl:col-span-2">
             <PresidentInformation accreditationData={accreditationData} />
           </div>
 
-          {/* DocumentDisplayCard */}
           <div className="lg:col-span-2">
             <DocumentDisplayCard
               accreditationData={accreditationData}
@@ -199,7 +183,6 @@ export default function StudentAccreditationMainComponent({ orgId }) {
             />
           </div>
 
-          {/* Roster Lists */}
           <div className="lg:col-span-3">
             <RosterLists accreditationData={accreditationData} />
           </div>
@@ -219,6 +202,35 @@ export default function StudentAccreditationMainComponent({ orgId }) {
           buttonLabel="Upload"
           buttonClass="bg-blue-600 hover:bg-blue-700"
         />
+      )}
+
+      {/* Reset Accreditation Popup */}
+      {showResetPopup && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+          <div className="bg-white p-6 rounded-2xl shadow-lg max-w-md w-full">
+            <h2 className="text-xl font-semibold mb-4 text-gray-800">
+              Accreditation Reset
+            </h2>
+            <p className="text-gray-600 mb-6">
+              The accreditation records for this organization have been
+              deactivated. To proceed, you need to create a new accreditation.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowResetPopup(false)}
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+              >
+                Close
+              </button>
+              <button
+                onClick={handleCreateNewAccreditation}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                Create New Accreditation
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -639,8 +651,6 @@ function RosterLists({ accreditationData }) {
       setLoading(false);
     }
   };
-
-  console.log(accreditationData);
 
   // Load data when component mounts
   useEffect(() => {

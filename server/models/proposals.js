@@ -3,25 +3,44 @@ const { Schema } = mongoose;
 
 export const proposalSchema = new Schema(
   {
+    organization: { type: Schema.Types.ObjectId, ref: "Organization" },
+
+    ProposedActionPlanSchema: {
+      type: Schema.Types.ObjectId,
+      ref: "ProposedActionPlan",
+    },
+
     organizationProfile: {
       type: Schema.Types.ObjectId,
       ref: "OrganizationProfile",
     },
 
-    organization: { type: Schema.Types.ObjectId, ref: "Organization" },
-
     accreditation: {
       type: Schema.Types.ObjectId,
-      ref: "accreditations",
+      ref: "Accreditations",
     },
 
     overallStatus: { type: String, default: "Pending" },
 
-    title: String,
+    activityTitle: String,
+    alignedSDG: [String],
+    budgetaryRequirements: Number,
+    venue: String,
     proposedDate: Date,
-    description: String,
 
-    documents: [{ type: Schema.Types.ObjectId, ref: "Documents" }],
+    Proponents: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "OrganizationProfile",
+      },
+    ],
+
+    document: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Documents",
+      },
+    ],
   },
   { timestamps: true }
 );
@@ -35,25 +54,16 @@ export const ProposedActionPlanSchema = new Schema(
 
     organization: { type: Schema.Types.ObjectId, ref: "Organizations" },
 
+    ProposedIndividualActionPlan: [
+      { type: Schema.Types.ObjectId, ref: "Proposals" },
+    ],
+
     accreditation: {
       type: Schema.Types.ObjectId,
       ref: "Accreditations",
     },
     overallStatus: { type: String, default: "Pending" },
-
-    activityTitle: String,
-    alignedOrgObjectives: String,
-    venue: String,
-    proposedDate: Date,
-    briefDetails: String,
-    alingedSDG: [String],
-    budgetaryRequirements: Number,
-    collaboratingEntities: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "OrganizationProfile",
-      },
-    ],
+    isActive: { type: Boolean, default: true },
   },
   { timestamps: true }
 );

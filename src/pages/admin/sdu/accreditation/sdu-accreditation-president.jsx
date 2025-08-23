@@ -1,17 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { API_ROUTER } from "../../../../App";
+import { API_ROUTER, DOCU_API_ROUTER } from "../../../../App";
 import { X } from "lucide-react";
 
 export function SduPresident({ selectedOrg }) {
   const [presidentData, setPresidentData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+
   const [noPresidentFound, setNoPresidentFound] = useState(false);
   const [showPopup, setShowPopup] = useState({
     show: false,
     type: "",
     member: null,
   });
+
   const [isManagePresidentProfileOpen, setManagePresidentProfileOpen] =
     useState(false);
   const dropdownRef = useRef(null);
@@ -31,6 +33,8 @@ export function SduPresident({ selectedOrg }) {
         const res = await axios.get(
           `${API_ROUTER}/getPresident/${selectedOrg.orgPresident}`
         );
+
+        console.log(res);
         setPresidentData(res.data);
       } catch (error) {
         console.error("Failed to fetch president data", error);
@@ -46,8 +50,6 @@ export function SduPresident({ selectedOrg }) {
   const handleButtonClick = (action) => {
     console.log("Button clicked:", action);
     setShowPopup({ show: true, type: action });
-
-    // You can implement action-specific behavior here
   };
 
   if (isLoading) {
@@ -56,9 +58,11 @@ export function SduPresident({ selectedOrg }) {
 
   if (noPresidentFound) {
     return (
-      <p className="text-red-500 font-semibold">
-        No president found for this organization.
-      </p>
+      <div className="flex h-full w-full items-center justify-center text-center">
+        <p className="text-red-500 font-semibold">
+          No president found for this organization
+        </p>
+      </div>
     );
   }
 
@@ -89,10 +93,10 @@ export function SduPresident({ selectedOrg }) {
   } = presidentData;
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow-md">
-      <div>
-        <div className="border-b border-gray-200 mb-4 flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+    <div className="p-4 ">
+      <div className="">
+        <div className="border-b pb-4  flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-gray-800 ">
             Organization President
           </h2>
 
@@ -103,7 +107,7 @@ export function SduPresident({ selectedOrg }) {
                 isManagePresidentProfileOpen ? "rounded-t-lg" : "rounded-lg"
               }`}
             >
-              Manage Roster
+              Manage President Profile
             </button>
 
             {isManagePresidentProfileOpen && (
@@ -131,11 +135,11 @@ export function SduPresident({ selectedOrg }) {
           </div>
         </div>
 
-        <div className="flex gap-6">
+        <div className="flex mt-2 mb-4 items-center p-4  gap-6">
           <div className="w-32 h-32 bg-gray-200 rounded-full overflow-hidden">
             {profilePicture ? (
               <img
-                src={`/${selectedOrg._id}/${profilePicture}`}
+                src={`${DOCU_API_ROUTER}/${selectedOrg._id}/${profilePicture}`}
                 alt="Profile"
                 className="w-full h-full rounded-full object-cover border"
               />
@@ -156,9 +160,9 @@ export function SduPresident({ selectedOrg }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 text-sm text-gray-700">
+        <div className="grid grid-cols-1 md:grid-cols-2  gap-4 mt-4text-sm text-gray-700">
           <div>
-            <h4 className="text-lg font-medium text-indigo-600 mb-2">
+            <h4 className="text-lg font-medium text-indigo-600 ">
               Personal Information
             </h4>
             <p>
@@ -179,9 +183,7 @@ export function SduPresident({ selectedOrg }) {
           </div>
 
           <div>
-            <h4 className="text-lg font-medium text-indigo-600 mb-2">
-              Address
-            </h4>
+            <h4 className="text-lg font-medium text-indigo-600 ">Address</h4>
             <p>
               <strong>Present:</strong> {presentAddress?.fullAddress || "N/A"}
             </p>
@@ -194,7 +196,7 @@ export function SduPresident({ selectedOrg }) {
           </div>
 
           <div>
-            <h4 className="text-lg font-medium text-indigo-600 mb-2">
+            <h4 className="text-lg font-medium text-indigo-600 ">
               Family / Support
             </h4>
             <p>
@@ -207,7 +209,7 @@ export function SduPresident({ selectedOrg }) {
           </div>
 
           <div>
-            <h4 className="text-lg font-medium text-indigo-600 mb-2">
+            <h4 className="text-lg font-medium text-indigo-600 ">
               Social & Skills
             </h4>
             <p>
@@ -225,8 +227,10 @@ export function SduPresident({ selectedOrg }) {
                 "N/A"
               )}
             </p>
-            <div className="mt-2">
-              <strong>Skills:</strong>
+            <div className="flex flex-wrap">
+              <strong className="text-lg font-medium text-indigo-600 ">
+                Skills:
+              </strong>
               <ul className="list-disc ml-5">
                 {talentSkills?.length > 0 ? (
                   talentSkills.map((skillObj, idx) => (
@@ -300,8 +304,15 @@ export function SduPresident({ selectedOrg }) {
               />
             )}
 
-            {showPopup.type === "notes" && <RevisePresidentProfile />}
-            {showPopup.type === "history" && <HistoryPresidents />}
+            {showPopup.type === "notes" && (
+              <RevisePresidentProfile
+                presidentData={presidentData}
+                setShowPopup={setShowPopup}
+              />
+            )}
+            {showPopup.type === "history" && (
+              <HistoryPresidents orgId={selectedOrg.organization} />
+            )}
           </div>
         </div>
       )}
@@ -312,9 +323,10 @@ export function SduPresident({ selectedOrg }) {
 export default function ApprovePresidentProfile({
   presidentData,
   setShowPopup,
-  setPresidentData,
 }) {
   const [isLoading, setIsLoading] = useState(false);
+  const [confirmationMessage, setConfirmationMessage] = useState(""); // for success/error message
+  const [showConfirmation, setShowConfirmation] = useState(false); // toggle popup
 
   const HandleSubmitApprovalOfPresidentProfile = async () => {
     console.log(
@@ -327,10 +339,25 @@ export default function ApprovePresidentProfile({
         `${API_ROUTER}/approvePresidentProfile/${presidentData._id}`
       );
       console.log("Approval response:", res.data);
-      setShowPopup({ show: false, type: "", member: null }); // close popup on success
+
+      setConfirmationMessage("Approved successfully!");
+      setShowConfirmation(true);
+
+      // auto-close popup after 1s
+      setTimeout(() => {
+        setShowConfirmation(false);
+        setShowPopup({ show: false, type: "", member: null });
+      }, 1000);
     } catch (error) {
       console.error("Failed to approve president profile", error);
-      alert("Failed to approve president profile.");
+
+      setConfirmationMessage("❌ Failed to approve president profile.");
+      setShowConfirmation(true);
+
+      // auto-close popup after 1s
+      setTimeout(() => {
+        setShowConfirmation(false);
+      }, 1000);
     } finally {
       setIsLoading(false);
     }
@@ -346,6 +373,7 @@ export default function ApprovePresidentProfile({
       <h1 className="text-lg font-semibold text-gray-800">
         Approve President Profile of {presidentData?.name}?
       </h1>
+
       <button
         onClick={HandleSubmitApprovalOfPresidentProfile}
         className="border px-4 py-2 bg-green-500 text-white rounded"
@@ -353,6 +381,7 @@ export default function ApprovePresidentProfile({
       >
         {isLoading ? "Approving..." : "Approve"}
       </button>
+
       <button
         onClick={CancelSubmissionOfPresidentProfile}
         className="border px-4 py-2 bg-gray-300 text-black rounded"
@@ -360,15 +389,129 @@ export default function ApprovePresidentProfile({
       >
         Cancel
       </button>
+
+      {/* Confirmation popup */}
+      {showConfirmation && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50">
+          <div className="bg-white flex items-center justify-center  h-auto aspect-square  px-6 py-4 rounded shadow-lg">
+            <p className="text-center text-lg">{confirmationMessage}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function RevisePresidentProfile() {
-  return <>Revision</>;
+function RevisePresidentProfile({ presidentData, setShowPopup }) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [revisionNotes, setRevisionNotes] = useState("");
+
+  const HandleSubmitApprovalOfPresidentProfile = async () => {
+    console.log(
+      "Submitting revision for president profile:",
+      presidentData._id,
+      "Notes:",
+      revisionNotes
+    );
+    try {
+      setIsLoading(true);
+      const res = await axios.post(
+        `${API_ROUTER}/revisionPresidentProfile/${presidentData._id}`,
+        { revisionNotes, status: "Revision From the SDU" } // Send notes to backend
+      );
+      console.log("Revision response:", res.data);
+      setShowPopup({ show: false, type: "", member: null });
+    } catch (error) {
+      console.error("Failed to revise president profile", error);
+      alert("Failed to submit revision notes.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const CancelSubmissionOfPresidentProfile = () => {
+    console.log("Cancelling revision for president profile");
+    setShowPopup({ show: false, type: "", member: null });
+  };
+
+  return (
+    <div className="flex flex-col gap-3 w-full justify-start">
+      <h1 className="text-lg font-semibold text-gray-800">
+        Send Revision Notes for {presidentData?.name}
+      </h1>
+
+      <textarea
+        className="border rounded p-2 w-full min-h-[100px]"
+        placeholder="Enter your revision notes here..."
+        value={revisionNotes}
+        onChange={(e) => setRevisionNotes(e.target.value)}
+      />
+
+      <div className="flex gap-2">
+        <button
+          onClick={HandleSubmitApprovalOfPresidentProfile}
+          className="border px-4 py-2 bg-green-500 text-white rounded"
+          disabled={isLoading || !revisionNotes.trim()}
+        >
+          {isLoading ? "Sending..." : "Send Notes"}
+        </button>
+        <button
+          onClick={CancelSubmissionOfPresidentProfile}
+          className="border px-4 py-2 bg-gray-300 text-black rounded"
+          disabled={isLoading}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
 }
-function HistoryPresidents() {
-  return <>Revision</>;
+
+function HistoryPresidents({ orgId }) {
+  const [presidents, setPresidents] = useState([]);
+
+  useEffect(() => {
+    const fetchPresident = async () => {
+      try {
+        const res = await axios.get(
+          `${API_ROUTER}/getPreviousPresident/${orgId}`
+        );
+
+        // Store data directly
+        setPresidents(res.data);
+      } catch (error) {
+        console.error("Failed to fetch president data", error);
+      }
+    };
+
+    fetchPresident();
+  }, [orgId]);
+
+  const formatDate = (date) =>
+    new Date(date).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+
+  return (
+    <div>
+      <h2 className="text-lg font-bold mb-2">Previous Presidents</h2>
+      <ul className="space-y-2">
+        {presidents.map((p) => (
+          <li
+            key={p._id}
+            className="p-3 border rounded-md shadow-sm bg-white flex justify-between"
+          >
+            <span>{p.name}</span>
+            <span className="text-sm text-gray-600">
+              {formatDate(p.createdAt)} - {formatDate(p.updatedAt)}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
 export function SduPresidentOverview() {

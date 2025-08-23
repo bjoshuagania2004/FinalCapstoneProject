@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { API_ROUTER } from "../../../../App";
+import { API_ROUTER, DOCU_API_ROUTER } from "../../../../App";
 import { formatDistanceToNow } from "date-fns";
 import { Users, Clock3, StickyNote, UserSquare } from "lucide-react";
 
@@ -141,12 +141,12 @@ export function SduRoster({ selectedOrg }) {
                   onMouseLeave={handleRowLeave}
                   onMouseMove={handleMouseMove}
                 >
-                  <td className="px-4 py-2 text-sm text-gray-800">
+                  <td className=" py-2 text-sm text-gray-800">
                     <div className="flex items-center justify-center">
                       <img
                         src={
                           member.profilePicture
-                            ? `/${selectedOrg._id}/${member.profilePicture}`
+                            ? `${DOCU_API_ROUTER}/${selectedOrg._id}/${member.profilePicture}`
                             : "/cnsc-logo.png"
                         }
                         alt="Profile Picture"
@@ -187,7 +187,7 @@ export function SduRoster({ selectedOrg }) {
             <img
               src={
                 hoveredMember.profilePicture
-                  ? `/${selectedOrg._id}/${hoveredMember.profilePicture}`
+                  ? `${DOCU_API_ROUTER}/${selectedOrg._id}/${hoveredMember.profilePicture}`
                   : "/cnsc-logo.png"
               }
               alt="Profile"

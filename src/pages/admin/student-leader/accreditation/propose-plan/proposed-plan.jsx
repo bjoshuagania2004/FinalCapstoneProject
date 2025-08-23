@@ -128,18 +128,16 @@ export function StudentProposedPlan({ orgData, accreditationData }) {
           </button>
         )}
       </div>
-
       {/* Loading State */}
-      {loading && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-          <div className="flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <span className="ml-3 text-gray-600">Loading proposals...</span>
+      {loading ||
+        (error && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+            <div className="flex items-center justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <span className="ml-3 text-gray-600">Loading proposals...</span>
+            </div>
           </div>
-        </div>
-      )}
-
-      {/* Error State */}
+        ))}
       {error && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
           <div className="text-center">
@@ -147,7 +145,6 @@ export function StudentProposedPlan({ orgData, accreditationData }) {
           </div>
         </div>
       )}
-
       {/* Empty State */}
       {!loading && !error && proposals.length === 0 && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
@@ -170,7 +167,6 @@ export function StudentProposedPlan({ orgData, accreditationData }) {
           </div>
         </div>
       )}
-
       {/* Table */}
       {!loading && !error && proposals.length > 0 && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
@@ -263,7 +259,6 @@ export function StudentProposedPlan({ orgData, accreditationData }) {
           </div>
         </div>
       )}
-
       {/* View Modal */}
       {showViewModal && selectedProposal && (
         <div className="fixed inset-0 bg-black/10 backdrop-blur-xs flex items-center justify-center z-50">
@@ -384,7 +379,6 @@ export function StudentProposedPlan({ orgData, accreditationData }) {
           </div>
         </div>
       )}
-
       {/* Edit Modal */}
       {showEditModal && (
         <EditPpa
@@ -395,7 +389,6 @@ export function StudentProposedPlan({ orgData, accreditationData }) {
           onFinish={() => fetchProposals()}
         />
       )}
-
       {/* Delete Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/10 backdrop-blur-xs flex items-center justify-center z-50">
@@ -432,7 +425,6 @@ export function StudentProposedPlan({ orgData, accreditationData }) {
           </div>
         </div>
       )}
-
       {/* Add/Manage Modal */}
       {showManageModal && (
         <AddProposedActionPlan
