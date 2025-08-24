@@ -22,6 +22,8 @@ export function AddProposedActionPlan({
     label: "proposal",
     collaboratingEntities: [],
     venue: "",
+    proposalType: "",
+    proposalCategory: "",
     proposedDate: "",
     overallStatus: "Pending",
     organizationProfile: orgData._id,
@@ -200,6 +202,22 @@ export function AddProposedActionPlan({
           />
         </div>
 
+        <div>
+          {/* Proposal Type */}
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Proposal Type *
+          </label>
+          <input
+            type="text"
+            name="proposalType"
+            value={formData.proposalType}
+            onChange={handleInputChange}
+            required
+            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+            placeholder="Enter proposal type"
+          />
+        </div>
+
         {/* Proposed Date */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -230,7 +248,36 @@ export function AddProposedActionPlan({
             placeholder="e.g., ₱50,000 - ₱100,000"
           />
         </div>
-
+        {/* Internal / External */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Proposal Category *
+          </label>
+          <div className="w-full p-3.5 border flex justify-evenly items-center border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent">
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="proposalCategory"
+                value="internal"
+                checked={formData.proposalCategory === "internal"}
+                onChange={handleInputChange}
+                className="h-4 w-4 text--amber500 border-gray-300"
+              />
+              <span className="text-sm text-gray-700">Internal</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="proposalCategory"
+                value="external"
+                checked={formData.proposalCategory === "external"}
+                onChange={handleInputChange}
+                className="h-4 w-4 text-amber-500 border-gray-300"
+              />
+              <span className="text-sm text-gray-700">External</span>
+            </label>
+          </div>
+        </div>
         {/* Cooperating Entities */}
         <div className="md:col-span-2">
           <OrganizationDropdown

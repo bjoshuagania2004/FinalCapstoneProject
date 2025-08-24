@@ -17,6 +17,8 @@ export const postStudentLeaderProposal = async (req, res) => {
       venue,
       proposedDate,
       organizationProfile,
+      proposalType,
+      proposalCategory,
       organization,
       accreditation,
     } = req.body;
@@ -53,8 +55,10 @@ export const postStudentLeaderProposal = async (req, res) => {
       alignedSDG: normalizedSDG,
       budgetaryRequirements,
       venue,
+      proposalCategory,
       proposedDate,
       organizationProfile,
+      proposalType,
       organization,
       accreditation,
       ProposedActionPlanSchema: existingPlan._id, // link to the action plan
@@ -132,6 +136,25 @@ export const getStudentPpaByAccreditationId = async (req, res) => {
     const proposals = await Proposal.find({
       accreditation: accreditationId,
     }); // Collaborating org profiles
+
+    if (!proposals || proposals.length === 0) {
+      return res.status(404).json({ error: "No proposals found" });
+    }
+
+    return res.status(200).json(proposals);
+  } catch (error) {
+    console.error("Error fetching proposals:", error);
+    return res.status(500).json({ error: "Failed to fetch proposals" });
+  }
+};
+
+export const getPpaBySdu = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const proposals = await Proposal.find({ organizationProfile: id }).populate(
+      "document"
+    ); // Mongoose query
 
     if (!proposals || proposals.length === 0) {
       return res.status(404).json({ error: "No proposals found" });

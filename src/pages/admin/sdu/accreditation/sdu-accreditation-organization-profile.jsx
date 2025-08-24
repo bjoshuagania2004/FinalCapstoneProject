@@ -406,11 +406,6 @@ export function SduOrganizationInformation({ selectedOrg }) {
           </h2>
           {AccreditationData?.PresidentProfile ? (
             <div className=" border-gray-200 ">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                <User className="w-5 h-5 text-cnsc-primary-color" />
-                President Profile
-              </h2>
-
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <div>

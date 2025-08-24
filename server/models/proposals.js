@@ -26,6 +26,8 @@ export const proposalSchema = new Schema(
     alignedSDG: [String],
     budgetaryRequirements: Number,
     venue: String,
+    proposalType: String,
+    ProposalCategory: String,
     proposedDate: Date,
 
     Proponents: [
