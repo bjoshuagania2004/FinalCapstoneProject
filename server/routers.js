@@ -14,6 +14,7 @@ export const upload = multer({ storage });
 */
 /* ********** STUDENT DEVELOPMENT ORGANIZATION ********** */
 router.get("/getAllOrganizationProfile", Controller.GetAllOrganizationProfile);
+router.get("/getPresidents", Controller.GetAllPresidents);
 router.get("/getProposalsBySdu/:id", Controller.getPpaBySdu);
 router.get("/getOrganizationProfile", Controller.GetAllOrganizationProfile);
 router.get("/getAllProposedActionPlan", Controller.getAllProposedActionPlan);

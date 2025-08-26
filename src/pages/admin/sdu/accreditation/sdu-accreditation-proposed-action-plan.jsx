@@ -22,7 +22,7 @@ import {
   FileTextIcon,
 } from "lucide-react";
 
-export function SduProposedActionPlanOverview({ selectedOrg, onSelectOrg }) {
+export function SduProposedActionPlanOverview({ onSelectOrg }) {
   const [proposals, setProposals] = useState([]);
   const [selectedProposal, setSelectedProposal] = useState([]);
   const [selectedIndividualProposal, setSelectedIndividualProposal] = useState(
@@ -45,6 +45,7 @@ export function SduProposedActionPlanOverview({ selectedOrg, onSelectOrg }) {
         // setProposals(response.data);
 
         // Using mock data for demonstration
+        console.log(response.data);
         setProposals(response.data);
         setLoading(false);
       } catch (err) {

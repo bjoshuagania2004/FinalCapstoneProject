@@ -160,7 +160,7 @@ function StudentDevUnitComponent({ selectedOrg, onSelectOrg }) {
               selectedOrg ? (
                 <SduPresident selectedOrg={selectedOrg} />
               ) : (
-                <SduPresidentOverview />
+                <SduPresidentOverview onSelectOrg={onSelectOrg} />
               )
             }
           />

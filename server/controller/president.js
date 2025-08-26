@@ -200,7 +200,10 @@ export const UpdatePresidentProfile = async (req, res) => {
 
 export const GetAllPresidents = async (req, res) => {
   try {
-    const presidents = await PresidentProfile.find();
+    const presidents = await PresidentProfile.find().populate({
+      path: "organizationProfile",
+    });
+
     res.status(200).json(presidents);
   } catch (error) {
     console.error("Error fetching all presidents:", error);
