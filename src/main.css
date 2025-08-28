@@ -32,7 +32,7 @@
 }
 /* Scrollbar width */
 ::-webkit-scrollbar {
-  width: 12px;
+  width: 6px;
 }
 
 /* For Chrome, Safari, Edge, Opera */
@@ -50,7 +50,6 @@ input[type="number"] {
 /* Scrollbar Track */
 ::-webkit-scrollbar-track {
   background: #4d4d4d;
-  border-radius: 1000px;
 }
 
 .text-stroke {

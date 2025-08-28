@@ -1,5 +1,56 @@
 import { Proposal, ProposedActionPlan } from "../models/index.js";
 
+export const updateStudentLeaderProposal = async (req, res) => {
+  try {
+    const { id } = req.params; // Proposal ID
+    const {
+      activityTitle,
+      alignedSDG,
+      budgetaryRequirements,
+      briefDetails,
+      venue,
+      proposedDate,
+      AlignedObjective,
+      proposalType,
+      proposalCategory,
+    } = req.body;
+
+    // Normalize alignedSDG
+    let normalizedSDG = req.body["alignedSDG[]"] || alignedSDG;
+    if (normalizedSDG && !Array.isArray(normalizedSDG)) {
+      normalizedSDG = [normalizedSDG];
+    }
+
+    const updatedProposal = await Proposal.findByIdAndUpdate(
+      id,
+      {
+        activityTitle,
+        alignedSDG: normalizedSDG,
+        budgetaryRequirements,
+        briefDetails,
+        venue,
+        proposedDate,
+        AlignedObjective,
+        proposalType,
+        proposalCategory,
+      },
+      { new: true } // return the updated doc
+    );
+
+    if (!updatedProposal) {
+      return res.status(404).json({ error: "Proposal not found" });
+    }
+
+    res.status(200).json({
+      message: "Proposal updated successfully",
+      proposal: updatedProposal,
+    });
+  } catch (error) {
+    console.error("❌ Error updating proposal:", error);
+    res.status(500).json({ error: "Failed to update proposal" });
+  }
+};
+
 export const postStudentLeaderProposal = async (req, res) => {
   try {
     console.log("=== BACKEND LOG ===");
@@ -14,8 +65,10 @@ export const postStudentLeaderProposal = async (req, res) => {
       activityTitle,
       alignedSDG,
       budgetaryRequirements,
+      briefDetails,
       venue,
       proposedDate,
+      AlignedObjective,
       organizationProfile,
       proposalType,
       proposalCategory,
@@ -54,9 +107,11 @@ export const postStudentLeaderProposal = async (req, res) => {
       activityTitle,
       alignedSDG: normalizedSDG,
       budgetaryRequirements,
+      AlignedObjective,
       venue,
       proposalCategory,
       proposedDate,
+      briefDetails,
       organizationProfile,
       proposalType,
       organization,
@@ -79,31 +134,6 @@ export const postStudentLeaderProposal = async (req, res) => {
   } catch (error) {
     console.error("❌ Error saving proposal:", error);
     res.status(500).json({ error: "Failed to create proposal" });
-  }
-};
-
-export const updateStudentLeaderProposal = async (req, res) => {
-  try {
-    const { ProposalId } = req.params; // ID of the proposal to update
-
-    // Find proposal and update with new data
-    const updatedProposal = await ProposedActionPlan.findByIdAndUpdate(
-      ProposalId,
-      { ...req.body },
-      { new: true, runValidators: true } // return updated doc & run validations
-    );
-
-    if (!updatedProposal) {
-      return res.status(404).json({ error: "Proposal not found" });
-    }
-
-    res.status(200).json({
-      message: "Proposal updated successfully",
-      proposal: updatedProposal,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to update proposal" });
   }
 };
 
@@ -177,6 +207,26 @@ export const getPpaByOrganizationProfile = async (req, res) => {
     if (!proposals || proposals.length === 0) {
       return res.status(404).json({ error: "No proposals found" });
     }
+    return res.status(200).json(proposals);
+  } catch (error) {
+    console.error("Error fetching proposals:", error);
+    return res.status(500).json({ error: "Failed to fetch proposals" });
+  }
+};
+
+export const getApprovedPPA = async (req, res) => {
+  const { orgId } = req.params; // make sure your route passes orgProfileId
+
+  try {
+    const proposals = await Proposal.find({
+      organizationProfile: orgId, // ✅ filter by organizationProfile
+      overallStatus: "Approved For Conduct", // ✅ only approved
+    });
+
+    if (!proposals || proposals.length === 0) {
+      return res.status(404).json({ error: "No approved proposals found" });
+    }
+
     return res.status(200).json(proposals);
   } catch (error) {
     console.error("Error fetching proposals:", error);

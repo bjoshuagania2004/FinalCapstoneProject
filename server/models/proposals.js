@@ -28,6 +28,8 @@ export const proposalSchema = new Schema(
     venue: String,
     proposalType: String,
     ProposalCategory: String,
+    briefDetails: String,
+    AlignedObjective: String,
     proposedDate: Date,
 
     Proponents: [
@@ -36,6 +38,37 @@ export const proposalSchema = new Schema(
         ref: "OrganizationProfile",
       },
     ],
+
+    document: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Documents",
+      },
+    ],
+  },
+  { timestamps: true }
+);
+
+export const proposalConductSchema = new Schema(
+  {
+    ProposedActionPlanSchema: {
+      type: Schema.Types.ObjectId,
+      ref: "ProposedActionPlan",
+    },
+
+    ProposedIndividualActionPlan: {
+      type: Schema.Types.ObjectId,
+      ref: "Proposals",
+    },
+
+    overallStatus: { type: String, default: "Pending" },
+
+    organizationProfile: {
+      type: Schema.Types.ObjectId,
+      ref: "OrganizationProfile",
+    },
+
+    organization: { type: Schema.Types.ObjectId, ref: "Organizations" },
 
     document: [
       {

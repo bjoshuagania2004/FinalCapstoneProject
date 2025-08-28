@@ -16,12 +16,14 @@ export default function EditPpa({
   const [formData, setFormData] = useState({
     activityTitle: selectedProposal?.activityTitle || "",
     briefDetails: selectedProposal?.briefDetails || "",
-    alignedOrgObjectives: selectedProposal?.alignedOrgObjectives || "",
+    AlignedObjective: selectedProposal?.AlignedObjective || "",
     alignedSDG: selectedProposal?.alignedSDG || [],
     budgetaryRequirements: selectedProposal?.budgetaryRequirements || "",
     collaboratingEntities: selectedProposal?.collaboratingEntities || [],
     venue: selectedProposal?.venue || "",
-    proposedDate: selectedProposal?.proposedDate || "",
+    proposedDate: selectedProposal?.proposedDate
+      ? new Date(selectedProposal.proposedDate).toISOString().slice(0, 7) // <-- format to yyyy-MM
+      : "",
     overallStatus: selectedProposal?.overallStatus || "Pending",
     organizationProfile: orgData._id,
     organization: orgData.organization,
@@ -170,76 +172,6 @@ export default function EditPpa({
                 placeholder="e.g., ₱50,000 - ₱100,000"
               />
             </div>
-
-            {/* Aligned SDG */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Aligned SDG *
-              </label>
-              <div className="bg-gray-50 border border-gray-300 rounded-md p-4 max-h-48 overflow-y-auto">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {[
-                    { value: "SDG 1", label: "SDG 1: No Poverty" },
-                    { value: "SDG 2", label: "SDG 2: Zero Hunger" },
-                    {
-                      value: "SDG 3",
-                      label: "SDG 3: Good Health and Well-being",
-                    },
-                    { value: "SDG 4", label: "SDG 4: Quality Education" },
-                    { value: "SDG 5", label: "SDG 5: Gender Equality" },
-                    {
-                      value: "SDG 6",
-                      label: "SDG 6: Clean Water and Sanitation",
-                    },
-                    {
-                      value: "SDG 7",
-                      label: "SDG 7: Affordable and Clean Energy",
-                    },
-                    {
-                      value: "SDG 8",
-                      label: "SDG 8: Decent Work and Economic Growth",
-                    },
-                    {
-                      value: "SDG 9",
-                      label: "SDG 9: Industry, Innovation and Infrastructure",
-                    },
-                    { value: "SDG 10", label: "SDG 10: Reduced Inequalities" },
-                    {
-                      value: "SDG 11",
-                      label: "SDG 11: Sustainable Cities and Communities",
-                    },
-                    {
-                      value: "SDG 12",
-                      label: "SDG 12: Responsible Consumption and Production",
-                    },
-                    { value: "SDG 13", label: "SDG 13: Climate Action" },
-                    { value: "SDG 14", label: "SDG 14: Life Below Water" },
-                    { value: "SDG 15", label: "SDG 15: Life on Land" },
-                    {
-                      value: "SDG 16",
-                      label: "SDG 16: Peace, Justice and Strong Institutions",
-                    },
-                    {
-                      value: "SDG 17",
-                      label: "SDG 17: Partnerships for the Goals",
-                    },
-                  ].map((sdg) => (
-                    <label
-                      key={sdg.value}
-                      className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded cursor-pointer"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={formData.alignedSDG.includes(sdg.value)}
-                        onChange={() => handleSDGChange(sdg.value)}
-                        className="h-4 w-4 text-amber-600 focus:ring-amber-500 border-gray-300 rounded"
-                      />
-                      <span className="text-sm text-gray-700">{sdg.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Full-width fields */}
@@ -266,8 +198,8 @@ export default function EditPpa({
                 Aligned Organization Objectives *
               </label>
               <textarea
-                name="alignedOrgObjectives"
-                value={formData.alignedOrgObjectives}
+                name="AlignedObjective"
+                value={formData.AlignedObjective}
                 onChange={handleInputChange}
                 required
                 rows="3"
@@ -287,7 +219,72 @@ export default function EditPpa({
                 excludeOrgId={formData.organizationProfile}
               />
             </div>
-
+            {/* Aligned SDG */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Aligned SDG *
+              </label>
+              <div className="flex w-full col-span-2 flex-wrap gap-2">
+                {[
+                  { value: "SDG 1", label: "SDG 1: No Poverty" },
+                  { value: "SDG 2", label: "SDG 2: Zero Hunger" },
+                  {
+                    value: "SDG 3",
+                    label: "SDG 3: Good Health and Well-being",
+                  },
+                  { value: "SDG 4", label: "SDG 4: Quality Education" },
+                  { value: "SDG 5", label: "SDG 5: Gender Equality" },
+                  {
+                    value: "SDG 6",
+                    label: "SDG 6: Clean Water and Sanitation",
+                  },
+                  {
+                    value: "SDG 7",
+                    label: "SDG 7: Affordable and Clean Energy",
+                  },
+                  {
+                    value: "SDG 8",
+                    label: "SDG 8: Decent Work and Economic Growth",
+                  },
+                  {
+                    value: "SDG 9",
+                    label: "SDG 9: Industry, Innovation and Infrastructure",
+                  },
+                  { value: "SDG 10", label: "SDG 10: Reduced Inequalities" },
+                  {
+                    value: "SDG 11",
+                    label: "SDG 11: Sustainable Cities and Communities",
+                  },
+                  {
+                    value: "SDG 12",
+                    label: "SDG 12: Responsible Consumption and Production",
+                  },
+                  { value: "SDG 13", label: "SDG 13: Climate Action" },
+                  { value: "SDG 14", label: "SDG 14: Life Below Water" },
+                  { value: "SDG 15", label: "SDG 15: Life on Land" },
+                  {
+                    value: "SDG 16",
+                    label: "SDG 16: Peace, Justice and Strong Institutions",
+                  },
+                  {
+                    value: "SDG 17",
+                    label: "SDG 17: Partnerships for the Goals",
+                  },
+                ].map((sdg) => (
+                  <div key={sdg.value} className="bg-gray-200 rounded-full">
+                    <label className="flex items-center space-x-1 p-2 hover:bg-gray-100 rounded cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.alignedSDG.includes(sdg.value)}
+                        onChange={() => handleSDGChange(sdg.value)}
+                        className="appearance-none h-5 w-5 rounded-full border border-gray-400 checked:bg-amber-500 cursor-pointer"
+                      />
+                      <span className="text-sm">{sdg.label}</span>
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
             {/* Submit Button */}
             <div className="mt-8 flex gap-4">
               <button
@@ -365,7 +362,7 @@ function OrganizationDropdown({ selectedOrgs, onSelectOrgs, excludeOrgId }) {
         setLoading(true);
       }
       const res = await axios.get(
-        `${API_ROUTER}/getAllOrganizationProfile?search=${encodeURIComponent(
+        `${API_ROUTER}/getAllCollaboratingOrganizationProfile?search=${encodeURIComponent(
           searchTerm
         )}&department=${encodeURIComponent(
           selectedDepartment
@@ -468,10 +465,14 @@ function OrganizationDropdown({ selectedOrgs, onSelectOrgs, excludeOrgId }) {
   };
 
   return (
-    <div className="flex flex-col w-full gap-4">
+    <div className="flex flex-col w-full ">
+      <label className="block text-sm font-medium text-gray-700 mb-2">
+        Cooperating Entities
+      </label>
+
       {/* Selected Organizations Display */}
       {selectedOrgs.length > 0 && (
-        <div className="">
+        <div className="bg-amber-50 border border-gray-100 rounded-lg p-3 mb-2">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-amber-800">
               Selected Organizations ({selectedOrgs.length})
@@ -484,7 +485,7 @@ function OrganizationDropdown({ selectedOrgs, onSelectOrgs, excludeOrgId }) {
               Clear All
             </button>
           </div>
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap gap-2">
             {selectedOrgs.map((org) => (
               <div
                 key={org._id}
@@ -521,10 +522,10 @@ function OrganizationDropdown({ selectedOrgs, onSelectOrgs, excludeOrgId }) {
       )}
 
       {/* Organization Dropdown with Integrated Search */}
-      <div className="relative">
+      <div className="relative rounded-xl">
         {/* Dropdown Button with Search Input */}
         <div
-          className="w-full px-4 py-3 border border-gray-300  focus-within:border-gray-500 transition-colors bg-white flex items-center justify-between cursor-pointer"
+          className="w-full rounded-xl px-4 py-3 border border-gray-300  focus-within:border-gray-500 transition-colors bg-white flex items-center justify-between cursor-pointer"
           onClick={handleDropdownClick}
         >
           <div className="flex items-center gap-2 flex-1 min-w-0">

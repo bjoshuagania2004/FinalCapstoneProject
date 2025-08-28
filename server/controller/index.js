@@ -7,3 +7,4 @@ export * from "./roster-member.js";
 export * from "./organization.js";
 export * from "./registration.js";
 export * from "./proposal.js";
+export * from "./proposal-conduct.js";

@@ -141,6 +141,24 @@ export const GetAllOrganizationProfileStudent = async (req, res) => {
     });
   }
 };
+
+export const GetAllOrganizationProfileCard = async (req, res) => {
+  try {
+    const organizationProfiles = await OrganizationProfile.find();
+
+    if (!organizationProfiles || organizationProfiles.length === 0) {
+      return res.status(404).json({ error: "No active organizations found" });
+    }
+
+    res.status(200).json(organizationProfiles);
+  } catch (error) {
+    res.status(500).json({
+      error: "Failed to fetch organization profiles",
+      details: error.message,
+    });
+  }
+};
+
 export const GetAllOrganizationProfile = async (req, res) => {
   try {
     const search = req.query.search || "";

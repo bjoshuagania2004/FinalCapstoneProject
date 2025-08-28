@@ -9,8 +9,6 @@ export default function Login({ navigate, onShowRegistration }) {
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
-  console.log(username);
-  console.log(password);
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {

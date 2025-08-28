@@ -14,6 +14,10 @@ export const upload = multer({ storage });
 */
 /* ********** STUDENT DEVELOPMENT ORGANIZATION ********** */
 router.get("/getAllOrganizationProfile", Controller.GetAllOrganizationProfile);
+router.get(
+  "/getAllOrganizationProfileCard",
+  Controller.GetAllOrganizationProfileCard
+);
 router.get("/getPresidents", Controller.GetAllPresidents);
 router.get("/getProposalsBySdu/:id", Controller.getPpaBySdu);
 router.get("/getOrganizationProfile", Controller.GetAllOrganizationProfile);
@@ -75,6 +79,7 @@ router.get(
 );
 
 router.get("/getFinancialReport/:OrgProfileId", Controller.getFinancialReport);
+router.get("/getApprovedPPA/:orgId", Controller.getApprovedPPA);
 router.post(
   "/addReciept",
   Controller.uploadFileAndAddDocument,
@@ -89,13 +94,28 @@ router.get(
 
 /* ********** STUDENT LEADER PROPOSAL ********** */
 router.get(
+  "/getStudentLeaderProposalConduct/:orgProfileId",
+  Controller.getProposalConductByOrgProfile
+);
+router.get(
+  "/getStudentLeaderAccomplishmentReady/:orgProfileId",
+  Controller.getDoneProposalConductsByOrgProfile
+);
+router.get(
   "/getStudentLeaderProposalById/:accreditationId",
   Controller.getStudentPpaByAccreditationId
 );
+router.post("/postStudentLeaderProposal", Controller.postStudentLeaderProposal);
+
 router.post(
-  "/postStudentLeaderProposal",
+  "/postStudentLeaderProposalConduct",
   Controller.uploadFileAndAddDocument,
-  Controller.postStudentLeaderProposal
+  Controller.postProposalConduct
+);
+
+router.post(
+  "/updateStudentLeaderProposal/:",
+  Controller.updateStudentLeaderProposal
 );
 router.post(
   "/UpdateStudentLeaderProposal/:ProposalId",

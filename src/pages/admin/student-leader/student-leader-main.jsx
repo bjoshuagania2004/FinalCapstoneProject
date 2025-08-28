@@ -32,6 +32,8 @@ import FinancialReport from "./accreditation/financial-report.jsx/financial-repo
 import { ProportionCropTool } from "../../../components/image_uploader";
 import { AccreditationDocuments } from "./accreditation/accreditation-document";
 import { StudentProposedPlan } from "./accreditation/propose-plan/proposed-plan";
+import { StudentLeaderProposal } from "./proposal/student-leader-proposals";
+import { StudentLeaderAccomplishmentReport } from "./accomplishment/student-leader-accomplishments";
 
 export default function StudentLeaderMainPage() {
   // User and organization data
@@ -170,12 +172,7 @@ function StudentRoutes({ orgData, accreditationData }) {
 
         <Route
           path="proposal"
-          element={
-            <div className="p-4">
-              <h1 className="text-2xl font-bold">Proposals</h1>
-              <p>Student proposal section content</p>
-            </div>
-          }
+          element={<StudentLeaderProposal orgData={orgData} />}
         />
 
         <Route
@@ -230,12 +227,7 @@ function StudentRoutes({ orgData, accreditationData }) {
 
         <Route
           path="accomplishment"
-          element={
-            <div className="p-4">
-              <h1 className="text-2xl font-bold">Accomplishments</h1>
-              <p>Student accomplishment section content</p>
-            </div>
-          }
+          element={<StudentLeaderAccomplishmentReport orgData={orgData} />}
         />
 
         <Route

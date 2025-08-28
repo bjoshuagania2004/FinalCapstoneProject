@@ -2,8 +2,6 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { API_ROUTER, DOCU_API_ROUTER } from "../../../../../App";
 
-import DocumentUploader from "../../../../../components/document_uploader";
-
 import { X, CheckCircle, ChevronDown, Search } from "lucide-react";
 
 export function AddProposedActionPlan({
@@ -16,7 +14,7 @@ export function AddProposedActionPlan({
   const [formData, setFormData] = useState({
     activityTitle: "",
     briefDetails: "",
-    alignedOrgObjectives: "",
+    AlignedObjective: "",
     alignedSDG: [],
     budgetaryRequirements: "",
     label: "proposal",
@@ -48,20 +46,6 @@ export function AddProposedActionPlan({
     console.log("Selected organizations:", selectedOrgs);
   };
 
-  const handleFileSelect = (file) => {
-    // log metadata first
-    console.log("File selected:", {
-      name: file.name,
-      size: file.size,
-      type: file.type,
-    });
-
-    setFormData((prev) => ({
-      ...prev,
-      documents: [...prev.documents, file], // keep File objects here
-    }));
-  };
-
   // Handle input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -83,7 +67,7 @@ export function AddProposedActionPlan({
 
   // Step navigation
   const nextStep = () => {
-    if (currentStep < 3) {
+    if (currentStep < 2) {
       setCurrentStep(currentStep + 1);
     }
   };
@@ -112,41 +96,18 @@ export function AddProposedActionPlan({
     setUploadSuccess(false);
 
     console.log("=== PROPOSAL SUBMISSION LOG ===");
-    console.log("Form Data (without files):", {
-      ...formData,
-      documents: formData.documents.map((f) => f.name), // just log filenames
-    });
+    console.log("Form Data:", formData);
     console.log("================================");
 
     try {
-      const data = new FormData();
-
-      // Append all non-file fields
-      Object.entries(formData).forEach(([key, value]) => {
-        if (key === "documents") return;
-        if (Array.isArray(value)) {
-          value.forEach((v) => data.append(`${key}[]`, v));
-        } else {
-          data.append(key, value);
-        }
-      });
-
-      // append file(s) correctly as "file"
-      if (formData.documents.length > 0) {
-        data.append("file", formData.documents[0]);
-      }
-
-      console.log("=== FORM DATA PREVIEW (before sending) ===");
-      for (let pair of data.entries()) {
-        console.log(`${pair[0]}:`, pair[1]);
-      }
-      console.log("========================================");
-      // Uncomment when ready to send
+      // Send as regular JSON object
       const response = await axios.post(
-        `${API_ROUTER}/postStudentLeaderProposal/`,
-        data,
+        `${API_ROUTER}/updateStudentLeaderProposal/`,
+        formData, // Send formData directly as JSON
         {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: {
+            "Content-Type": "application/json", // Specify JSON content type
+          },
         }
       );
 
@@ -185,8 +146,6 @@ export function AddProposedActionPlan({
             placeholder="Enter activity title"
           />
         </div>
-
-        {/* Venue */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Venue *
@@ -201,84 +160,96 @@ export function AddProposedActionPlan({
             placeholder="Enter venue location"
           />
         </div>
-
-        <div>
-          {/* Proposal Type */}
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Proposal Type *
-          </label>
-          <input
-            type="text"
-            name="proposalType"
-            value={formData.proposalType}
-            onChange={handleInputChange}
-            required
-            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-            placeholder="Enter proposal type"
-          />
-        </div>
-
-        {/* Proposed Date */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Proposed Month *
-          </label>
-          <input
-            type="month"
-            name="proposedDate"
-            value={formData.proposedDate}
-            onChange={handleInputChange}
-            required
-            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-          />
-        </div>
-
-        {/* Budgetary Requirements */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Budgetary Requirements *
-          </label>
-          <input
-            type="text"
-            name="budgetaryRequirements"
-            value={formData.budgetaryRequirements}
-            onChange={handleInputChange}
-            required
-            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-            placeholder="e.g., ₱50,000 - ₱100,000"
-          />
-        </div>
-        {/* Internal / External */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Proposal Category *
-          </label>
-          <div className="w-full p-3.5 border flex justify-evenly items-center border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent">
-            <label className="flex items-center gap-2">
-              <input
-                type="radio"
-                name="proposalCategory"
-                value="internal"
-                checked={formData.proposalCategory === "internal"}
-                onChange={handleInputChange}
-                className="h-4 w-4 text--amber500 border-gray-300"
-              />
-              <span className="text-sm text-gray-700">Internal</span>
+        <div className="col-span-2 flex gap-4 justify-between">
+          {/* Proposed Date */}
+          <div className="w-full">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Proposed Month *
             </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="radio"
-                name="proposalCategory"
-                value="external"
-                checked={formData.proposalCategory === "external"}
-                onChange={handleInputChange}
-                className="h-4 w-4 text-amber-500 border-gray-300"
-              />
-              <span className="text-sm text-gray-700">External</span>
+            <input
+              type="month"
+              name="proposedDate"
+              value={formData.proposedDate}
+              onChange={handleInputChange}
+              required
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+            />
+          </div>
+
+          {/* Budgetary Requirements */}
+          <div className="w-full">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Budgetary Requirements *
             </label>
+            <input
+              type="number"
+              name="budgetaryRequirements"
+              value={formData.budgetaryRequirements}
+              onChange={handleInputChange}
+              required
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+              placeholder="e.g., ₱50,000 - ₱100,000"
+            />
+          </div>
+          {/* Internal / External */}
+          <div className="w-full">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Proposal Category *
+            </label>
+            <div className="w-full p-3.5 border flex justify-evenly items-center border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent">
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="proposalCategory"
+                  value="internal"
+                  checked={formData.proposalCategory === "internal"}
+                  onChange={handleInputChange}
+                  className="h-4 w-4 text--amber500 border-gray-300"
+                />
+                <span className="text-sm text-gray-700">Internal</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="proposalCategory"
+                  value="external"
+                  checked={formData.proposalCategory === "external"}
+                  onChange={handleInputChange}
+                  className="h-4 w-4 text-amber-500 border-gray-300"
+                />
+                <span className="text-sm text-gray-700">External</span>
+              </label>
+            </div>
           </div>
         </div>
         {/* Cooperating Entities */}
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Brief Details *
+          </label>
+          <textarea
+            name="briefDetails"
+            value={formData.briefDetails}
+            onChange={handleInputChange}
+            required
+            className="w-full h-32 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+            placeholder="Short details about the program"
+          />
+        </div>
+        {/* Cooperating Entities */}
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Aligned Org Objectives*
+          </label>
+          <textarea
+            name="AlignedObjective"
+            value={formData.AlignedObjective}
+            onChange={handleInputChange}
+            required
+            className="w-full h-20 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+            placeholder="Details for Aligned Objective"
+          />
+        </div>
         <div className="md:col-span-2">
           <OrganizationDropdown
             selectedOrgs={selectedOrganizations}
@@ -292,67 +263,65 @@ export function AddProposedActionPlan({
           <label className="block text-sm font-medium text-black mb-2">
             Aligned SDG *
           </label>
-          <div className="max-h-48 overflow-y-auto">
-            <div className="flex flex-wrap gap-2">
-              {[
-                { value: "SDG 1", label: "SDG 1: No Poverty" },
-                { value: "SDG 2", label: "SDG 2: Zero Hunger" },
-                {
-                  value: "SDG 3",
-                  label: "SDG 3: Good Health and Well-being",
-                },
-                { value: "SDG 4", label: "SDG 4: Quality Education" },
-                { value: "SDG 5", label: "SDG 5: Gender Equality" },
-                {
-                  value: "SDG 6",
-                  label: "SDG 6: Clean Water and Sanitation",
-                },
-                {
-                  value: "SDG 7",
-                  label: "SDG 7: Affordable and Clean Energy",
-                },
-                {
-                  value: "SDG 8",
-                  label: "SDG 8: Decent Work and Economic Growth",
-                },
-                {
-                  value: "SDG 9",
-                  label: "SDG 9: Industry, Innovation and Infrastructure",
-                },
-                { value: "SDG 10", label: "SDG 10: Reduced Inequalities" },
-                {
-                  value: "SDG 11",
-                  label: "SDG 11: Sustainable Cities and Communities",
-                },
-                {
-                  value: "SDG 12",
-                  label: "SDG 12: Responsible Consumption and Production",
-                },
-                { value: "SDG 13", label: "SDG 13: Climate Action" },
-                { value: "SDG 14", label: "SDG 14: Life Below Water" },
-                { value: "SDG 15", label: "SDG 15: Life on Land" },
-                {
-                  value: "SDG 16",
-                  label: "SDG 16: Peace, Justice and Strong Institutions",
-                },
-                {
-                  value: "SDG 17",
-                  label: "SDG 17: Partnerships for the Goals",
-                },
-              ].map((sdg) => (
-                <div key={sdg.value} className="bg-gray-200 rounded-full">
-                  <label className="flex items-center space-x-1 p-2 hover:bg-gray-100 rounded cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.alignedSDG.includes(sdg.value)}
-                      onChange={() => handleSDGChange(sdg.value)}
-                      className="appearance-none h-5 w-5 rounded-full border border-gray-400 checked:bg-gray-500 cursor-pointer"
-                    />
-                    <span className="text-sm">{sdg.label}</span>
-                  </label>
-                </div>
-              ))}
-            </div>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { value: "SDG 1", label: "SDG 1: No Poverty" },
+              { value: "SDG 2", label: "SDG 2: Zero Hunger" },
+              {
+                value: "SDG 3",
+                label: "SDG 3: Good Health and Well-being",
+              },
+              { value: "SDG 4", label: "SDG 4: Quality Education" },
+              { value: "SDG 5", label: "SDG 5: Gender Equality" },
+              {
+                value: "SDG 6",
+                label: "SDG 6: Clean Water and Sanitation",
+              },
+              {
+                value: "SDG 7",
+                label: "SDG 7: Affordable and Clean Energy",
+              },
+              {
+                value: "SDG 8",
+                label: "SDG 8: Decent Work and Economic Growth",
+              },
+              {
+                value: "SDG 9",
+                label: "SDG 9: Industry, Innovation and Infrastructure",
+              },
+              { value: "SDG 10", label: "SDG 10: Reduced Inequalities" },
+              {
+                value: "SDG 11",
+                label: "SDG 11: Sustainable Cities and Communities",
+              },
+              {
+                value: "SDG 12",
+                label: "SDG 12: Responsible Consumption and Production",
+              },
+              { value: "SDG 13", label: "SDG 13: Climate Action" },
+              { value: "SDG 14", label: "SDG 14: Life Below Water" },
+              { value: "SDG 15", label: "SDG 15: Life on Land" },
+              {
+                value: "SDG 16",
+                label: "SDG 16: Peace, Justice and Strong Institutions",
+              },
+              {
+                value: "SDG 17",
+                label: "SDG 17: Partnerships for the Goals",
+              },
+            ].map((sdg) => (
+              <div key={sdg.value} className="bg-gray-200 rounded-full">
+                <label className="flex items-center space-x-1 p-2 hover:bg-gray-100 rounded cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.alignedSDG.includes(sdg.value)}
+                    onChange={() => handleSDGChange(sdg.value)}
+                    className="appearance-none h-5 w-5 rounded-full border border-gray-400 checked:bg-amber-500 cursor-pointer"
+                  />
+                  <span className="text-sm">{sdg.label}</span>
+                </label>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -360,33 +329,6 @@ export function AddProposedActionPlan({
   );
 
   const renderStep2 = () => (
-    <div className="space-y-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">
-        Upload Supporting Documents
-      </h3>
-
-      <DocumentUploader
-        onFileSelect={handleFileSelect}
-        showReset={true}
-        title="Upload Proposal PDF"
-      />
-
-      {formData.documents.length > 0 && (
-        <div className="mt-4 bg-gray-50 p-4 rounded-lg border">
-          <h4 className="text-sm font-medium text-gray-700 mb-2">
-            Uploaded Documents:
-          </h4>
-          <ul className="list-disc pl-5 text-sm text-gray-600">
-            {formData.documents.map((doc, index) => (
-              <li key={index}>{doc.name}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
-
-  const renderStep3 = () => (
     <div className="space-y-6 ">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
         Review & Submit
@@ -404,7 +346,14 @@ export function AddProposedActionPlan({
             Budget: {formData.budgetaryRequirements}
           </p>
         </div>
-
+        <div>
+          <p className="text-sm text-gray-600">
+            Brief Details: {formData.briefDetails}
+          </p>
+          <p className="text-sm text-gray-600">
+            Aligned Objective: {formData.AlignedObjective}
+          </p>
+        </div>
         <div>
           <h4 className="font-medium text-gray-900">Aligned SDGs</h4>
           <p className="text-sm text-gray-600">
@@ -446,45 +395,41 @@ export function AddProposedActionPlan({
               Add New Proposed Action Plan
             </h2>
           </div>
+
           <X size={24} onClick={onClose} className="cursor-pointer" />
         </div>
 
         {/* Progress Bar */}
-        <div className="px-6 py-2">
-          <div className="flex items-center justify-evenly mt-4">
-            {[1, 2, 3].map((step) => (
-              <div key={step} className="flex items-center flex-col">
-                <div
-                  className={`w-12 aspect-square rounded-full flex items-center justify-center text-lg font-medium ${
-                    step <= currentStep
-                      ? "bg-amber-600 text-white"
-                      : "bg-gray-200 text-gray-600"
-                  }`}
-                >
-                  {step}
-                </div>
-                {/* Step description directly under circle */}
-                <p className="mt-2 text-sm font-medium text-gray-700">
-                  {step === 1 && "Basic Information"}
-                  {step === 2 && "Document Upload"}
-                  {step === 3 && "Review & Submit"}
-                </p>
-                {step < 3 && (
-                  <div
-                    className={`flex-1 h-1 mx-2 ${
-                      step < currentStep ? "bg-amber-600" : "bg-gray-200"
-                    }`}
-                  />
-                )}
+        <div className="flex py-4 items-center justify-evenly gap-4 border-b border-gray-300">
+          {[1, 2].map((step) => (
+            <div key={step} className="flex items-center flex-col">
+              <div
+                className={`w-12 aspect-square rounded-full flex items-center justify-center text-lg font-medium ${
+                  step <= currentStep
+                    ? "bg-amber-600 text-white"
+                    : "bg-gray-200 text-gray-600"
+                }`}
+              >
+                {step}
               </div>
-            ))}
-          </div>
+              {/* Step description directly under circle */}
+              <p className="mt-2 text-sm font-medium text-gray-700">
+                {step === 1 && "Basic Information"}
+                {step === 2 && "Review & Submit"}
+              </p>
+              {step < 2 && (
+                <div
+                  className={`flex${
+                    step < currentStep ? "bg-amber-600" : "bg-gray-200"
+                  }`}
+                />
+              )}
+            </div>
+          ))}
         </div>
-
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
           {currentStep === 1 && renderStep1()}
           {currentStep === 2 && renderStep2()}
-          {currentStep === 3 && renderStep3()}
         </div>
 
         {/* Navigation Buttons */}
@@ -509,7 +454,7 @@ export function AddProposedActionPlan({
                 Cancel
               </button>
 
-              {currentStep < 3 ? (
+              {currentStep < 2 ? (
                 <button
                   onClick={nextStep}
                   disabled={currentStep === 1 && !isStep1Valid()}

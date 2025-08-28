@@ -5,7 +5,11 @@ import {
   organizationProfileSchema,
 } from "./organization.js";
 import { AdviserSchema, userSchema } from "./users.js";
-import { proposalSchema, ProposedActionPlanSchema } from "./proposals.js";
+import {
+  proposalConductSchema,
+  proposalSchema,
+  ProposedActionPlanSchema,
+} from "./proposals.js";
 import { documentSchema } from "./document.js";
 import { accreditationSchema } from "./accreditation.js";
 import { rosterMembersSchema, rosterSchema } from "./roster.js";
@@ -18,6 +22,10 @@ const Adviser = mongoose.model("Advisers", AdviserSchema);
 const Receipt = mongoose.model("Receipts", ReceiptSchema);
 const Document = mongoose.model("Documents", documentSchema);
 const Proposal = mongoose.model("Proposals", proposalSchema);
+const ProposalConduct = mongoose.model(
+  "ProposalsConduct",
+  proposalConductSchema
+);
 const Roster = mongoose.model("Roster", rosterSchema);
 const RosterMember = mongoose.model("RosterMembers", rosterMembersSchema);
 const Organization = mongoose.model("Organizations", organizationSchema);
@@ -51,6 +59,7 @@ export {
   Roster,
   RosterMember,
   Organization,
+  ProposalConduct,
   Accreditation,
   Accomplishment,
   ProposedActionPlan,

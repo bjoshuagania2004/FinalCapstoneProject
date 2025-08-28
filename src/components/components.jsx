@@ -1,7 +1,13 @@
 import axios from "axios";
 import { API_ROUTER, DOCU_API_ROUTER } from "../App";
 import React, { useEffect, useState } from "react";
-import { ChevronDown, Search } from "lucide-react";
+import {
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+  ChevronDown,
+  Search,
+} from "lucide-react";
 
 export function OrganizationDropdown({ selectedOrg, onSelectOrg }) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -170,6 +176,54 @@ export function OrganizationDropdown({ selectedOrg, onSelectOrg }) {
             )}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+export function DonePopUp({
+  type = "success", // "success" | "error" | "warning"
+  message = "Action completed successfully!",
+  onClose,
+}) {
+  // Auto close after 3 seconds (optional)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (onClose) onClose();
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  const styles = {
+    success: {
+      icon: <CheckCircle className="w-12 h-12 text-green-500" />,
+      bg: "bg-green-100 border-green-500",
+    },
+    error: {
+      icon: <XCircle className="w-12 h-12 text-red-500" />,
+      bg: "bg-red-100 border-red-500",
+    },
+    warning: {
+      icon: <AlertTriangle className="w-12 h-12 text-yellow-500" />,
+      bg: "bg-yellow-100 border-yellow-500",
+    },
+  };
+
+  const { icon, bg } = styles[type] || styles.success;
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
+      <div
+        className={`flex flex-col items-center p-6 rounded-2xl shadow-lg border ${bg} max-w-sm w-full`}
+      >
+        {icon}
+        <p className="mt-3 text-center text-lg font-semibold">{message}</p>
+        <button
+          onClick={onClose}
+          className="mt-4 bg-white px-4 py-2 rounded-lg shadow hover:bg-gray-100"
+        >
+          Close
+        </button>
       </div>
     </div>
   );
