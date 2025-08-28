@@ -123,13 +123,16 @@ function DekstopNavigation({ scrollToSection }) {
       <div id="section0" className="pt-16">
         <div className="h-screen w-full flex justify-center items-center">
           <div className="bg-red-500 container mx-auto w-1 h-1/3" />
-          <div className="h-full flex flex-col gap-0 items-start px-8 justify-center w-1/3">
-            <p className="stroked-text-cnsc text-[100px]">CNSC</p>
-            <p className="stroked-text-codex text-[100px]">CODEX</p>
-            <h1 className="text-white text-2xl font-bold italic">
+          <div className="h-full flex flex-col items-start px-8 justify-center w-1/3">
+            <p className="stroked-text-cnsc text-[100px] leading-[90px]">
+              CNSC
+            </p>
+            <p className="stroked-text-codex text-[100px] -mt-6">CODEX</p>
+            <h1 className="text-white text-2xl font-bold italic mt-4">
               Document Tracking and Data Management for Student Organizations
             </h1>
           </div>
+
           <div className="h-full items-center flex justify-center w-1/3">
             {showRegistration ? (
               <RegistrationForm
