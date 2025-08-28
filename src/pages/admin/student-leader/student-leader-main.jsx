@@ -348,7 +348,7 @@ function StudentNavigation({ orgData }) {
     <>
       <div className=" h-full w-full flex-col">
         <div className="text-white mt-2 mb-4 font-bold flex items-center space-x-4 hover:cursor-pointer">
-          <div className="w-20 aspect-square rounded-full bg-cnsc-secondary-color flex items-center justify-center text-2xl cursor-pointer overflow-hidden hover:bg-white hover:text-cnsc-primary-color transition-all duration-500">
+          <div className="my-1 ml-3 w-15 aspect-square rounded-full bg-cnsc-secondary-color flex items-center justify-center text-2xl cursor-pointer overflow-hidden hover:bg-white hover:text-cnsc-primary-color transition-all duration-500">
             {imageSrc ? (
               <img
                 src={imageSrc}
@@ -371,41 +371,42 @@ function StudentNavigation({ orgData }) {
           <h1>{orgData.orgName}</h1>
         </div>
 
-        <nav className="flex flex-col ">
+        {/* Navigation */}
+        <nav className="flex flex-col gap-2">
           {[
             {
               key: "home",
-              icon: <Home className="mr-2 w-5 h-5" />,
-              label: "Reports/Dashboard",
+              icon: <Home className="mr-3 w-5 h-5" />,
+              label: "Reports / Dashboard",
               path: "/student-leader",
             },
             {
               key: "accreditations",
-              icon: <FolderOpen className="mr-2 w-5 h-5" />,
+              icon: <FolderOpen className="mr-3 w-5 h-5" />,
               label: "Accreditations",
               path: "/student-leader/accreditation",
             },
             {
               key: "accomplishments",
-              icon: <File className="mr-2 w-5 h-5" />,
+              icon: <File className="mr-3 w-5 h-5" />,
               label: "Accomplishments",
               path: "/student-leader/accomplishment",
             },
             {
               key: "proposals",
-              icon: <FileText className="mr-2 w-5 h-5" />,
+              icon: <FileText className="mr-3 w-5 h-5" />,
               label: "Proposals",
               path: "/student-leader/proposal",
             },
             {
               key: "post",
-              icon: <PenSquare className="mr-2 w-5 h-5" />,
+              icon: <PenSquare className="mr-3 w-5 h-5" />,
               label: "Post",
               path: "/student-leader/post",
             },
             {
               key: "logs",
-              icon: <Clock className="mr-2 w-5 h-5" />,
+              icon: <Clock className="mr-3 w-5 h-5" />,
               label: "Logs",
               path: "/student-leader/log",
             },
@@ -415,10 +416,10 @@ function StudentNavigation({ orgData }) {
               to={item.path}
               end={item.key === "home"}
               className={({ isActive }) =>
-                `flex items-center py-6 text-lg font-medium transition-all duration-500 ${
+                `flex items-center rounded-xl py-4 px-6 text-lg font-medium transition-all duration-300 ${
                   isActive
-                    ? "px-12 bg-white text-cnsc-primary-color"
-                    : "px-4 text-white hover:bg-amber-500"
+                    ? "bg-white text-cnsc-primary-color shadow-md"
+                    : "text-white hover:bg-amber-500/90 hover:pl-8"
                 }`
               }
             >
@@ -429,40 +430,44 @@ function StudentNavigation({ orgData }) {
         </nav>
       </div>
 
+      {/* Upload Logo Modal */}
       {isUploadingLogo && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-6">
-          <div className="bg-white p-6 rounded-xl shadow-xl min-w-96 w-fit relative">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-bold mb-4">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white p-6 rounded-2xl shadow-2xl w-[420px] relative animate-fadeIn">
+            {/* Modal Header */}
+            <div className="flex justify-between items-center border-b pb-3 mb-4">
+              <h2 className="text-xl font-bold text-cnsc-primary-color">
                 Upload Organization Logo
               </h2>
               <X
-                size={32}
+                size={28}
                 onClick={cancelUploadLogo}
                 className="cursor-pointer hover:text-red-500 transition-colors"
               />
             </div>
 
+            {/* Crop Tool */}
             <ProportionCropTool
               cropRef={cropRef}
               file={selectedFile}
               onCropComplete={handleCropComplete}
               initialProportion="1:1"
               acceptedFormats="image/*"
-              className="bg-white"
+              className="bg-gray-100 rounded-lg shadow-inner"
             />
 
-            <div className="mt-4 flex justify-end gap-3">
+            {/* Buttons */}
+            <div className="mt-6 flex justify-end gap-3">
               <button
                 onClick={cancelUploadLogo}
-                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors disabled:opacity-50"
+                className="bg-gray-400 text-white px-5 py-2 rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50"
                 disabled={isUploading}
               >
                 Cancel
               </button>
               <button
                 onClick={handleSubmitOrgLogo}
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                className="bg-cnsc-primary-color text-white px-5 py-2 rounded-lg shadow hover:bg-cnsc-secondary-color disabled:opacity-50 transition-colors"
                 disabled={isUploading}
               >
                 {isUploading ? "Uploading..." : "Crop & Upload"}

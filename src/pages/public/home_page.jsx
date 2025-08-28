@@ -259,11 +259,11 @@ function OrganzationComponent() {
 
 function EventCalendarComponent() {
   return (
-    <div className="text-center min-h-screen bg-violet-100 p-8">
-      <h2 className="text-3xl font-bold text-purple-800 mb-4">
+    <div className="text-center min-h-screen bg-amber-100 p-8">
+      <h2 className="text-3xl font-bold text-amber-800 mb-4">
         Latest Posts & Updates
       </h2>
-      <p className="text-base text-purple-600">
+      <p className="text-base text-amber-600">
         Stay updated with the latest news and announcements.
       </p>
     </div>
@@ -328,13 +328,16 @@ function DekstopNavigation({ scrollToSection }) {
       <div id="section0" className="pt-16">
         <div className="h-screen w-full flex justify-center items-center">
           <div className="bg-red-500 container mx-auto w-1 h-1/3" />
-          <div className="h-full flex flex-col gap-0 items-start px-8 justify-center w-1/3">
-            <p className="stroked-text-cnsc text-[100px]">CNSC</p>
-            <p className="stroked-text-codex text-[100px]">CODEX</p>
-            <h1 className="text-white text-2xl font-bold italic">
+          <div className="h-full flex flex-col items-start px-8 justify-center w-1/3">
+            <p className="stroked-text-cnsc text-[100px] leading-[90px]">
+              CNSC
+            </p>
+            <p className="stroked-text-codex text-[100px] -mt-6">CODEX</p>
+            <h1 className="text-white text-2xl font-bold italic mt-4">
               Document Tracking and Data Management for Student Organizations
             </h1>
           </div>
+
           <div className="h-full items-center flex justify-center w-1/3">
             {showRegistration ? (
               <RegistrationForm
