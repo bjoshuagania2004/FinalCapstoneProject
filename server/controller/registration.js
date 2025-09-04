@@ -77,7 +77,7 @@ export const PostInitialOrganizationProfile = async (req, res) => {
       orgSpecialization,
       orgStatus,
       orgLogo,
-
+      orgEmail,
       originalName = orgName,
       currentName = orgName,
       isActive = true,
@@ -216,6 +216,47 @@ export const PostInitialOrganizationProfile = async (req, res) => {
       { organizationProfile: savedOrgProfile._id },
       { new: true }
     );
+
+    // Step 11: Send email to adviser with initial password
+    const org_email_subject = "Organization Adviser Account Created";
+    const org_email_message = `
+        Hello ${adviserName},
+
+        Your adviser account has been successfully created for the organization "${orgName}".
+
+        Here are your login details:
+        - Email: ${adviserEmail}
+        - Initial Password: ${initialPassword}
+
+        Please log in and change your password as soon as possible.
+
+        Thank you.
+        `;
+
+    await NodeEmail(adviserEmail, org_email_subject, org_email_message);
+
+    // Step 12: Send email to organization notifying about adviser account
+    const org_notify_subject = "Organization Accreditation Update";
+    const org_notify_message = `
+        Hello ${orgName},
+
+        An adviser account has been successfully created for your organization.
+
+        Adviser Details:
+        - Name: ${adviserName}
+        - Email: ${adviserEmail}
+
+        The adviser has been notified with their initial login credentials and the system is now waiting for their response.
+
+        You will be updated once your adviser confirms.
+
+        Thank you,
+        Accreditation Committee
+        `;
+
+    // 📩 send to org email (assuming orgLogo or other field doesn't store email)
+    // If you have an `orgEmail` field in your schema, use that instead of adviserEmail
+    await NodeEmail(orgEmail, org_notify_subject, org_notify_message);
 
     res.status(200).json({
       message: "Organization profile created and adviser assigned.",
