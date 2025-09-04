@@ -167,49 +167,47 @@ export default function StudentLeaderPresidentListComponent({
   }
 
   return (
-    <div className="flex flex-col h-full w-full gap-4 overflow-auto p-3">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Current President */}
-        <div className="lg:col-span-2">
-          {currentPresident ? (
-            <CurrentPresidentCard
-              currentPresident={currentPresident}
-              orgData={orgData}
-            />
-          ) : (
-            <div
-              onClick={handleAdd}
-              className="group bg-white rounded-xl border border-gray-200 hover:border-indigo-400 hover:shadow-md p-4 flex flex-col justify-center items-center text-center cursor-pointer transition-all duration-200"
-            >
-              <div className="w-20 h-20 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-full flex items-center justify-center border border-indigo-200 group-hover:border-indigo-400 group-hover:scale-105 transition-all duration-200">
-                <Plus
-                  size={40}
-                  className="text-indigo-600 group-hover:text-indigo-700"
-                />
-              </div>
-              <h3 className="text-base font-semibold text-gray-800 mt-3 group-hover:text-indigo-700 transition-colors duration-200">
-                Add Current President
-              </h3>
-              <p className="text-xs text-gray-500 mt-1 group-hover:text-gray-600 transition-colors duration-200">
-                Click to add a new president
-              </p>
+    <div className="flex  h-full w-full gap-4 overflow-auto p-3">
+      {/* Current President */}
+      <div className="lg:col-span-2 w-full m-3">
+        {currentPresident ? (
+          <CurrentPresidentCard
+            currentPresident={currentPresident}
+            orgData={orgData}
+          />
+        ) : (
+          <div
+            onClick={handleAdd}
+            className="group bg-white rounded-xl border border-gray-200 hover:border-indigo-400 hover:shadow-md p-4 flex flex-col justify-center items-center text-center cursor-pointer transition-all duration-200"
+          >
+            <div className="w-20 h-20 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-full flex items-center justify-center border border-indigo-200 group-hover:border-indigo-400 group-hover:scale-105 transition-all duration-200">
+              <Plus
+                size={40}
+                className="text-indigo-600 group-hover:text-indigo-700"
+              />
             </div>
-          )}
-        </div>
-
-        {/* Previous Presidents */}
-        {remainingPresidents.map((president) => (
-          <div key={president._id} className="col-span-1">
-            <PresidentCard
-              president={president}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onUploadPhoto={handleUploadPhoto}
-              showActions={false}
-            />
+            <h3 className="text-base font-semibold text-gray-800 mt-3 group-hover:text-indigo-700 transition-colors duration-200">
+              Add Current President
+            </h3>
+            <p className="text-xs text-gray-500 mt-1 group-hover:text-gray-600 transition-colors duration-200">
+              Click to add a new president
+            </p>
           </div>
-        ))}
+        )}
       </div>
+
+      {/* Previous Presidents */}
+      {remainingPresidents.map((president) => (
+        <div key={president._id} className="col-span-1">
+          <PresidentCard
+            president={president}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onUploadPhoto={handleUploadPhoto}
+            showActions={false}
+          />
+        </div>
+      ))}
 
       {/* Modal */}
       {showAddForm && (

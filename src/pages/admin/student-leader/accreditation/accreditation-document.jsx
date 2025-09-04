@@ -230,15 +230,16 @@ export function AccreditationDocuments({ orgData }) {
     accreditationData;
 
   return (
-    <div className="mt-4 flex flex-col bg-white  gap-4 p-4 h-full">
-      {/* Header */}
-      <div className="bg-white rounded-lg shadow-sm border p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+    <div className="min-h-screen flex flex-col bg-gray-50 p-6 gap-6">
+      {/* Header Section */}
+      <div className="bg-white rounded-2xl shadow-md border p-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">
           Accreditation Summary
         </h2>
-        <div className="flex justify-evenly gap-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-emerald-50 rounded-xl p-4 text-center shadow-sm border border-emerald-100">
+            <div className="text-3xl font-extrabold text-emerald-600">
               {
                 [
                   JointStatement,
@@ -247,10 +248,13 @@ export function AccreditationDocuments({ orgData }) {
                 ].filter((doc) => doc?.status === "Approved").length
               }
             </div>
-            <div className="text-sm text-gray-600">Approved Documents</div>
+            <div className="text-sm text-emerald-700 mt-1">
+              Approved Documents
+            </div>
           </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-yellow-600">
+
+          <div className="bg-amber-50 rounded-xl p-4 text-center shadow-sm border border-amber-100">
+            <div className="text-3xl font-extrabold text-amber-500">
               {
                 [
                   JointStatement,
@@ -259,10 +263,11 @@ export function AccreditationDocuments({ orgData }) {
                 ].filter((doc) => doc?.status === "Pending").length
               }
             </div>
-            <div className="text-sm text-gray-600">Pending Review</div>
+            <div className="text-sm text-amber-700 mt-1">Pending Review</div>
           </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-gray-600">
+
+          <div className="bg-gray-100 rounded-xl p-4 text-center shadow-sm border border-gray-200">
+            <div className="text-3xl font-extrabold text-gray-700">
               {
                 [
                   JointStatement,
@@ -271,15 +276,17 @@ export function AccreditationDocuments({ orgData }) {
                 ].filter((doc) => doc === null).length
               }
             </div>
-            <div className="text-sm text-gray-600">Missing Documents</div>
+            <div className="text-sm text-gray-600 mt-1">Missing Documents</div>
           </div>
         </div>
       </div>
-      <h2 className="text-2xl font-bold text-gray-900 ">
+
+      <h2 className="text-xl font-semibold text-gray-800 tracking-tight">
         Accreditation Documents
       </h2>
+
       {/* Documents Grid */}
-      <div className="grid h-full grid-cols-1 lg:grid-cols-3 gap-4 min-h-[500px]">
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
         <DocumentCard
           label="Joint Statement"
           doc={JointStatement}
@@ -299,36 +306,36 @@ export function AccreditationDocuments({ orgData }) {
 
       {/* Upload Modal */}
       {showPopup && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full relative shadow-2xl animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-8 max-w-lg w-full shadow-2xl relative">
             <button
               onClick={closePopup}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100"
             >
               <X className="w-5 h-5" />
             </button>
 
             {showSuccess ? (
-              <div className="text-center py-8">
+              <div className="text-center">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <CheckCircle className="w-8 h-8 text-green-600" />
                 </div>
-                <h3 className="text-xl font-semibold text-green-700 mb-2">
+                <h3 className="text-xl font-bold text-green-700">
                   Upload Complete!
                 </h3>
-                <p className="text-gray-600">
-                  Your document has been successfully uploaded and is pending
-                  review.
+                <p className="text-gray-600 mt-2">
+                  Your document has been successfully uploaded and is now
+                  pending review.
                 </p>
               </div>
             ) : (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  <h3 className="text-xl font-semibold text-gray-900">
                     Upload {formatDocumentName(uploadingDocType)}
                   </h3>
-                  <p className="text-gray-600 text-sm">
-                    Select a PDF file to upload for review
+                  <p className="text-sm text-gray-500">
+                    Please select a PDF file for review
                   </p>
                 </div>
 
@@ -341,11 +348,11 @@ export function AccreditationDocuments({ orgData }) {
                 />
 
                 {selectedFile && (
-                  <div className="flex gap-3 pt-4 border-t border-gray-100">
+                  <div className="flex gap-3 pt-4 border-t border-gray-200">
                     <button
                       onClick={handleUpload}
                       disabled={isUploading}
-                      className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                      className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 font-medium"
                     >
                       {isUploading ? (
                         <div className="flex items-center justify-center gap-2">
@@ -359,7 +366,7 @@ export function AccreditationDocuments({ orgData }) {
                     <button
                       onClick={closePopup}
                       disabled={isUploading}
-                      className="px-6 py-3 text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-xl transition-colors font-medium"
+                      className="px-6 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition-colors font-medium"
                     >
                       Cancel
                     </button>
@@ -371,138 +378,101 @@ export function AccreditationDocuments({ orgData }) {
         </div>
       )}
 
-      {/* Document Details Modal */}
+      {/* Details Modal */}
       {showDetailsPopup && selectedDocumentDetails && (
-        <div className="fixed inset-0 bg-black/10 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl max-w-3/4 max-h-11/12 w-full h-full overflow-hidden relative shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl h-[80vh] flex flex-col relative">
             <button
               onClick={closeDetailsPopup}
-              className="absolute top-4 right-4 z-10 text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100 bg-white/80 backdrop-blur-sm"
+              className="absolute top-4 right-4 bg-white/80 backdrop-blur-sm p-2 rounded-full hover:bg-gray-100 text-gray-500"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <div className="flex h-full ">
-              {/* Left Panel - Document Info */}
-              <div className="w-80 bg-gray-50 p-6 border-r border-gray-200 overflow-y-auto">
-                <div className="space-y-6">
+            <div className="flex h-full">
+              {/* Left Info Panel */}
+              <div className="w-80 bg-gray-50 p-6 border-r overflow-y-auto space-y-6">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-blue-600" />
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Document Details
+                  </h3>
+                </div>
+
+                <div className="space-y-4">
                   <div>
-                    <div className="flex items-center gap-2 mb-3">
-                      <FileText className="w-6 h-6 text-blue-600" />
-                      <h3 className="text-xl font-semibold text-gray-900">
-                        Document Details
-                      </h3>
-                    </div>
+                    <label className="text-sm font-medium text-gray-600">
+                      Document Type
+                    </label>
+                    <p className="text-gray-900 font-medium">
+                      {selectedDocumentDetails.label}
+                    </p>
                   </div>
 
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium text-gray-600 block mb-1">
-                        Document Type
-                      </label>
-                      <p className="text-lg font-medium text-gray-900">
-                        {selectedDocumentDetails.label}
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium text-gray-600 block mb-1">
-                        File Name
-                      </label>
-                      <p className="text-gray-900 break-all">
-                        {selectedDocumentDetails.fileName}
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium text-gray-600 block mb-1">
-                        Status
-                      </label>
-                      <div
-                        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${getStatusStyle(
-                          selectedDocumentDetails.status
-                        )}`}
-                      >
-                        {getStatusIcon(selectedDocumentDetails.status)}
-                        <span>{selectedDocumentDetails.status}</span>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium text-gray-600 block mb-1">
-                        Upload Date
-                      </label>
-                      <div className="flex items-center gap-2 text-gray-900">
-                        <Calendar className="w-4 h-4 text-gray-500" />
-                        <span>
-                          {new Date(
-                            selectedDocumentDetails.createdAt
-                          ).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </span>
-                      </div>
-                    </div>
-
-                    {selectedDocumentDetails.status === "Pending" && (
-                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Clock className="w-4 h-4 text-amber-600" />
-                          <p className="font-medium text-amber-800">
-                            Pending Review
-                          </p>
-                        </div>
-                        <p className="text-sm text-amber-700">
-                          This document is currently being reviewed by
-                          administrators. You will be notified once the review
-                          is complete.
-                        </p>
-                      </div>
-                    )}
-
-                    {selectedDocumentDetails.status === "Approved" && (
-                      <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <CheckCircle className="w-4 h-4 text-emerald-600" />
-                          <p className="font-medium text-emerald-800">
-                            Approved
-                          </p>
-                        </div>
-                        <p className="text-sm text-emerald-700">
-                          This document has been reviewed and approved by
-                          administrators.
-                        </p>
-                      </div>
-                    )}
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">
+                      File Name
+                    </label>
+                    <p className="text-gray-900 break-words">
+                      {selectedDocumentDetails.fileName}
+                    </p>
                   </div>
 
-                  <div className="pt-4 border-t border-gray-200">
-                    <a
-                      href={selectedDocumentDetails.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center gap-2"
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">
+                      Status
+                    </label>
+                    <div
+                      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${getStatusStyle(
+                        selectedDocumentDetails.status
+                      )}`}
                     >
-                      <Download className="w-4 h-4" />
-                      Download Document
-                    </a>
+                      {getStatusIcon(selectedDocumentDetails.status)}
+                      <span>{selectedDocumentDetails.status}</span>
+                    </div>
                   </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">
+                      Upload Date
+                    </label>
+                    <div className="flex items-center gap-2 text-gray-900">
+                      <Calendar className="w-4 h-4 text-gray-500" />
+                      <span>
+                        {new Date(
+                          selectedDocumentDetails.createdAt
+                        ).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t">
+                  <a
+                    href={selectedDocumentDetails.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center gap-2"
+                  >
+                    <Download className="w-4 h-4" />
+                    Download Document
+                  </a>
                 </div>
               </div>
 
-              {/* Right Panel - PDF Viewer */}
+              {/* Right PDF Panel */}
               <div className="flex-1 bg-white">
-                <div className="h-full">
-                  <iframe
-                    src={`${selectedDocumentDetails.url}#toolbar=1&navpanes=1`}
-                    title={`${selectedDocumentDetails.label} PDF Viewer`}
-                    className="w-full h-full"
-                  />
-                </div>
+                <iframe
+                  src={`${selectedDocumentDetails.url}#toolbar=1&navpanes=1`}
+                  title={`${selectedDocumentDetails.label} PDF Viewer`}
+                  className="w-full h-full rounded-r-2xl"
+                />
               </div>
             </div>
           </div>
