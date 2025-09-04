@@ -1,14 +1,21 @@
-import { RosterMember, Accreditation, Roster } from "../models/index.js";
+import { RosterMember, Accreditation, Roster, User } from "../models/index.js";
+import { NodeEmail } from "../middleware/emailer.js";
 
 export const ApprovedRosterList = async (req, res) => {
-  console.log("Approving roster list...", req.params);
+  console.log("Updating roster list...", req.params, req.body);
   try {
     const { rosterId } = req.params;
+    const { overAllStatus, revisionNotes, isComplete } = req.body;
 
-    // Find and update the roster's overall status
+    // Build an update object only with fields that were passed
+    const updateFields = {};
+    if (overAllStatus) updateFields.overAllStatus = overAllStatus;
+    if (revisionNotes !== undefined) updateFields.revisionNotes = revisionNotes;
+    if (isComplete !== undefined) updateFields.isComplete = isComplete;
+
     const updatedRoster = await Roster.findByIdAndUpdate(
       rosterId,
-      { overAllStatus: "Approved" },
+      updateFields,
       { new: true }
     );
 
@@ -16,15 +23,47 @@ export const ApprovedRosterList = async (req, res) => {
       return res.status(404).json({ message: "Roster not found" });
     }
 
-    res.status(200).json({
-      message: "Roster status updated successfully",
-      roster: updatedRoster,
-    });
+    res.status(200).json(updatedRoster);
   } catch (error) {
-    console.error("Error updating roster status:", error);
+    console.error("Error updating roster:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
+
+export const SendEmailToOrgUsers = async (req, res) => {
+  try {
+    const { organizationId, subject, message } = req.body;
+
+    if (!organizationId || !subject || !message) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    // 🔍 Find users linked to this OrganizationProfile and position = Student-Leader
+    const users = await User.find({
+      organizationProfile: organizationId,
+      position: "student-leader", // ✅ filter by role
+    });
+
+    if (!users || users.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No users found for this organization" });
+    }
+
+    // ✉️ Send email to each user
+    const emailPromises = users.map((user) =>
+      NodeEmail(user.email, subject, message)
+    );
+
+    res.status(200).json({
+      message: "Emails processed",
+    });
+  } catch (error) {
+    console.error("Error in SendEmailToOrgUsers:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 export const revisionNoteRosterList = async (req, res) => {
   console.log("Approving roster list...", req.params);
   try {

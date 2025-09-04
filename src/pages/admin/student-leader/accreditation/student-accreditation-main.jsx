@@ -15,7 +15,6 @@ import {
   MapPin,
   Award,
   Star,
-  Codesandbox,
 } from "lucide-react";
 import axios from "axios";
 import { API_ROUTER, DOCU_API_ROUTER } from "../../../../App";

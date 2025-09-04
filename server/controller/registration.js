@@ -14,6 +14,54 @@ const nanoid = customAlphabet(
 );
 const initialPassword = nanoid();
 
+export const ChangePasswordAdviser = async (req, res) => {
+  try {
+    const { adviserId, newPassword } = req.body;
+    const { userId } = req.params; // ✅ lowercase params
+
+    if (!adviserId || !newPassword || !userId) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    console.log(req.body);
+    console.log(req.params);
+    // 🔒 Hash password
+    // const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Step 1: Update User password
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { password: newPassword },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Step 2: Update Adviser firstLogin -> false
+    const updatedAdviser = await Adviser.findByIdAndUpdate(
+      adviserId,
+      { firstLogin: false },
+      { new: true }
+    );
+
+    if (!updatedAdviser) {
+      return res.status(404).json({ message: "Adviser not found" });
+    }
+
+    res.status(200).json({
+      message:
+        "Password updated successfully and first login status set to false",
+      user: updatedUser,
+      adviser: updatedAdviser,
+    });
+  } catch (error) {
+    console.error("Error in ChangePasswordAdviser:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 export const PostInitialOrganizationProfile = async (req, res) => {
   try {
     const {
@@ -116,7 +164,7 @@ export const PostInitialOrganizationProfile = async (req, res) => {
         name: adviserName,
         email: adviserEmail,
         password: initialPassword, // 🚨 stored as plain text (your choice)
-        role: "Adviser", // You can set a role or type field
+        position: "Adviser", // You can set a role or type field
         organizationProfile: null, // will update below
         adviser: adviserAccount._id, // link to adviser profile
       });

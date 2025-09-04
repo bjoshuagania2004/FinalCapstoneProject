@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import AddRosterForm from "./add-roster-member";
 import { API_ROUTER, DOCU_API_ROUTER } from "../../../../../App";
 import axios from "axios";
+import { MoreHorizontal, X } from "lucide-react";
 
 export default function StudentLeaderRosters({ orgData }) {
   const [showDropdown, setShowDropdown] = useState(false);
@@ -115,30 +116,13 @@ export default function StudentLeaderRosters({ orgData }) {
           </h1>
         </div>
         {/* Dropdown Container */}
-        <div className="relative w-64  dropdown-container">
-          <button
-            className={`bg-cnsc-primary-color justify-between w-full  hover:bg-cnsc-primary-color/90 text-white px-4 py-2 transition-colors flex items-center gap-2 ${
-              showDropdown ? "rounded-t-lg" : "rounded-lg"
-            }`}
+        <div className="relative  dropdown-container">
+          <MoreHorizontal
+            size={32}
             onClick={() => setShowDropdown(!showDropdown)}
           >
             Actions
-            <svg
-              className={`w-4 h-4 transition-transform ${
-                showDropdown ? "rotate-180" : ""
-              }`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          </button>
+          </MoreHorizontal>
 
           {/* Dropdown Menu */}
           {showDropdown && (
@@ -210,7 +194,7 @@ export default function StudentLeaderRosters({ orgData }) {
       {activeModal === "export" && (
         <SubmitForCompletion
           rosterId={rosterData.roster._id}
-          onFinish={() => setActiveModal(null)}
+          onFinish={(() => setActiveModal(null), fetchRosterMembers())}
           onClose={() => setActiveModal(null)}
         />
       )}
@@ -230,7 +214,6 @@ const SubmitForCompletion = ({ rosterId, onClose }) => {
         `${API_ROUTER}/CompleteStudentRoster/${rosterId}`
       );
       console.log("Success:", response);
-      alert("Roster submitted successfully!");
 
       // Wait 1 second before refreshing/closing
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -246,8 +229,9 @@ const SubmitForCompletion = ({ rosterId, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="h-1/4 w-full max-w-xl bg-white flex flex-col justify-center items-center rounded-xl p-6">
+      <div className="h-fit relative w-fit px-12 py-6 max-w-xl bg-white flex flex-col justify-center items-center rounded-xl ">
         <h1 className="text-lg font-semibold mb-6">Submit for completion?</h1>
+        <X className="absolute top-4 right-4" />
         <div className="flex gap-4">
           <button
             onClick={handleSubmit}

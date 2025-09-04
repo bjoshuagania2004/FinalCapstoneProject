@@ -5,6 +5,35 @@ import {
   Adviser,
 } from "../models/index.js";
 
+export const GetAccreditationDocuments = async (req, res) => {
+  const orgProfileId = req.params.orgProfileId;
+
+  try {
+    let accreditation = await Accreditation.findOne({
+      organizationProfile: orgProfileId,
+      isActive: true, // only fetch if active
+    })
+      .populate([
+        "JointStatement",
+        "PledgeAgainstHazing",
+        "ConstitutionAndByLaws",
+      ])
+      .select(" JointStatement PledgeAgainstHazing ConstitutionAndByLaws  ") // only return document fields
+      .exec();
+
+    if (!accreditation) {
+      return res.status(404).json({
+        message: "No active accreditation found for this organization.",
+      });
+    }
+
+    res.status(200).json(accreditation);
+  } catch (error) {
+    console.error("Error fetching accreditation documents:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
 export const DeactivateAllAccreditations = async (req, res) => {
   try {
     const result = await Accreditation.updateMany(
