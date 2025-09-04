@@ -26,7 +26,7 @@ export function AdviserProposal({ orgData }) {
   const [showViewModal, setShowViewModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showManageModal, setShowManageModal] = useState(false);
-  const [showRevisionModal, setShowRevisionModal] = useState(true);
+  const [showRevisionModal, setShowRevisionModal] = useState(false);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [editForm, setEditForm] = useState({});
   const [loading, setLoading] = useState(false);
@@ -149,6 +149,7 @@ export function AdviserProposal({ orgData }) {
 
   const handleEdit = (proposal) => {
     setSelectedProposal(proposal);
+
     setEditForm({
       activityTitle: proposal.activityTitle,
       proposedDate: proposal.proposedDate.split("T")[0],
@@ -162,6 +163,8 @@ export function AdviserProposal({ orgData }) {
   };
 
   const handleView = (proposal) => {
+    console.log(proposal);
+
     setSelectedProposal(proposal);
     setShowViewModal(true);
   };
@@ -174,16 +177,58 @@ export function AdviserProposal({ orgData }) {
     setShowApprovalModal(true);
   };
 
-  const submitRevision = () => {
-    console.log("Revision submitted:", revisionNotes);
-    setShowRevisionModal(false);
+  const submitUpdate = async ({ status }) => {
+    try {
+      // build payload dynamically
+      const payload = {
+        overallStatus: status, // 👈 interchangeable status
+      };
+
+      if (revisionNotes && revisionNotes.trim() !== "") {
+        payload.revisionNotes = revisionNotes;
+      }
+
+      const response = await axios.post(
+        `${API_ROUTER}/postUpdateProposal/${selectedProposal._id}`,
+        payload
+      );
+
+      console.log("✅ Approval success:", response.data);
+      setShowRevisionModal(false);
+    } catch (error) {
+      console.log("❌ Approval failed:", error);
+    }
   };
 
-  const submitApproval = () => {
-    // Handle approval logic here
-    console.log("Proposal approved");
-    setShowApprovalModal(false);
-    // Update proposal status to approved
+  const SDG_DESCRIPTIONS = {
+    "SDG 1": "End poverty in all its forms everywhere.",
+    "SDG 2":
+      "End hunger, achieve food security and improved nutrition, and promote sustainable agriculture.",
+    "SDG 3": "Ensure healthy lives and promote well-being for all at all ages.",
+    "SDG 4":
+      "Ensure inclusive and equitable quality education and promote lifelong learning opportunities for all.",
+    "SDG 5": "Achieve gender equality and empower all women and girls.",
+    "SDG 6":
+      "Ensure availability and sustainable management of water and sanitation for all.",
+    "SDG 7":
+      "Ensure access to affordable, reliable, sustainable, and modern energy for all.",
+    "SDG 8":
+      "Promote sustained, inclusive, and sustainable economic growth, full and productive employment, and decent work for all.",
+    "SDG 9":
+      "Build resilient infrastructure, promote inclusive and sustainable industrialization, and foster innovation.",
+    "SDG 10": "Reduce inequality within and among countries.",
+    "SDG 11":
+      "Make cities and human settlements inclusive, safe, resilient, and sustainable.",
+    "SDG 12": "Ensure sustainable consumption and production patterns.",
+    "SDG 13": "Take urgent action to combat climate change and its impacts.",
+    "SDG 14":
+      "Conserve and sustainably use the oceans, seas, and marine resources for sustainable development.",
+    "SDG 15":
+      "Protect, restore, and promote sustainable use of terrestrial ecosystems, sustainably manage forests, combat desertification, halt and reverse land degradation, and halt biodiversity loss.",
+    "SDG 16":
+      "Promote peaceful and inclusive societies for sustainable development, provide access to justice for all, and build effective, accountable, and inclusive institutions at all levels.",
+    "SDG 17":
+      "Strengthen the means of implementation and revitalize the global partnership for sustainable development.",
   };
 
   return (
@@ -191,7 +236,7 @@ export function AdviserProposal({ orgData }) {
       <div className="max-w-7xl mx-auto">
         {/* Enhanced Header */}
         <div className="mb-8">
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8">
+          <div className="bg-white/80 backdrop-blur-sm  shadow-xl border border-white/20 p-8">
             <div className="flex justify-between items-center">
               <div>
                 <p className="text-2xl font-semibold text-slate-600 mt-2">
@@ -297,9 +342,6 @@ export function AdviserProposal({ orgData }) {
                         Budget
                       </div>
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                      Actions
-                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-slate-100">
@@ -351,30 +393,6 @@ export function AdviserProposal({ orgData }) {
                       <td className="px-6 py-6">
                         <div className="text-sm font-semibold text-slate-900">
                           {formatCurrency(proposal.budgetaryRequirements)}
-                        </div>
-                      </td>
-                      <td className="px-6 py-6">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleView(proposal);
-                            }}
-                            className="text-blue-600 hover:text-blue-800 p-2 rounded-lg hover:bg-blue-50 transition-colors"
-                            title="View Details"
-                          >
-                            <Eye size={16} />
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEdit(proposal);
-                            }}
-                            className="text-slate-600 hover:text-slate-800 p-2 rounded-lg hover:bg-slate-50 transition-colors"
-                            title="Edit Proposal"
-                          >
-                            <Edit size={16} />
-                          </button>
                         </div>
                       </td>
                     </tr>
@@ -461,23 +479,27 @@ export function AdviserProposal({ orgData }) {
                 {/* SDG Alignment */}
                 {selectedProposal.alignedSDG &&
                   selectedProposal.alignedSDG.length > 0 && (
-                    <div className="bg-slate-50 p-6 rounded-xl border border-slate-200">
-                      <div className="flex items-center gap-3 mb-4">
-                        <Target size={20} className="text-slate-600" />
-                        <h4 className="text-lg font-semibold text-slate-800">
+                    <div className="bg-white p-4 rounded-lg border border-slate-200">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Target size={18} className="text-slate-600" />
+                        <h4 className="text-base font-semibold text-slate-800">
                           Aligned Sustainable Development Goals
                         </h4>
                       </div>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="space-y-2">
                         {selectedProposal.alignedSDG.map((sdg, idx) => (
-                          <span
+                          <div
                             key={idx}
-                            className={`inline-flex px-3 py-1.5 text-sm font-medium rounded-full ${getSDGColor(
-                              sdg
-                            )}`}
+                            className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-lg px-4 py-4"
                           >
-                            {sdg}
-                          </span>
+                            <span className="text-lg font-semibold text-slate-800 whitespace-nowrap">
+                              {sdg} :
+                            </span>
+                            <p className="text-slate-700 text-sm leading-snug">
+                              {SDG_DESCRIPTIONS[sdg] ||
+                                "No description available."}
+                            </p>
+                          </div>
                         ))}
                       </div>
                     </div>
@@ -547,7 +569,7 @@ export function AdviserProposal({ orgData }) {
                     className="flex-1 bg-amber-500 text-white px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
                   >
                     <AlertTriangle size={18} />
-                    Revision Revision
+                    Notify Revision
                   </button>
                   <button
                     onClick={handleApproval}
@@ -597,7 +619,11 @@ export function AdviserProposal({ orgData }) {
 
                 <div className="flex gap-3 pt-4">
                   <button
-                    onClick={submitRevision}
+                    onClick={() =>
+                      submitUpdate({
+                        status: "Revision from the Adviser",
+                      })
+                    }
                     className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 disabled:from-gray-400 disabled:to-gray-400 text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 disabled:cursor-not-allowed"
                   >
                     Send Revision Request
@@ -681,7 +707,9 @@ export function AdviserProposal({ orgData }) {
 
                 <div className="flex gap-3 pt-4">
                   <button
-                    onClick={() => submitApproval}
+                    onClick={() =>
+                      submitUpdate({ status: "Approved by the Adviser" })
+                    }
                     className="flex-1 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2"
                   >
                     <CheckCircle size={18} />

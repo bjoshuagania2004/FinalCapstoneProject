@@ -91,6 +91,7 @@ router.post("/adviserChangePassword/:userId", Controller.ChangePasswordAdviser);
 
 /* **********  ADVISER ACCREDITATION ********** */
 router.get("/getAdviserProposals/:orgId", Controller.getAdviserProposal);
+router.post("/postUpdateProposal/:id", Controller.ApprovedProposal);
 router.post("/sendNotificationRoster", Controller.SendEmailToOrgUsers);
 router.post("/postApproveRoster/:rosterId", Controller.ApprovedRosterList);
 /* **********  ADVISER ACCREDITATION ********** */
