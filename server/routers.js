@@ -150,10 +150,6 @@ router.post(
 );
 
 router.post(
-  "/updateStudentLeaderProposal/:",
-  Controller.updateStudentLeaderProposal
-);
-router.post(
   "/UpdateStudentLeaderProposal/:ProposalId",
   Controller.updateStudentLeaderProposal
 );
