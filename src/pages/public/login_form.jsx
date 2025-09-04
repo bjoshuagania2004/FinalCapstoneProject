@@ -23,7 +23,7 @@ export default function Login({ navigate, onShowRegistration }) {
       const role = response.data.user.position;
       if (role === "student-leader") {
         navigate("/student-leader");
-      } else if (role === "adviser") {
+      } else if (role === "adviser" || role === "Adviser") {
         navigate("/adviser");
       } else if (role === "dean") {
         navigate("/dean");

@@ -232,6 +232,49 @@ export function AccreditationDocuments({ orgData }) {
   return (
     <div className="mt-4 flex flex-col bg-white  gap-4 p-4 h-full">
       {/* Header */}
+      <div className="bg-white rounded-lg shadow-sm border p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          Accreditation Summary
+        </h2>
+        <div className="flex justify-evenly gap-4">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-green-600">
+              {
+                [
+                  JointStatement,
+                  ConstitutionAndByLaws,
+                  PledgeAgainstHazing,
+                ].filter((doc) => doc?.status === "Approved").length
+              }
+            </div>
+            <div className="text-sm text-gray-600">Approved Documents</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-yellow-600">
+              {
+                [
+                  JointStatement,
+                  ConstitutionAndByLaws,
+                  PledgeAgainstHazing,
+                ].filter((doc) => doc?.status === "Pending").length
+              }
+            </div>
+            <div className="text-sm text-gray-600">Pending Review</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-gray-600">
+              {
+                [
+                  JointStatement,
+                  ConstitutionAndByLaws,
+                  PledgeAgainstHazing,
+                ].filter((doc) => doc === null).length
+              }
+            </div>
+            <div className="text-sm text-gray-600">Missing Documents</div>
+          </div>
+        </div>
+      </div>
       <h2 className="text-2xl font-bold text-gray-900 ">
         Accreditation Documents
       </h2>
@@ -331,7 +374,7 @@ export function AccreditationDocuments({ orgData }) {
       {/* Document Details Modal */}
       {showDetailsPopup && selectedDocumentDetails && (
         <div className="fixed inset-0 bg-black/10 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl max-w-[75%] max-h-[75%] w-full h-full overflow-hidden relative shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col">
+          <div className="bg-white rounded-2xl max-w-3/4 max-h-11/12 w-full h-full overflow-hidden relative shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col">
             <button
               onClick={closeDetailsPopup}
               className="absolute top-4 right-4 z-10 text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100 bg-white/80 backdrop-blur-sm"

@@ -11,48 +11,11 @@ import {
   Clock,
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
-import AddStudentPresident from "./add_president";
 import axios from "axios";
-import { API_ROUTER, DOCU_API_ROUTER } from "../../../../../App";
-import { ProportionCropTool } from "./../../../../../components/image_uploader";
-// Loading Component
-const LoadingScreen = () => {
-  return (
-    <div className="flex flex-col h-full w-full items-center justify-center min-h-96">
-      <div className="flex flex-col items-center space-y-6">
-        {/* Animated spinner */}
-        <div className="relative">
-          <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
-          <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-r-indigo-400 rounded-full animate-spin animation-delay-150"></div>
-        </div>
+import { API_ROUTER, DOCU_API_ROUTER } from "../../../../App";
 
-        {/* Loading text */}
-        <div className="text-center">
-          <h3 className="text-xl font-semibold text-gray-700 mb-2">
-            Loading Presidents...
-          </h3>
-          <p className="text-sm text-gray-500">
-            Please wait while we fetch the data
-          </p>
-        </div>
-
-        {/* Animated dots */}
-        <div className="flex space-x-1">
-          <div className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce"></div>
-          <div className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce animation-delay-200"></div>
-          <div className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce animation-delay-400"></div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default function StudentLeaderPresidentListComponent({
-  orgData,
-  accreditationData,
-}) {
+export function AdviserPresident({ orgData, accreditationData }) {
   const [showAddForm, setShowAddForm] = useState(false);
-  const [uploadComplete, setUploadComplete] = useState(false);
   const [presidents, setPresidents] = useState([]);
   const [currentPresident, setCurrentPresident] = useState(null);
   const [remainingPresidents, setRemainingPresidents] = useState([]);
@@ -75,7 +38,6 @@ export default function StudentLeaderPresidentListComponent({
 
         setPresidents(data);
 
-        console.log(orgData);
         if (orgData?.orgPresident?._id) {
           const orgPresidentId = orgData.orgPresident._id;
 
@@ -122,13 +84,34 @@ export default function StudentLeaderPresidentListComponent({
     console.log("Delete clicked for:", president.name);
   };
 
-  const handleUploadPhoto = (president) => {
-    console.log("Upload photo clicked for:", president.name);
-  };
-
   // Show loading screen while fetching data
   if (loading) {
-    return <LoadingScreen />;
+    <div className="flex flex-col h-full w-full items-center justify-center min-h-96">
+      <div className="flex flex-col items-center space-y-6">
+        {/* Animated spinner */}
+        <div className="relative">
+          <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+          <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-r-indigo-400 rounded-full animate-spin animation-delay-150"></div>
+        </div>
+
+        {/* Loading text */}
+        <div className="text-center">
+          <h3 className="text-xl font-semibold text-gray-700 mb-2">
+            Loading Presidents...
+          </h3>
+          <p className="text-sm text-gray-500">
+            Please wait while we fetch the data
+          </p>
+        </div>
+
+        {/* Animated dots */}
+        <div className="flex space-x-1">
+          <div className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce"></div>
+          <div className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce animation-delay-200"></div>
+          <div className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce animation-delay-400"></div>
+        </div>
+      </div>
+    </div>;
   }
 
   // Show error message if there's an error
@@ -167,10 +150,10 @@ export default function StudentLeaderPresidentListComponent({
   }
 
   return (
-    <div className="flex flex-col h-full w-full gap-4 overflow-auto p-3">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Current President */}
-        <div className="lg:col-span-2">
+    <div className="flex flex-col mt-4 h-full w-full gap-4 overflow-auto">
+      <div className="grid grid-cols-4 gap-4">
+        {/* Current President (2 columns) */}
+        <div className="col-span-2">
           {currentPresident ? (
             <CurrentPresidentCard
               currentPresident={currentPresident}
@@ -178,65 +161,44 @@ export default function StudentLeaderPresidentListComponent({
             />
           ) : (
             <div
+              className="bg-white gap-4 flex flex-col justify-center items-center p-6 relative cursor-pointer group border-2 border-dashed border-gray-300 hover:border-indigo-400 transition-all duration-300"
               onClick={handleAdd}
-              className="group bg-white rounded-xl border border-gray-200 hover:border-indigo-400 hover:shadow-md p-4 flex flex-col justify-center items-center text-center cursor-pointer transition-all duration-200"
             >
-              <div className="w-20 h-20 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-full flex items-center justify-center border border-indigo-200 group-hover:border-indigo-400 group-hover:scale-105 transition-all duration-200">
+              <div className="w-32 h-32 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-full flex items-center justify-center border-2 border-indigo-200 group-hover:border-indigo-400 transition-all duration-300 group-hover:scale-105">
                 <Plus
-                  size={40}
-                  className="text-indigo-600 group-hover:text-indigo-700"
+                  size={48}
+                  className="text-indigo-600 group-hover:text-indigo-700 transition-colors duration-300"
                 />
               </div>
-              <h3 className="text-base font-semibold text-gray-800 mt-3 group-hover:text-indigo-700 transition-colors duration-200">
-                Add Current President
-              </h3>
-              <p className="text-xs text-gray-500 mt-1 group-hover:text-gray-600 transition-colors duration-200">
-                Click to add a new president
-              </p>
+              <div className="text-center">
+                <h3 className="text-xl font-semibold text-gray-800 group-hover:text-indigo-700 transition-colors duration-300">
+                  Add Current President
+                </h3>
+                <p className="text-sm text-gray-500 mt-1 group-hover:text-gray-600 transition-colors duration-300">
+                  Click to add a new president
+                </p>
+              </div>
             </div>
           )}
         </div>
 
-        {/* Previous Presidents */}
+        {/* Previous Presidents (filtered list, excludes current) */}
         {remainingPresidents.map((president) => (
           <div key={president._id} className="col-span-1">
             <PresidentCard
               president={president}
               onEdit={handleEdit}
               onDelete={handleDelete}
-              onUploadPhoto={handleUploadPhoto}
-              showActions={false}
+              showActions={false} // never show "current" actions
             />
           </div>
         ))}
       </div>
-
-      {/* Modal */}
-      {showAddForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-          <AddStudentPresident
-            orgInfo={orgData}
-            AccreditationId={accreditationData._id}
-            onClose={() => setShowAddForm(false)}
-            onSuccess={() => {
-              setShowAddForm(false);
-              setUploadComplete(true);
-              window.location.reload();
-              setTimeout(() => setUploadComplete(false), 3000);
-            }}
-          />
-        </div>
-      )}
     </div>
   );
 }
 
 const CurrentPresidentCard = ({ currentPresident, orgData }) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const handleImageClick = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
-
   // Handle empty or missing data gracefully
   const president = currentPresident || {};
   const {
@@ -266,10 +228,7 @@ const CurrentPresidentCard = ({ currentPresident, orgData }) => {
       <div className="bg-blue-600 px-6 py-8">
         <div className="flex flex-col md:flex-row items-center gap-6">
           {/* Profile Image */}
-          <div
-            className="w-32 h-32 rounded-full overflow-hidden cursor-pointer ring-4 ring-white  hover:scale-105 transition-transform duration-200"
-            onClick={handleImageClick}
-          >
+          <div className="w-32 h-32 rounded-full overflow-hidden ring-4 ring-white">
             <img
               src={profilePictureUrl}
               alt="President"
@@ -406,152 +365,14 @@ const CurrentPresidentCard = ({ currentPresident, orgData }) => {
           </div>
         </div>
       )}
-
-      {/* Modal */}
-      {isModalOpen && (
-        <UploadPresidentProfilePicture
-          isOpen={isModalOpen}
-          onClose={closeModal}
-          presidentProfileId={currentPresident._id}
-          orgData={orgData}
-        />
-      )}
     </div>
   );
 };
-
-export function UploadPresidentProfilePicture({
-  isOpen,
-  closeModal,
-  orgData,
-  presidentProfileId,
-}) {
-  console.log(orgData);
-  const cropRef = useRef(null);
-  const [uploading, setUploading] = useState(false);
-  const [cropData, setCropData] = useState(null);
-
-  const handleCropComplete = (result) => {
-    console.log("Original File:", result.originalFile);
-    console.log("Cropped File:", result.croppedFile);
-    setCropData(result);
-  };
-
-  const handleUpload = async () => {
-    let finalCropData = cropData;
-
-    if (!finalCropData && cropRef.current?.hasImage) {
-      try {
-        console.log("No crop data yet. Cropping now...");
-        const result = await cropRef.current.cropImage(); // Should return { croppedFile, ... }
-        finalCropData = result;
-        console.log("Cropped result:", result);
-        setCropData(result); // Cache it
-      } catch (err) {
-        console.error("❌ Failed to crop image before upload:", err);
-        alert("Please crop the image before uploading.");
-        return;
-      }
-    }
-    // Still no data? Bail.
-    if (!finalCropData || !finalCropData.croppedFile) {
-      alert("Please select and crop an image first.");
-      return;
-    }
-    const formData = new FormData();
-    console.log("ay", finalCropData.croppedFile);
-    formData.append("profilePicture", finalCropData.name);
-    formData.append("organization", orgData.organization);
-    formData.append("organizationProfile", orgData._id);
-    formData.append("file", finalCropData.croppedFile);
-
-    console.log("=== FormData Contents ===");
-    for (let [key, value] of formData.entries()) {
-      if (value instanceof File) {
-        console.log(
-          `${key}: [FILE] ${value.name} (${value.size} bytes, ${value.type})`
-        );
-      } else {
-        console.log(`${key}: ${value}`);
-      }
-    }
-
-    setUploading(true);
-
-    try {
-      const res = await axios.post(
-        `${API_ROUTER}/addPresidentProfile/${presidentProfileId}`,
-        formData
-      );
-
-      const data = res.data; // ✅ No need to call .json()
-      console.log("✅ Upload successful:", data);
-      alert("Profile picture uploaded successfully!");
-    } catch (err) {
-      console.error("❌ Upload failed:", err);
-      alert("Failed to upload image.");
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4"
-      onClick={closeModal}
-    >
-      <div
-        className="   w-full max-w-lg relative"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          onClick={closeModal}
-          className="absolute top-4 right-4 w-8 h-8 bg-gray-100 hover:bg-red-100 rounded-full flex items-center justify-center text-gray-600 hover:text-red-500 transition"
-        >
-          <X className="w-4 h-4" />
-        </button>
-
-        <div className="p-6">
-          <h2 className="text-xl font-semibold text-center mb-4">
-            Upload & Crop Image
-          </h2>
-
-          <ProportionCropTool
-            title="Crop Your Image"
-            cropRef={cropRef}
-            onCropComplete={handleCropComplete}
-            maxImageHeight={500}
-            showReset={true}
-          />
-
-          <div className="mt-6 flex justify-center gap-4">
-            <button
-              onClick={handleUpload}
-              disabled={uploading}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium disabled:opacity-50"
-            >
-              {uploading ? "Processing..." : "Upload Image"}
-            </button>
-            <button
-              onClick={() => cropRef.current?.resetImage()}
-              className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-5 py-2 rounded-lg font-medium"
-            >
-              Reset
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 const PresidentCard = ({
   president,
   onEdit,
   onDelete,
-  onUploadPhoto,
   showActions = false, // Default to false
 }) => {
   if (!president) {
@@ -566,7 +387,7 @@ const PresidentCard = ({
   }
 
   return (
-    <div className="bg-white   h-full w-full  duration-200 p-4 relative">
+    <div className="bg-white h-full w-full duration-200 p-4 relative">
       {/* Action buttons - only show for current president */}
       {showActions && (
         <div className="absolute top-3 right-3 flex gap-1">
@@ -589,41 +410,28 @@ const PresidentCard = ({
 
       {/* Header with profile picture */}
       <div className="flex items-center justify-center mb-4 relative">
-        <div className="relative group">
-          {president.profilePicture ? (
-            <img
-              src={`${DOCU_API_ROUTER}/${president.organizationProfile}/${president.profilePicture}`}
-              alt={`${president.name}'s profile`}
-              className="w-42 h-auto aspect-square rounded-full object-cover border-2 border-gray-200"
-              onError={(e) => {
-                // Fallback to initials if image fails to load
-                e.target.style.display = "none";
-                e.target.nextSibling.style.display = "flex";
-              }}
-            />
-          ) : null}
+        {president.profilePicture ? (
+          <img
+            src={`${DOCU_API_ROUTER}/${president.organizationProfile}/${president.profilePicture}`}
+            alt={`${president.name}'s profile`}
+            className="w-42 h-auto aspect-square rounded-full object-cover border-2 border-gray-200"
+            onError={(e) => {
+              // Fallback to initials if image fails to load
+              e.target.style.display = "none";
+              e.target.nextSibling.style.display = "flex";
+            }}
+          />
+        ) : null}
 
-          {/* Fallback avatar with initials */}
-          <div
-            className={`min-w-32 h-auto aspect-square bg-indigo-100 rounded-full flex items-center justify-center border-2 border-gray-200 ${
-              president.profilePicture ? "hidden" : "flex"
-            }`}
-          >
-            <span className="text-2xl font-bold text-indigo-600">
-              {president.name ? president.name.charAt(0).toUpperCase() : "P"}
-            </span>
-          </div>
-
-          {/* Upload overlay - only show for current president */}
-          {showActions && (
-            <div
-              className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
-              onClick={() => onUploadPhoto(president)}
-              title="Upload photo"
-            >
-              <Camera className="w-6 h-6 text-white" />
-            </div>
-          )}
+        {/* Fallback avatar with initials */}
+        <div
+          className={`min-w-32 h-auto aspect-square bg-indigo-100 rounded-full flex items-center justify-center border-2 border-gray-200 ${
+            president.profilePicture ? "hidden" : "flex"
+          }`}
+        >
+          <span className="text-2xl font-bold text-indigo-600">
+            {president.name ? president.name.charAt(0).toUpperCase() : "P"}
+          </span>
         </div>
       </div>
 

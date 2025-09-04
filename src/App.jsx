@@ -14,6 +14,7 @@ import { NotFoundPage, UnauthorizedPage } from "./components/error";
 import StudentLeaderMainPage from "./pages/admin/student-leader/student-leader-main";
 import PhilippineAddressForm from "./sandbox";
 import StudentDevMainLayout from "./pages/admin/sdu/sdu-main";
+import { AdviserPage } from "./pages/admin/adviser/adviser_main";
 const MAIN_API_ROUTER = import.meta.env.VITE_API_ROUTER;
 
 export const API_ROUTER = `${MAIN_API_ROUTER}/api`;
@@ -30,6 +31,13 @@ export default function App() {
       </Route>
       <Route element={<ProtectedRoute allowedRoles={["SDU", "sdu"]} />}>
         <Route path="/SDU/*" element={<StudentDevMainLayout />} />
+      </Route>
+      <Route
+        element={
+          <ProtectedRoute allowedRoles={["adviser", "Adviser", "ADVISER"]} />
+        }
+      >
+        <Route path="/adviser/*" element={<AdviserPage />} />
       </Route>
 
       <Route path="/unauthorized" element={<UnauthorizedPage />} />

@@ -186,11 +186,12 @@ export function DonePopUp({
   message = "Action completed successfully!",
   onClose,
 }) {
-  // Auto close after 3 seconds (optional)
+  // Auto close after 3 seconds
   useEffect(() => {
     const timer = setTimeout(() => {
       if (onClose) onClose();
     }, 3000);
+
     return () => clearTimeout(timer);
   }, [onClose]);
 
@@ -224,6 +225,7 @@ export function DonePopUp({
         >
           Close
         </button>
+        <p className="text-xs text-gray-500 mt-2">(Auto closes in 3s)</p>
       </div>
     </div>
   );

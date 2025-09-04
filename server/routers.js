@@ -69,6 +69,37 @@ router.post("/RevisionRosterList/:rosterId", Controller.revisionNoteRosterList);
 /*
 **********              **********
 **********              **********
+**********              **********
+**********              **********
+**********              **********
+**********              **********
+**********              **********
+              ADVISER
+**********              **********
+**********              **********
+**********              **********
+**********              **********
+**********              **********
+**********              **********
+**********              ********** 
+*/
+
+/* **********  ADVISER GENERAL ********** */
+
+router.post("/adviserChangePassword/:userId", Controller.ChangePasswordAdviser);
+router.post("/adviserChangePassword/:userId", Controller.ChangePasswordAdviser);
+
+/* **********  ADVISER ACCREDITATION ********** */
+router.get("/getAdviserProposals/:orgId", Controller.getAdviserProposal);
+router.post("/sendNotificationRoster", Controller.SendEmailToOrgUsers);
+router.post("/postApproveRoster/:rosterId", Controller.ApprovedRosterList);
+/* **********  ADVISER ACCREDITATION ********** */
+
+/*
+
+**********              **********
+/*             **********
+**********              **********
           STUDENT LEADER
 **********              **********
 **********              ********** 
@@ -90,6 +121,10 @@ router.post(
 router.get(
   "/getAccreditationInfo/:orgProfileId",
   Controller.GetAccreditationDetails
+);
+router.get(
+  "/getAccreditatationDocuments/:orgProfileId",
+  Controller.GetAccreditationDocuments
 );
 
 /* ********** STUDENT LEADER PROPOSAL ********** */
@@ -155,10 +190,12 @@ router.post(
   Controller.PostOrganizationalLogo
 );
 router.get("/userInfo/:userId", Controller.GetUserInformation);
+
 router.get(
   "/getOrganizationProfile/:orgProfileId",
   Controller.GetOrganizationProfileInformation
 );
+
 router.post("/login", Controller.Login);
 router.post("/logout", Controller.Logout);
 router.get("/session-check", Controller.CheckSession);

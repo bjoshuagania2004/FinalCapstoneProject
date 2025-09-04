@@ -5,17 +5,7 @@ import { RegistrationForm } from "./registration_form";
 import backgroundImage from "./../../assets/cnscsch.jpg";
 import { API_ROUTER, DOCU_API_ROUTER } from "../../App";
 import axios from "axios";
-import {
-  Search,
-  Users,
-  MapPin,
-  Calendar,
-  Award,
-  CheckCircle,
-  Clock,
-  XCircle,
-  Building2,
-} from "lucide-react";
+import { Calendar, CheckCircle, Clock, XCircle, Building2 } from "lucide-react";
 
 export default function HomePage() {
   const [scrollY, setScrollY] = useState(0);

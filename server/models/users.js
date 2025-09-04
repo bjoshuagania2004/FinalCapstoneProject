@@ -29,6 +29,7 @@ export const AdviserSchema = new Schema(
     email: String,
     username: String,
     deliveryUnit: String,
+    firstLogin: { type: Boolean, default: true }, // fixed here ✅
 
     organizationProfile: {
       type: Schema.Types.ObjectId,
