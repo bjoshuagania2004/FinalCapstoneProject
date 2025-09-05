@@ -45,7 +45,6 @@ export default function Login({ navigate, onShowRegistration }) {
   return (
     <div className="min-h-fit w-3/4  flex flex-col gap-4 rounded-xl bg-gray-100 shadow-2xl border border-gray-100 px-10 py-12 relative overflow-hidden">
       {/* Subtle background decoration */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-cnsc-primary-color/5 to-transparent rounded-full -translate-y-16 translate-x-16"></div>
 
       <form
         className="w-full flex flex-col gap-6 relative z-10"

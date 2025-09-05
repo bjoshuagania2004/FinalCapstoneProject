@@ -177,7 +177,7 @@ export function InitialRegistration({ user, onComplete }) {
 
   return (
     <div className="absolute inset-0 h-screen w-screen overflow-hidden backdrop-blur-sm z-50 flex items-center justify-center">
-      <div className="max-h-9/10 h-fit flex-col max-w-5xl rounded-xl gap-4 w-full p border-gray-500 bg-gray-300 flex  items-center px-8 py-6 overflow-hidden">
+      <div className="max-h-9/10 h-fit flex-col max-w-5xl rounded-xl gap-4 w-full p border-gray-500 bg-red-500 flex  items-center px-8 py-6 overflow-hidden">
         <h1 className="text-3xl font-bold text-cnsc-primary-color">
           WELCOME TO INITIAL REGISTRATION OF YOUR ORGANIZATION
         </h1>
