@@ -9,6 +9,8 @@ import {
   MapPin,
   Award,
   Clock,
+  MoreVertical,
+  MoreHorizontal,
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import axios from "axios";
@@ -221,29 +223,125 @@ const CurrentPresidentCard = ({ currentPresident, orgData }) => {
   } = president;
 
   const profilePictureUrl = `${DOCU_API_ROUTER}/${president.organizationProfile}/${profilePicture}`;
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [showRevisionModal, setShowRevisionModal] = useState(false);
+  const [showApproveModal, setShowApproveModal] = useState(false);
 
   return (
-    <div className=" mx-auto bg-white ">
+    <div className="bg-white shadow-xl relative">
       {/* Header Section */}
-      <div className="bg-blue-600 px-6 py-8">
-        <div className="flex flex-col md:flex-row items-center gap-6">
-          {/* Profile Image */}
-          <div className="w-32 h-32 rounded-full overflow-hidden ring-4 ring-white">
-            <img
-              src={profilePictureUrl}
-              alt="President"
-              className="w-full h-full object-cover"
-            />
+      <div className="py-8 px-12">
+        <div className="relative p-6 bg-white rounded-2xl shadow-lg">
+          <div className="flex flex-col md:flex-row items-center gap-6">
+            {/* Profile Image */}
+            <div className="w-32 h-32 rounded-full overflow-hidden ring-4 ring-white flex items-center justify-center bg-gray-100">
+              {profilePictureUrl ? (
+                <img
+                  src={profilePictureUrl}
+                  alt="President"
+                  className="w-full h-full object-cover"
+                  onError={(e) => (e.currentTarget.style.display = "none")}
+                />
+              ) : (
+                <div className="w-20 h-20 text-gray-500 flex items-center justify-center">
+                  <span>No Img</span>
+                </div>
+              )}
+            </div>
+
+            {/* Basic Info */}
+            <div className="text-center md:text-left">
+              <h1 className="text-2xl md:text-3xl font-bold mb-2">{name}</h1>
+              <p className="text-lg mb-1">{course}</p>
+              <p>
+                {year} • {department}
+              </p>
+            </div>
           </div>
 
-          {/* Basic Info */}
-          <div className="text-center md:text-left text-white">
-            <h1 className="text-2xl md:text-3xl font-bold mb-2">{name}</h1>
-            <p className="text-lg text-blue-100 mb-1">{course}</p>
-            <p className="text-blue-200">
-              {year} • {department}
-            </p>
+          {/* More Options Dropdown */}
+          <div className="absolute top-4 right-4">
+            <button
+              onClick={() => setShowDropdown((prev) => !prev)}
+              className="p-2 rounded-full hover:bg-gray-100"
+            >
+              <MoreHorizontal />
+            </button>
+
+            {showDropdown && (
+              <div className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg z-10">
+                <button
+                  onClick={() => {
+                    setShowRevisionModal(true);
+                    setShowDropdown(false);
+                  }}
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                >
+                  View Revision
+                </button>
+                <button
+                  onClick={() => {
+                    setShowApproveModal(true);
+                    setShowDropdown(false);
+                  }}
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                >
+                  Approve
+                </button>
+              </div>
+            )}
           </div>
+
+          {/* Revision Modal */}
+          {showRevisionModal && (
+            <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-20">
+              <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
+                <h2 className="text-xl font-bold mb-2">View Revision</h2>
+                <p className="text-gray-600 mb-4">
+                  Here you can view the revision details for this proposal.
+                </p>
+
+                <div className="flex justify-end gap-3">
+                  <button
+                    onClick={() => setShowRevisionModal(false)}
+                    className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Approve Modal */}
+          {showApproveModal && (
+            <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-20">
+              <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
+                <h2 className="text-xl font-bold mb-2">Approve Proposal</h2>
+                <p className="text-gray-600 mb-4">
+                  Are you sure you want to approve this proposal?
+                </p>
+
+                <div className="flex justify-end gap-3">
+                  <button
+                    onClick={() => setShowApproveModal(false)}
+                    className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      // ✅ Add approve logic here
+                      setShowApproveModal(false);
+                    }}
+                    className="px-4 py-2 rounded-lg bg-amber-500 text-white hover:bg-amber-600"
+                  >
+                    Approve
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
