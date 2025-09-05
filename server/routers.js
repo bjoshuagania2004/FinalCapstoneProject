@@ -8,6 +8,17 @@ export const upload = multer({ storage });
 /*
 **********                                **********
 **********                                **********
+          DEAN
+**********                                **********
+**********                                ********** 
+*/
+router.get(
+  "/getOrganizations/:deliveryUnit",
+  Controller.GetOrganizationsByDeliveryUnit
+);
+/*
+**********                                **********
+**********                                **********
           STUDENT DEVELOPMENT ORGANIZATION
 **********                                **********
 **********                                ********** 
@@ -48,8 +59,8 @@ router.get(
 );
 /* ********** STUDENT DEVELOPMENT PRESIDENT ********** */
 router.post(
-  "/approvePresidentProfile/:presidentId",
-  Controller.ApprovePresidentProfile
+  "/updateStatusPresident/:presidentId",
+  Controller.UpdatePresidentProfileStatus
 );
 router.post(
   "/revisionPresidentProfile/:presidentId",
@@ -91,6 +102,7 @@ router.post("/adviserChangePassword/:userId", Controller.ChangePasswordAdviser);
 
 /* **********  ADVISER ACCREDITATION ********** */
 router.get("/getAdviserProposals/:orgId", Controller.getAdviserProposal);
+router.post("/postUpdateProposal/:id", Controller.ApprovedProposal);
 router.post("/sendNotificationRoster", Controller.SendEmailToOrgUsers);
 router.post("/postApproveRoster/:rosterId", Controller.ApprovedRosterList);
 /* **********  ADVISER ACCREDITATION ********** */
@@ -148,10 +160,6 @@ router.post(
   Controller.postProposalConduct
 );
 
-router.post(
-  "/updateStudentLeaderProposal/:",
-  Controller.updateStudentLeaderProposal
-);
 router.post(
   "/UpdateStudentLeaderProposal/:ProposalId",
   Controller.updateStudentLeaderProposal

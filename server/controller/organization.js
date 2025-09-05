@@ -1,6 +1,7 @@
 import { Organization, OrganizationProfile, User } from "../models/index.js";
 import { customAlphabet } from "nanoid";
 import { NodeEmail } from "../middleware/emailer.js";
+import { organizationProfileSchema } from "../models/organization.js";
 const verificationStore = {};
 
 export const PostOrganizationalLogo = async (req, res) => {
@@ -260,6 +261,59 @@ export const GetOrganizationProfileInformation = async (req, res) => {
     res.status(500).json({
       error: "Failed to fetch organization",
       details: error.message,
+    });
+  }
+};
+
+export const GetOrganizationsByDeliveryUnit = async (req, res) => {
+  try {
+    const { deliveryUnit } = req.params;
+    const { search, orgDepartment, orgCourse, orgSpecialization, orgClass } =
+      req.query;
+
+    if (!deliveryUnit) {
+      return res.status(400).json({
+        success: false,
+        message: "Delivery Unit is required",
+      });
+    }
+
+    // Build dynamic filters
+    const filters = { orgDepartment: deliveryUnit };
+
+    if (orgDepartment) filters.orgDepartment = orgDepartment;
+    if (orgCourse) filters.orgCourse = orgCourse;
+    if (orgSpecialization) filters.orgSpecialization = orgSpecialization;
+    if (orgClass) filters.orgClass = orgClass;
+
+    // Text search (case-insensitive)
+    if (search) {
+      filters.orgName = { $regex: search, $options: "i" };
+    }
+
+    const organizations = await OrganizationProfile.find(filters)
+      .populate("organization")
+      .populate("orgPresident")
+      .populate("adviser");
+
+    if (!organizations || organizations.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No organizations found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      count: organizations.length,
+      data: organizations,
+    });
+  } catch (error) {
+    console.error("Error fetching organizations by delivery unit:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch organizations",
+      error: error.message,
     });
   }
 };

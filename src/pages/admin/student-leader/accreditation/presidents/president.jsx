@@ -122,10 +122,6 @@ export default function StudentLeaderPresidentListComponent({
     console.log("Delete clicked for:", president.name);
   };
 
-  const handleUploadPhoto = (president) => {
-    console.log("Upload photo clicked for:", president.name);
-  };
-
   // Show loading screen while fetching data
   if (loading) {
     return <LoadingScreen />;
@@ -167,10 +163,10 @@ export default function StudentLeaderPresidentListComponent({
   }
 
   return (
-    <div className="flex flex-col mt-4 h-full w-full gap-4 overflow-auto">
-      <div className="grid grid-cols-4 gap-4">
-        {/* Current President (2 columns) */}
-        <div className="col-span-2">
+    <div className="flex flex-col h-full w-full gap-4 overflow-auto p-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Current President */}
+        <div className="lg:col-span-2">
           {currentPresident ? (
             <CurrentPresidentCard
               currentPresident={currentPresident}
@@ -178,28 +174,26 @@ export default function StudentLeaderPresidentListComponent({
             />
           ) : (
             <div
-              className="bg-white gap-4 flex flex-col justify-center items-center p-6 relative cursor-pointer group border-2 border-dashed border-gray-300 hover:border-indigo-400 transition-all duration-300"
               onClick={handleAdd}
+              className="group bg-white rounded-xl border border-gray-200 hover:border-indigo-400 hover:shadow-md p-4 flex flex-col justify-center items-center text-center cursor-pointer transition-all duration-200"
             >
-              <div className="w-32 h-32 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-full flex items-center justify-center border-2 border-indigo-200 group-hover:border-indigo-400 transition-all duration-300 group-hover:scale-105">
+              <div className="w-20 h-20 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-full flex items-center justify-center border border-indigo-200 group-hover:border-indigo-400 group-hover:scale-105 transition-all duration-200">
                 <Plus
-                  size={48}
-                  className="text-indigo-600 group-hover:text-indigo-700 transition-colors duration-300"
+                  size={40}
+                  className="text-indigo-600 group-hover:text-indigo-700"
                 />
               </div>
-              <div className="text-center">
-                <h3 className="text-xl font-semibold text-gray-800 group-hover:text-indigo-700 transition-colors duration-300">
-                  Add Current President
-                </h3>
-                <p className="text-sm text-gray-500 mt-1 group-hover:text-gray-600 transition-colors duration-300">
-                  Click to add a new president
-                </p>
-              </div>
+              <h3 className="text-base font-semibold text-gray-800 mt-3 group-hover:text-indigo-700 transition-colors duration-200">
+                Add Current President
+              </h3>
+              <p className="text-xs text-gray-500 mt-1 group-hover:text-gray-600 transition-colors duration-200">
+                Click to add a new president
+              </p>
             </div>
           )}
         </div>
 
-        {/* Previous Presidents (filtered list, excludes current) */}
+        {/* Previous Presidents */}
         {remainingPresidents.map((president) => (
           <div key={president._id} className="col-span-1">
             <PresidentCard
@@ -207,7 +201,7 @@ export default function StudentLeaderPresidentListComponent({
               onEdit={handleEdit}
               onDelete={handleDelete}
               onUploadPhoto={handleUploadPhoto}
-              showActions={false} // never show "current" actions
+              showActions={false}
             />
           </div>
         ))}
@@ -387,28 +381,39 @@ const CurrentPresidentCard = ({ currentPresident, orgData }) => {
           <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2 mb-3">
             Class Schedule
           </h3>
-          <div className="space-y-2">
-            {classSchedule.map((schedule, index) => (
-              <div
-                key={schedule._id || index}
-                className="flex justify-between items-center p-3 bg-gray-50 rounded-lg text-sm"
-              >
-                <div>
-                  <span className="font-medium text-gray-800">
-                    {schedule.subject}
-                  </span>
-                  <span className="text-gray-600 ml-2">• {schedule.day}</span>
-                </div>
-                <div className="text-right text-gray-600">
-                  <div>{schedule.time}</div>
-                  <div className="text-xs">{schedule.place}</div>
-                </div>
-              </div>
-            ))}
+          <div className="overflow-x-auto">
+            <table className="w-full border border-gray-300 text-sm">
+              <thead className="bg-gray-200 text-gray-700">
+                <tr>
+                  <th className="p-2 border text-left">Subject</th>
+                  <th className="p-2 border text-left">Place</th>
+                  <th className="p-2 border text-left">Day</th>
+                  <th className="p-2 border text-left">Class Start</th>
+                  <th className="p-2 border text-left">Class End</th>
+                </tr>
+              </thead>
+              <tbody>
+                {classSchedule.map((schedule, index) => (
+                  <tr
+                    key={schedule._id || index}
+                    className="even:bg-white odd:bg-gray-50"
+                  >
+                    <td className="p-2 border">{schedule.subject || "N/A"}</td>
+                    <td className="p-2 border">{schedule.place || "N/A"}</td>
+                    <td className="p-2 border">{schedule.day || "N/A"}</td>
+                    <td className="p-2 border">
+                      {schedule.time?.start || "N/A"}
+                    </td>
+                    <td className="p-2 border">
+                      {schedule.time?.end || "N/A"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
-
       {/* Modal */}
       {isModalOpen && (
         <UploadPresidentProfilePicture
@@ -421,133 +426,6 @@ const CurrentPresidentCard = ({ currentPresident, orgData }) => {
     </div>
   );
 };
-
-export function UploadPresidentProfilePicture({
-  isOpen,
-  closeModal,
-  orgData,
-  presidentProfileId,
-}) {
-  console.log(orgData);
-  const cropRef = useRef(null);
-  const [uploading, setUploading] = useState(false);
-  const [cropData, setCropData] = useState(null);
-
-  const handleCropComplete = (result) => {
-    console.log("Original File:", result.originalFile);
-    console.log("Cropped File:", result.croppedFile);
-    setCropData(result);
-  };
-
-  const handleUpload = async () => {
-    let finalCropData = cropData;
-
-    if (!finalCropData && cropRef.current?.hasImage) {
-      try {
-        console.log("No crop data yet. Cropping now...");
-        const result = await cropRef.current.cropImage(); // Should return { croppedFile, ... }
-        finalCropData = result;
-        console.log("Cropped result:", result);
-        setCropData(result); // Cache it
-      } catch (err) {
-        console.error("❌ Failed to crop image before upload:", err);
-        alert("Please crop the image before uploading.");
-        return;
-      }
-    }
-    // Still no data? Bail.
-    if (!finalCropData || !finalCropData.croppedFile) {
-      alert("Please select and crop an image first.");
-      return;
-    }
-    const formData = new FormData();
-    console.log("ay", finalCropData.croppedFile);
-    formData.append("profilePicture", finalCropData.name);
-    formData.append("organization", orgData.organization);
-    formData.append("organizationProfile", orgData._id);
-    formData.append("file", finalCropData.croppedFile);
-
-    console.log("=== FormData Contents ===");
-    for (let [key, value] of formData.entries()) {
-      if (value instanceof File) {
-        console.log(
-          `${key}: [FILE] ${value.name} (${value.size} bytes, ${value.type})`
-        );
-      } else {
-        console.log(`${key}: ${value}`);
-      }
-    }
-
-    setUploading(true);
-
-    try {
-      const res = await axios.post(
-        `${API_ROUTER}/addPresidentProfile/${presidentProfileId}`,
-        formData
-      );
-
-      const data = res.data; // ✅ No need to call .json()
-      console.log("✅ Upload successful:", data);
-      alert("Profile picture uploaded successfully!");
-    } catch (err) {
-      console.error("❌ Upload failed:", err);
-      alert("Failed to upload image.");
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4"
-      onClick={closeModal}
-    >
-      <div
-        className="   w-full max-w-lg relative"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          onClick={closeModal}
-          className="absolute top-4 right-4 w-8 h-8 bg-gray-100 hover:bg-red-100 rounded-full flex items-center justify-center text-gray-600 hover:text-red-500 transition"
-        >
-          <X className="w-4 h-4" />
-        </button>
-
-        <div className="p-6">
-          <h2 className="text-xl font-semibold text-center mb-4">
-            Upload & Crop Image
-          </h2>
-
-          <ProportionCropTool
-            title="Crop Your Image"
-            cropRef={cropRef}
-            onCropComplete={handleCropComplete}
-            maxImageHeight={500}
-            showReset={true}
-          />
-
-          <div className="mt-6 flex justify-center gap-4">
-            <button
-              onClick={handleUpload}
-              disabled={uploading}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium disabled:opacity-50"
-            >
-              {uploading ? "Processing..." : "Upload Image"}
-            </button>
-            <button
-              onClick={() => cropRef.current?.resetImage()}
-              className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-5 py-2 rounded-lg font-medium"
-            >
-              Reset
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 const PresidentCard = ({
   president,
@@ -696,3 +574,130 @@ const PresidentCard = ({
     </div>
   );
 };
+
+export function UploadPresidentProfilePicture({
+  isOpen,
+  closeModal,
+  orgData,
+  presidentProfileId,
+}) {
+  console.log(orgData);
+  const cropRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
+  const [cropData, setCropData] = useState(null);
+
+  const handleCropComplete = (result) => {
+    console.log("Original File:", result.originalFile);
+    console.log("Cropped File:", result.croppedFile);
+    setCropData(result);
+  };
+
+  const handleUpload = async () => {
+    let finalCropData = cropData;
+
+    if (!finalCropData && cropRef.current?.hasImage) {
+      try {
+        console.log("No crop data yet. Cropping now...");
+        const result = await cropRef.current.cropImage(); // Should return { croppedFile, ... }
+        finalCropData = result;
+        console.log("Cropped result:", result);
+        setCropData(result); // Cache it
+      } catch (err) {
+        console.error("❌ Failed to crop image before upload:", err);
+        alert("Please crop the image before uploading.");
+        return;
+      }
+    }
+    // Still no data? Bail.
+    if (!finalCropData || !finalCropData.croppedFile) {
+      alert("Please select and crop an image first.");
+      return;
+    }
+    const formData = new FormData();
+    console.log("ay", finalCropData.croppedFile);
+    formData.append("profilePicture", finalCropData.name);
+    formData.append("organization", orgData.organization);
+    formData.append("organizationProfile", orgData._id);
+    formData.append("file", finalCropData.croppedFile);
+
+    console.log("=== FormData Contents ===");
+    for (let [key, value] of formData.entries()) {
+      if (value instanceof File) {
+        console.log(
+          `${key}: [FILE] ${value.name} (${value.size} bytes, ${value.type})`
+        );
+      } else {
+        console.log(`${key}: ${value}`);
+      }
+    }
+
+    setUploading(true);
+
+    try {
+      const res = await axios.post(
+        `${API_ROUTER}/addPresidentProfile/${presidentProfileId}`,
+        formData
+      );
+
+      const data = res.data; // ✅ No need to call .json()
+      console.log("✅ Upload successful:", data);
+      alert("Profile picture uploaded successfully!");
+    } catch (err) {
+      console.error("❌ Upload failed:", err);
+      alert("Failed to upload image.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4"
+      onClick={closeModal}
+    >
+      <div
+        className="   w-full max-w-lg relative"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={closeModal}
+          className="absolute top-4 right-4 w-8 h-8 bg-gray-100 hover:bg-red-100 rounded-full flex items-center justify-center text-gray-600 hover:text-red-500 transition"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
+        <div className="p-6">
+          <h2 className="text-xl font-semibold text-center mb-4">
+            Upload & Crop Image
+          </h2>
+
+          <ProportionCropTool
+            title="Crop Your Image"
+            cropRef={cropRef}
+            onCropComplete={handleCropComplete}
+            maxImageHeight={500}
+            showReset={true}
+          />
+
+          <div className="mt-6 flex justify-center gap-4">
+            <button
+              onClick={handleUpload}
+              disabled={uploading}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium disabled:opacity-50"
+            >
+              {uploading ? "Processing..." : "Upload Image"}
+            </button>
+            <button
+              onClick={() => cropRef.current?.resetImage()}
+              className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-5 py-2 rounded-lg font-medium"
+            >
+              Reset
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

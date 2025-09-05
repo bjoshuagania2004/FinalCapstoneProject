@@ -20,6 +20,8 @@ export function InitialRegistration({ user, onComplete }) {
   });
 
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false); // 🔄 Loading state
+  const [submitError, setSubmitError] = useState(""); // ❌ Server error/conflict
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -44,7 +46,6 @@ export function InitialRegistration({ user, onComplete }) {
       }));
     }
 
-    // Auto-populate adviser department when student government department is selected
     if (
       name === "studentGovDepartment" &&
       formData.orgSpecialization === "Student government"
@@ -66,7 +67,7 @@ export function InitialRegistration({ user, onComplete }) {
       orgDepartment: "",
       orgCourse: "",
       orgSpecialization: "",
-      studentGovDepartment: "", // Reset student government department
+      studentGovDepartment: "",
       adviserDepartment: "",
     }));
   };
@@ -77,14 +78,13 @@ export function InitialRegistration({ user, onComplete }) {
       ...prev,
       orgSpecialization: value,
       studentGovDepartment: "",
-      orgDepartment: value === "Student government" ? "" : prev.orgDepartment, // Reset if "Student government"
+      orgDepartment: value === "Student government" ? "" : prev.orgDepartment,
     }));
   };
 
   const validateForm = () => {
     const newErrors = {};
 
-    // General required fields
     if (!formData.adviserName.trim())
       newErrors.adviserName = "Adviser name is required";
     if (!formData.adviserEmail.trim())
@@ -100,7 +100,6 @@ export function InitialRegistration({ user, onComplete }) {
     if (!formData.orgEmail.trim())
       newErrors.orgEmail = "Organization email is required";
 
-    // Conditional validations
     if (formData.orgClass === "Local") {
       if (!formData.orgDepartment)
         newErrors.orgDepartment = "Organization department is required";
@@ -110,20 +109,16 @@ export function InitialRegistration({ user, onComplete }) {
       if (!formData.orgSpecialization.trim())
         newErrors.orgSpecialization = "Specialization is required";
 
-      // Handle Student Government case
       if (formData.orgSpecialization === "Student government") {
         if (!formData.studentGovDepartment.trim()) {
           newErrors.studentGovDepartment =
             "Department is required for student government";
         } else {
-          // ✅ Assign studentGovDepartment to orgDepartment
-          formData.orgSpecialization = formData.orgSpecialization;
           formData.orgDepartment = formData.studentGovDepartment;
         }
       }
     }
 
-    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (formData.adviserEmail && !emailRegex.test(formData.adviserEmail)) {
       newErrors.adviserEmail = "Please enter a valid email address";
@@ -132,35 +127,54 @@ export function InitialRegistration({ user, onComplete }) {
       newErrors.orgEmail = "Please enter a valid email address";
     }
 
+    // 🚨 Prevent adviser and org from having the same email
+    if (
+      formData.adviserEmail.trim() &&
+      formData.orgEmail.trim() &&
+      formData.adviserEmail.trim().toLowerCase() ===
+        formData.orgEmail.trim().toLowerCase()
+    ) {
+      newErrors.adviserEmail =
+        "Adviser email cannot be the same as organization email";
+      newErrors.orgEmail =
+        "Organization email cannot be the same as adviser email";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
+    setSubmitError(""); // clear old errors
     if (validateForm()) {
       try {
+        setLoading(true);
         console.log("Form submitted:", formData);
 
-        try {
-          const result = await axios.post(
-            `${API_ROUTER}/initialRegistration`,
-            formData,
-            { withCredentials: true }
-          );
-          console.log("Registration successful:", result);
-        } catch (error) {
-          console.error("Error submitting initial registration:", error);
-          throw error;
-        }
+        const result = await axios.post(
+          `${API_ROUTER}/initialRegistration`,
+          formData,
+          { withCredentials: true }
+        );
+        console.log("Registration successful:", result);
 
+        setLoading(false);
         onComplete?.();
       } catch (error) {
-        console.error("Registration failed:", error);
-        // You might want to show an error message to the user here
-        // setErrors({ submit: "Registration failed. Please try again." });
+        console.error("Error submitting initial registration:", error);
+
+        // If conflict (409), show special error
+        if (error.response?.status === 409) {
+          setSubmitError("This organization is already registered.");
+        } else {
+          setSubmitError("Registration failed. Please try again.");
+        }
+
+        setLoading(false);
       }
     }
   };
+
   return (
     <div className="absolute inset-0 h-screen w-screen overflow-hidden backdrop-blur-sm z-50 flex items-center justify-center">
       <div className="max-h-9/10 h-fit flex-col max-w-5xl rounded-xl gap-4 w-full p border-gray-500 bg-red-500 flex  items-center px-8 py-6 overflow-hidden">
@@ -486,14 +500,25 @@ export function InitialRegistration({ user, onComplete }) {
           </div>
 
           {/* Submit Button */}
-          <div className="flex justify-end ">
+          {/* Submit Button */}
+          <div className="flex flex-col items-end gap-2">
             <button
               type="button"
               onClick={handleSubmit}
-              className="px-8 py-4 rounded-xl bg-amber-300  font-bold"
+              disabled={loading}
+              className={`px-8 py-4 rounded-xl font-bold ${
+                loading
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-amber-300 hover:bg-amber-400"
+              }`}
             >
-              Register Organization
+              {loading ? "Registering..." : "Register Organization"}
             </button>
+
+            {/* Error or Conflict Message */}
+            {submitError && (
+              <p className="text-red-600 font-medium text-sm">{submitError}</p>
+            )}
           </div>
         </div>
       </div>

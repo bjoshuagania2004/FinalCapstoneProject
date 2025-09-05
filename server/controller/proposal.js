@@ -115,10 +115,6 @@ export const postStudentLeaderProposal = async (req, res) => {
     console.log("=== BACKEND LOG ===");
     console.log("req.body:", req.body);
     console.log("===================");
-    console.log("req.file:", req.file);
-    console.log("===================");
-
-    const DocumentId = res.locals.documentId;
 
     const {
       activityTitle,
@@ -177,7 +173,6 @@ export const postStudentLeaderProposal = async (req, res) => {
       accreditation,
       ProposedActionPlanSchema: existingPlan._id, // link to the action plan
       overallStatus: "Pending",
-      document: DocumentId ? [DocumentId] : [], // 👈 add the document here
     });
 
     await proposal.save();

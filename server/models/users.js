@@ -43,3 +43,14 @@ export const AdviserSchema = new Schema(
   },
   { timestamps: true }
 );
+
+export const DeanSchema = new Schema(
+  {
+    name: String,
+    email: String,
+    username: String,
+    deliveryUnit: String,
+    firstLogin: { type: Boolean, default: true }, // fixed here ✅
+  },
+  { timestamps: true }
+);
