@@ -12,23 +12,37 @@ export const getFinancialReport = async (req, res) => {
     let report = await FinancialReport.findOne({
       organizationProfile: OrgProfileId,
     })
-      .populate("reimbursements")
-      .populate("disbursements");
+      .populate({
+        path: "reimbursements",
+        populate: { path: "document" }, // populate document inside reimbursements
+      })
+      .populate({
+        path: "disbursements",
+        populate: { path: "document" }, // populate document inside disbursements
+      });
 
     if (!report) {
       report = new FinancialReport({
         organizationProfile: OrgProfileId,
-        receipts: [],
-        expenses: [],
+        reimbursements: [],
+        disbursements: [],
         initialBalance: 0,
+        endingBalance: 0,
+        isActive: true,
       });
 
       await report.save();
 
       // Repopulate after saving
       report = await FinancialReport.findById(report._id)
-        .populate("reimbursements")
-        .populate("disbursements");
+        .populate({
+          path: "reimbursements",
+          populate: { path: "document" },
+        })
+        .populate({
+          path: "disbursements",
+          populate: { path: "document" },
+        });
     }
 
     // 2️⃣ Ensure Accreditation has the FinancialReport linked
