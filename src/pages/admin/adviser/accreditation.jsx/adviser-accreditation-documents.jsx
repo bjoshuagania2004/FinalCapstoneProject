@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 
 import axios from "axios";
+import { DonePopUp } from "../../../../components/components";
 
 export function AdviserAccreditationDocument({ orgData }) {
   const [accreditationDocumentData, setAccreditationDocumentData] =
@@ -28,6 +29,8 @@ export function AdviserAccreditationDocument({ orgData }) {
   const [selectedDocumentDetails, setSelectedDocumentDetails] = useState(null);
   const [revisionModal, setRevisionModal] = useState(false);
   const [message, setMessage] = useState(false);
+  const [popup, setPopup] = useState(null);
+
   const [approvalModal, setApprovalModal] = useState(false);
   useEffect(() => {
     const fetchAccreditationInfo = async () => {
@@ -69,10 +72,19 @@ export function AdviserAccreditationDocument({ orgData }) {
         { status, revisionNotes }
       );
 
-      console.log(response.data);
-      // console.log("✅ Approval success:", response.data);
+      console.log("✅ Success:", response.data);
+
+      setPopup({
+        type: "success",
+        message: "Your action has been sent successfully!",
+      });
     } catch (error) {
       console.log("❌ Approval failed:", error);
+
+      setPopup({
+        type: "error",
+        message: "Something went wrong while processing your request.",
+      });
     }
   };
 
@@ -500,6 +512,13 @@ export function AdviserAccreditationDocument({ orgData }) {
             </button>
           </div>
         </div>
+      )}
+      {popup && (
+        <DonePopUp
+          type={popup.type}
+          message={popup.message}
+          onClose={() => setPopup(null)}
+        />
       )}
     </div>
   );

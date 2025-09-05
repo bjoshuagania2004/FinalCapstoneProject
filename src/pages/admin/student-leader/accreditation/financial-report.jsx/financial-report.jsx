@@ -30,29 +30,35 @@ import axios from "axios";
 export default function FinancialReport({ orgData }) {
   const [financialReport, setFinancialReport] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [currentBalance, setCurrentBalance] = useState(""); // You might want to get this from the backend as well
+  const [currentBalance, setCurrentBalance] = useState("");
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [transactionType, setTransactionType] = useState(null);
+
+  // NEW: view modal state
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [selectedType, setSelectedType] = useState(null);
+
+  const GetFinancialReportApi = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(
+        `${API_ROUTER}/getFinancialReport/${orgData._id}`
+      );
+      setFinancialReport(response.data);
+      setCurrentBalance(response.data.initialBalance);
+    } catch (error) {
+      console.error("Error fetching financial report:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const GetFinancialReportApi = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get(
-          `${API_ROUTER}/getFinancialReport/${orgData._id}`
-        );
-        console.log("Financial Report Response:", response.data);
-        setFinancialReport(response.data);
-        setCurrentBalance(response.data.initialBalance);
-      } catch (error) {
-        console.error("Error fetching financial report:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     GetFinancialReportApi();
   }, [orgData._id]);
 
-  // Generate monthly data from actual backend data
   const generateMonthlyData = () => {
     const monthlyStats = {};
     const months = [
@@ -70,17 +76,15 @@ export default function FinancialReport({ orgData }) {
       "Dec",
     ];
 
-    // Initialize all months with zero values
     months.forEach((month) => {
       monthlyStats[month] = {
         month,
         reimbursements: 0,
         disbursements: 0,
-        balance: currentBalance, // You might want to calculate this differently
+        balance: currentBalance,
       };
     });
 
-    // Process reimbursements
     financialReport.reimbursements.forEach((item) => {
       const date = new Date(item.date);
       const monthIndex = date.getMonth();
@@ -88,7 +92,6 @@ export default function FinancialReport({ orgData }) {
       monthlyStats[monthName].reimbursements += item.amount;
     });
 
-    // Process disbursements
     financialReport.disbursements.forEach((item) => {
       const date = new Date(item.date);
       const monthIndex = date.getMonth();
@@ -96,7 +99,6 @@ export default function FinancialReport({ orgData }) {
       monthlyStats[monthName].disbursements += item.amount;
     });
 
-    // Calculate running balance (simplified - you might want to implement proper balance calculation)
     let runningBalance = currentBalance;
     return months.map((month) => {
       const data = monthlyStats[month];
@@ -118,9 +120,6 @@ export default function FinancialReport({ orgData }) {
     }).format(amount);
   };
 
-  const [modalOpen, setModalOpen] = useState(false);
-  const [transactionType, setTransactionType] = useState(null);
-
   const handleAddClick = (type) => {
     setTransactionType(type);
     setModalOpen(true);
@@ -132,12 +131,6 @@ export default function FinancialReport({ orgData }) {
   };
 
   const handleTransactionSubmit = async (formData) => {
-    console.log("🔍 Logging submitted FormData:");
-
-    for (let [key, value] of formData.entries()) {
-      console.log(`${key}:`, value);
-    }
-
     try {
       const response = await axios.post(`${API_ROUTER}/addReciept`, formData, {
         headers: {
@@ -146,12 +139,7 @@ export default function FinancialReport({ orgData }) {
       });
 
       console.log("✅ Successfully submitted:", response.data);
-
-      // Refresh the financial report after successful submission
-      const updatedReport = await axios.get(
-        `${API_ROUTER}/getFinancialReport/${orgData._id}`
-      );
-      setFinancialReport(updatedReport.data);
+      window.location.reload();
     } catch (error) {
       console.error(
         "❌ Error submitting transaction:",
@@ -160,7 +148,6 @@ export default function FinancialReport({ orgData }) {
     }
   };
 
-  // Show loading state
   if (loading) {
     return (
       <div className="h-full w-full pt-4 bg-transparent rounded-2xl flex items-center justify-center">
@@ -169,7 +156,6 @@ export default function FinancialReport({ orgData }) {
     );
   }
 
-  // Show error state if no data
   if (!financialReport) {
     return (
       <div className="h-full w-full pt-4 bg-transparent rounded-2xl flex items-center justify-center">
@@ -180,7 +166,6 @@ export default function FinancialReport({ orgData }) {
     );
   }
 
-  // Calculate totals from actual data
   const totalReimbursements = financialReport.reimbursements.reduce(
     (sum, item) => sum + item.amount,
     0
@@ -190,14 +175,10 @@ export default function FinancialReport({ orgData }) {
     0
   );
 
-  // Replace the existing expenseBreakdown calculation with this improved version
-
-  // Create expense breakdown from actual data based on expenseType total amount
   const createExpenseBreakdown = () => {
     const reimbursementTypes = {};
     const disbursementTypes = {};
 
-    // Process reimbursements
     financialReport.reimbursements.forEach((reimbursement) => {
       const expenseType = reimbursement.expenseType || "uncategorized";
       if (!reimbursementTypes[expenseType]) {
@@ -206,7 +187,6 @@ export default function FinancialReport({ orgData }) {
       reimbursementTypes[expenseType] += reimbursement.amount;
     });
 
-    // Process disbursements
     financialReport.disbursements.forEach((disbursement) => {
       const expenseType = disbursement.expenseType || "uncategorized";
       if (!disbursementTypes[expenseType]) {
@@ -215,47 +195,11 @@ export default function FinancialReport({ orgData }) {
       disbursementTypes[expenseType] += disbursement.amount;
     });
 
-    // Green shades for reimbursements
-    const greenShades = [
-      "#22c55e",
-      "#16a34a",
-      "#15803d",
-      "#166534",
-      "#14532d",
-      "#10b981",
-      "#059669",
-      "#047857",
-      "#065f46",
-      "#064e3b",
-      "#4ade80",
-      "#34d399",
-      "#6ee7b7",
-      "#a7f3d0",
-      "#d1fae5",
-    ];
-
-    // Red shades for disbursements
-    const redShades = [
-      "#ef4444",
-      "#dc2626",
-      "#b91c1c",
-      "#991b1b",
-      "#7f1d1d",
-      "#f87171",
-      "#fca5a5",
-      "#fecaca",
-      "#fee2e2",
-      "#fef2f2",
-      "#e11d48",
-      "#be185d",
-      "#9d174d",
-      "#831843",
-      "#881337",
-    ];
+    const greenShades = ["#22c55e", "#16a34a", "#15803d", "#166534", "#14532d"];
+    const redShades = ["#ef4444", "#dc2626", "#b91c1c", "#991b1b", "#7f1d1d"];
 
     const result = [];
 
-    // Add reimbursement types with green shades
     Object.entries(reimbursementTypes).forEach(
       ([expenseType, amount], index) => {
         result.push({
@@ -266,7 +210,6 @@ export default function FinancialReport({ orgData }) {
       }
     );
 
-    // Add disbursement types with red shades
     Object.entries(disbursementTypes).forEach(
       ([expenseType, amount], index) => {
         result.push({
@@ -284,10 +227,9 @@ export default function FinancialReport({ orgData }) {
 
   return (
     <div className="h-full w-full pt-4 bg-transparent flex gap-4 ">
-      <div className="bg-white flex flex-col flex-1 p-6   shadow-lg border border-gray-100 overflow-hidden">
+      <div className="bg-white flex flex-col flex-1 p-6 shadow-lg border border-gray-100 overflow-hidden">
         {/* Header */}
         <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
-          {/* Left Section: Icon and Title */}
           <div className="flex items-center gap-4">
             <div className="p-2 bg-blue-100 ">
               <DollarSign className="w-6 h-6 text-blue-600" />
@@ -296,8 +238,6 @@ export default function FinancialReport({ orgData }) {
               Financial Report
             </h2>
           </div>
-
-          {/* Right Section: Button */}
           <button className="bg-amber-500 text-white px-5 py-2.5 font-semibold ">
             Summarize Report
           </button>
@@ -305,7 +245,6 @@ export default function FinancialReport({ orgData }) {
 
         {/* Summary Cards */}
         <div className="flex flex-wrap gap-4">
-          {/* Current Balance */}
           <div className="bg-gradient-to-r from-blue-50 to-blue-100 flex-1 min-w-[200px] p-4 border border-blue-200 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
@@ -320,8 +259,7 @@ export default function FinancialReport({ orgData }) {
             </div>
           </div>
 
-          {/* Reimbursements */}
-          <div className="bg-gradient-to-r from-green-50 to-green-100 flex-1 min-w-[200px] p-4  border border-green-200 shadow-sm">
+          <div className="bg-gradient-to-r from-green-50 to-green-100 flex-1 min-w-[200px] p-4 border border-green-200 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-green-600 font-medium">
@@ -335,8 +273,7 @@ export default function FinancialReport({ orgData }) {
             </div>
           </div>
 
-          {/* Disbursements */}
-          <div className="bg-gradient-to-r from-red-50 to-red-100 flex-1 min-w-[200px] p-4  border border-red-200 shadow-sm">
+          <div className="bg-gradient-to-r from-red-50 to-red-100 flex-1 min-w-[200px] p-4 border border-red-200 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-red-600 font-medium">
@@ -351,9 +288,8 @@ export default function FinancialReport({ orgData }) {
           </div>
         </div>
 
-        {/* Charts Section */}
+        {/* Charts */}
         <div className="flex flex-col gap-6 overflow-auto max-h-[600px]">
-          {/* Monthly Comparison Bar Chart */}
           <div className="bg-white p-4 rounded-2xl shadow border border-gray-200">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">
               Monthly Comparison
@@ -381,7 +317,6 @@ export default function FinancialReport({ orgData }) {
             </div>
           </div>
 
-          {/* Expense Breakdown Pie Chart */}
           {expenseBreakdown.length > 0 && (
             <div className="bg-white p-4 rounded-2xl shadow border border-gray-200">
               <div className="flex items-center gap-3 mb-4">
@@ -422,7 +357,7 @@ export default function FinancialReport({ orgData }) {
       {/* Reimbursements and Disbursements */}
       <div className="flex flex-col flex-1 gap-4 h-full overflow-hidden">
         {/* Reimbursements */}
-        <div className="bg-white p-0  border overflow-hidden border-gray-100 flex-1 flex flex-col">
+        <div className="bg-white border overflow-hidden border-gray-100 flex-1 flex flex-col">
           <div className="sticky flex justify-between w-full top-0 z-10 bg-white p-6 border-b border-gray-400 items-center gap-3">
             <div className="flex gap-2 items-center">
               <div className="p-2.5 bg-green-100 rounded-lg">
@@ -432,11 +367,9 @@ export default function FinancialReport({ orgData }) {
                 Reimbursements
               </h2>
             </div>
-
-            {/* Right Section: Button */}
             <button
               onClick={() => handleAddClick("reimbursement")}
-              className="bg-green-700 text-white px-5 py-2.5 font-semibold  hover:bg-green-700 transition duration-200"
+              className="bg-green-700 text-white px-5 py-2.5 font-semibold"
             >
               Add Reimbursement
             </button>
@@ -450,7 +383,12 @@ export default function FinancialReport({ orgData }) {
               financialReport.reimbursements.map((item, index) => (
                 <div
                   key={`reimbursement-${index}`}
-                  className="bg-green-50 p-4  border border-green-200"
+                  className="bg-green-50 p-4 border border-green-200 cursor-pointer hover:bg-green-100"
+                  onClick={() => {
+                    setSelectedTransaction(item);
+                    setSelectedType("reimbursement");
+                    setViewModalOpen(true);
+                  }}
                 >
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="font-medium text-gray-800">
@@ -460,13 +398,9 @@ export default function FinancialReport({ orgData }) {
                       {formatCurrency(item.amount)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center text-sm text-gray-600">
-                    <span>
-                      Date Reimbursed:
-                      {new Date(item.date).toLocaleDateString()}
-                    </span>
+                  <div className="text-sm text-gray-600">
+                    Date Reimbursed: {new Date(item.date).toLocaleDateString()}
                   </div>
-                  <div className="text-xs text-gray-500 mt-1"></div>
                 </div>
               ))
             )}
@@ -474,8 +408,8 @@ export default function FinancialReport({ orgData }) {
         </div>
 
         {/* Disbursements */}
-        <div className="bg-white  shadow-lg border border-gray-100 flex-1 flex flex-col overflow-hidden">
-          <div className="sticky justify-between top-0 z-10 bg-white  p-4 border-b border-gray-400 flex items-center">
+        <div className="bg-white shadow-lg border border-gray-100 flex-1 flex flex-col overflow-hidden">
+          <div className="sticky justify-between top-0 z-10 bg-white p-4 border-b border-gray-400 flex items-center">
             <div className="flex items-center gap-2">
               <div className="p-2.5 bg-red-100 rounded-lg">
                 <TrendingDown className="w-5 h-5 text-red-600" />
@@ -484,7 +418,7 @@ export default function FinancialReport({ orgData }) {
             </div>
             <button
               onClick={() => handleAddClick("disbursement")}
-              className="bg-red-700 text-white px-5 py-2.5 font-semibold  shadow-md hover:bg-red-700 transition duration-200"
+              className="bg-red-700 text-white px-5 py-2.5 font-semibold"
             >
               Add Disbursement
             </button>
@@ -498,7 +432,12 @@ export default function FinancialReport({ orgData }) {
               financialReport.disbursements.map((item, index) => (
                 <div
                   key={`disbursement-${index}`}
-                  className="bg-red-50 p-4  border border-red-200"
+                  className="bg-red-50 p-4 border border-red-200 cursor-pointer hover:bg-red-100"
+                  onClick={() => {
+                    setSelectedTransaction(item);
+                    setSelectedType("disbursement");
+                    setViewModalOpen(true);
+                  }}
                 >
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="font-medium text-gray-800">
@@ -508,12 +447,9 @@ export default function FinancialReport({ orgData }) {
                       {formatCurrency(item.amount)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center text-sm text-gray-600">
-                    <span>
-                      Date Disbursed: {new Date(item.date).toLocaleDateString()}
-                    </span>
+                  <div className="text-sm text-gray-600">
+                    Date Disbursed: {new Date(item.date).toLocaleDateString()}
                   </div>
-                  <div className="text-xs text-gray-500 mt-1"></div>
                 </div>
               ))
             )}
@@ -521,6 +457,7 @@ export default function FinancialReport({ orgData }) {
         </div>
       </div>
 
+      {/* Modals */}
       <TransactionModal
         isOpen={modalOpen}
         onClose={handleModalClose}
@@ -529,6 +466,114 @@ export default function FinancialReport({ orgData }) {
         orgData={orgData}
         financialReportId={financialReport._id}
       />
+
+      <ViewTransactionModal
+        isOpen={viewModalOpen}
+        onClose={() => setViewModalOpen(false)}
+        transaction={selectedTransaction}
+        type={selectedType}
+      />
+    </div>
+  );
+}
+function ViewTransactionModal({ isOpen, onClose, transaction, type }) {
+  if (!isOpen || !transaction) return null;
+
+  const isReimbursement = type === "reimbursement";
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden">
+        {/* Header */}
+        <div
+          className={`px-6 py-4 border-b ${
+            isReimbursement
+              ? "bg-gradient-to-r from-emerald-500 to-teal-600"
+              : "bg-gradient-to-r from-red-500 to-rose-600"
+          }`}
+        >
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-bold text-white">
+              {isReimbursement
+                ? "Reimbursement Details"
+                : "Disbursement Details"}
+            </h2>
+            <button
+              onClick={onClose}
+              className="text-white/80 hover:text-white hover:bg-white/20 p-2 rounded-full transition"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 space-y-4">
+          <div>
+            <p className="text-sm font-semibold text-gray-600">Description</p>
+            <p className="text-gray-900">{transaction.description}</p>
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold text-gray-600">Amount</p>
+            <p
+              className={`text-lg font-bold ${
+                isReimbursement ? "text-green-600" : "text-red-600"
+              }`}
+            >
+              {new Intl.NumberFormat("en-US", {
+                style: "currency",
+                currency: "USD",
+              }).format(transaction.amount)}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold text-gray-600">Date</p>
+            <p className="text-gray-900">
+              {new Date(transaction.date).toLocaleDateString()}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold text-gray-600">Expense Type</p>
+            <p className="text-gray-900">
+              {transaction.expenseType || "Uncategorized"}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold text-gray-600">
+              {isReimbursement ? "Requestor" : "Recipient"}
+            </p>
+            <p className="text-gray-900">{transaction.name}</p>
+          </div>
+
+          {transaction.file && (
+            <div>
+              <p className="text-sm font-semibold text-gray-600">Document</p>
+              <a
+                href={transaction.file}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                View Uploaded Document
+              </a>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-4 bg-gray-50 border-t flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-5 py-2 bg-gray-200 rounded-lg text-gray-700 hover:bg-gray-300 transition"
+          >
+            Close
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

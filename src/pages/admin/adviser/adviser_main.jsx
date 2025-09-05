@@ -22,6 +22,7 @@ import { AdviserAccreditationDocument } from "./accreditation.jsx/adviser-accred
 import { AdviserRosterData } from "./accreditation.jsx/adviser-accreditation-roster";
 import { AdviserPresident } from "./accreditation.jsx/adviser-accreditation-president";
 import { AdviserProposal } from "./accreditation.jsx/adviser-accreditation-Proposal";
+import { AdviserAccreditationMainComponent } from "./accreditation.jsx/adviser-accreditation-overview";
 
 export function AdviserPage() {
   const { user } = useOutletContext();
@@ -256,7 +257,10 @@ function AdviserRoutes({ orgData }) {
           path="accreditation"
           element={<AdviserAccreditationNavigationPage />}
         >
-          <Route index element={<div className="p-4">aslkjhdasjkhad</div>} />
+          <Route
+            index
+            element={<AdviserAccreditationMainComponent orgId={orgData._id} />}
+          />
           <Route
             path="financial-report"
             element={<AdviserFinancialReport orgData={orgData} />}

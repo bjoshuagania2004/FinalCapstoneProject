@@ -18,6 +18,7 @@ import {
   FileText,
   Users,
 } from "lucide-react";
+import { DonePopUp } from "../../../../components/components";
 
 export function AdviserProposal({ orgData }) {
   const [proposals, setProposals] = useState([]);
@@ -33,7 +34,11 @@ export function AdviserProposal({ orgData }) {
   const [error, setError] = useState(null);
   const [revisionNotes, setRevisionNotes] = useState("");
 
-  // Mock orgData if not provided
+  const [popup, setPopup] = useState({
+    open: false,
+    type: "success", // "success" | "error" | "warning"
+    message: "",
+  });
 
   const fetchProposals = async () => {
     setLoading(true);
@@ -147,21 +152,6 @@ export function AdviserProposal({ orgData }) {
       })
     : "No updates yet";
 
-  const handleEdit = (proposal) => {
-    setSelectedProposal(proposal);
-
-    setEditForm({
-      activityTitle: proposal.activityTitle,
-      proposedDate: proposal.proposedDate.split("T")[0],
-      briefDetails: proposal.briefDetails,
-      overallStatus: proposal.overallStatus,
-      alignedOrgObjectives: proposal.alignedOrgObjectives,
-      venue: proposal.venue,
-      budgetaryRequirements: proposal.budgetaryRequirements,
-    });
-    setShowEditModal(true);
-  };
-
   const handleView = (proposal) => {
     console.log(proposal);
 
@@ -179,9 +169,8 @@ export function AdviserProposal({ orgData }) {
 
   const submitUpdate = async ({ status }) => {
     try {
-      // build payload dynamically
       const payload = {
-        overallStatus: status, // 👈 interchangeable status
+        overallStatus: status,
       };
 
       if (revisionNotes && revisionNotes.trim() !== "") {
@@ -193,10 +182,30 @@ export function AdviserProposal({ orgData }) {
         payload
       );
 
-      console.log("✅ Approval success:", response.data);
+      console.log("✅ Update success:", response.data);
+
       setShowRevisionModal(false);
+      setShowApprovalModal(false);
+      setShowViewModal(false);
+
+      // ✅ Show success popup
+      setPopup({
+        open: true,
+        type: "success",
+        message: `Proposal successfully ${status}`,
+      });
+
+      // Optionally refresh proposals
+      fetchProposals();
     } catch (error) {
-      console.log("❌ Approval failed:", error);
+      console.log("❌ Update failed:", error);
+
+      // ❌ Show error popup
+      setPopup({
+        open: true,
+        type: "error",
+        message: "Failed to update proposal. Please try again.",
+      });
     }
   };
 
@@ -725,6 +734,13 @@ export function AdviserProposal({ orgData }) {
               </div>
             </div>
           </div>
+        )}
+        {popup.open && (
+          <DonePopUp
+            type={popup.type}
+            message={popup.message}
+            onClose={() => setPopup({ ...popup, open: false })}
+          />
         )}
       </div>
     </div>

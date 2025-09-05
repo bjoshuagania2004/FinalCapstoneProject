@@ -129,6 +129,11 @@ export const PostInitialOrganizationProfile = async (req, res) => {
       email: { $regex: new RegExp(`^${adviserEmail}$`, "i") },
     });
 
+    // 🚨 Extra check: Does a User already exist with this adviser email?
+    const existingAdviserUser = await User.findOne({
+      email: { $regex: new RegExp(`^${adviserEmail}$`, "i") },
+    });
+
     if (existingAdviser && existingAdviser.organizationProfile) {
       return res.status(409).json({
         message: "Adviser is already assigned to another organization",
@@ -136,6 +141,12 @@ export const PostInitialOrganizationProfile = async (req, res) => {
       });
     }
 
+    if (existingAdviserUser && existingAdviserUser.organizationProfile) {
+      return res.status(409).json({
+        message: "This adviser email is already linked to another organization",
+        error: "ADVISER_EMAIL_ALREADY_IN_USE",
+      });
+    }
     // Step 5: Create Organization
     const newOrg = new Organization({
       originalName,
@@ -330,26 +341,39 @@ export const ReRegisterOrganizationProfile = async (req, res) => {
       email: { $regex: new RegExp(`^${adviserEmail}$`, "i") },
     });
 
+    let adviserUser = await User.findOne({ email: adviserEmail });
+
     if (!adviserAccount) {
+      // Create Adviser entry
       adviserAccount = new Adviser({
         name: adviserName,
         email: adviserEmail,
         deliveryUnit: adviserDepartment,
-        password: initialPassword, // 🚨 stored as plain text (your choice)
+        password: initialPassword, // 🚨 replace with hashed password in production
         organizationProfile: null,
         Organization: oldOrgProfile.organization._id,
       });
       adviserAccount = await adviserAccount.save();
+    }
 
-      // Also create a user for adviser
-      const adviserUser = new User({
+    // Ensure a User exists for adviser
+    if (!adviserUser) {
+      adviserUser = new User({
         name: adviserName,
         email: adviserEmail,
         role: "Adviser",
-        password: initialPassword, // 🚨 stored as plain text (your choice)
+        password: initialPassword,
         adviser: adviserAccount._id,
         organizationProfile: null,
       });
+      adviserUser = await adviserUser.save();
+    } else {
+      // Update existing User if not already linked
+      if (adviserUser.role !== "Adviser") {
+        adviserUser.role = "Adviser";
+      }
+      adviserUser.adviser = adviserAccount._id;
+      adviserUser.organizationProfile = null; // will update later
       await adviserUser.save();
     }
 

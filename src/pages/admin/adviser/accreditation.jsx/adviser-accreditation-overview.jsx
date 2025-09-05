@@ -10,7 +10,6 @@ import {
   User,
   Users,
   Building,
-  Mail,
   Phone,
   MapPin,
   Award,
@@ -18,9 +17,8 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import { API_ROUTER, DOCU_API_ROUTER } from "../../../../App";
-import DocumentUploader from "../../../../components/document_uploader";
 
-export default function StudentAccreditationMainComponent({ orgId }) {
+export function AdviserAccreditationMainComponent({ orgId }) {
   const [accreditationData, setAccreditationData] = useState(null);
   const [uploadingDocType, setUploadingDocType] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -737,6 +735,7 @@ function RosterLists({ accreditationData }) {
     </div>
   );
 }
+
 function UploadDocument({
   title = "Upload a Document",
   buttonLabel = "Submit",

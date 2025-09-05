@@ -155,7 +155,8 @@ export function AdviserPresident({ orgData, accreditationData }) {
     <div className="flex flex-col mt-4 h-full w-full gap-4 overflow-auto">
       <div className="grid grid-cols-4 gap-4">
         {/* Current President (2 columns) */}
-        <div className="col-span-2">
+        <div className="col-span-4">
+          <h1>CURRENT PRESIDENT</h1>
           {currentPresident ? (
             <CurrentPresidentCard
               currentPresident={currentPresident}
@@ -183,18 +184,22 @@ export function AdviserPresident({ orgData, accreditationData }) {
             </div>
           )}
         </div>
-
-        {/* Previous Presidents (filtered list, excludes current) */}
-        {remainingPresidents.map((president) => (
-          <div key={president._id} className="col-span-1">
-            <PresidentCard
-              president={president}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              showActions={false} // never show "current" actions
-            />
+        <div className="col-span-4 flex flex-col gap-4">
+          <h1> PRESIDENT</h1>
+          <div className="w-full grid grid-cols-4 gap-4">
+            {remainingPresidents.map((president) => (
+              <div className="">
+                <PresidentCard
+                  president={president}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  showActions={false} // never show "current" actions
+                />
+              </div>
+            ))}
           </div>
-        ))}
+        </div>{" "}
+        {/* Previous Presidents (filtered list, excludes current) */}
       </div>
     </div>
   );
@@ -204,34 +209,76 @@ const CurrentPresidentCard = ({ currentPresident, orgData }) => {
   // Handle empty or missing data gracefully
   const president = currentPresident || {};
   const {
-    name = "No Name Available",
-    course = "N/A",
-    year = "N/A",
-    department = "No Department",
-    age = "N/A",
-    sex = "N/A",
-    religion = "N/A",
-    nationality = "N/A",
-    profilePicture = "/cnscsch.jpg",
-    presentAddress = {},
-    contactNo = "N/A",
-    facebookAccount = "",
-    parentGuardian = "N/A",
-    sourceOfFinancialSupport = "N/A",
-    talentSkills = [],
-    classSchedule = [],
+    name,
+    course,
+    year,
+    department,
+    age,
+    sex,
+    religion,
+    nationality,
+    profilePicture,
+    presentAddress,
+    contactNo,
+    facebookAccount,
+    overAllStatus,
+    parentGuardian,
+    sourceOfFinancialSupport,
+    talentSkills,
+    classSchedule,
   } = president;
 
+  console.log(president);
   const profilePictureUrl = `${DOCU_API_ROUTER}/${president.organizationProfile}/${profilePicture}`;
   const [showDropdown, setShowDropdown] = useState(false);
   const [showRevisionModal, setShowRevisionModal] = useState(false);
   const [showApproveModal, setShowApproveModal] = useState(false);
+  const [revisionNotes, setRevisionNotes] = useState("");
+  const [popup, setPopup] = useState({ open: false, type: "", message: "" });
 
+  const submitUpdate = async ({ status }) => {
+    try {
+      const payload = { overallStatus: status };
+
+      if (revisionNotes && revisionNotes.trim() !== "") {
+        payload.revisionNotes = revisionNotes;
+      }
+
+      const response = await axios.post(
+        `${API_ROUTER}/updateStatusPresident/${currentPresident._id}`, // 👈 change to correct proposal/org id
+        payload
+      );
+
+      console.log("✅ Update success:", response.data);
+
+      setShowRevisionModal(false);
+      setShowApproveModal(false);
+
+      // ✅ Show success popup
+      setPopup({
+        open: true,
+        type: "success",
+        message: `Proposal successfully ${status}`,
+      });
+
+      // Optionally refresh proposals (if you pass a function down as prop)
+      // fetchProposals?.();
+    } catch (error) {
+      console.log("❌ Update failed:", error);
+
+      // ❌ Show error popup
+      setPopup({
+        open: true,
+        type: "error",
+        message: "Failed to update proposal. Please try again.",
+      });
+    }
+  };
   return (
     <div className="bg-white shadow-xl relative">
       {/* Header Section */}
-      <div className="py-8 px-12">
-        <div className="relative p-6 bg-white rounded-2xl shadow-lg">
+      <div className="">
+        <div className="relative p-6 bg-white ">
           <div className="flex flex-col md:flex-row items-center gap-6">
             {/* Profile Image */}
             <div className="w-32 h-32 rounded-full overflow-hidden ring-4 ring-white flex items-center justify-center bg-gray-100">
@@ -253,9 +300,10 @@ const CurrentPresidentCard = ({ currentPresident, orgData }) => {
             <div className="text-center md:text-left">
               <h1 className="text-2xl md:text-3xl font-bold mb-2">{name}</h1>
               <p className="text-lg mb-1">{course}</p>
-              <p>
+              <p className="text-lg mb-1">
                 {year} • {department}
               </p>
+              <p>Status: {overAllStatus}</p>
             </div>
           </div>
 
@@ -296,17 +344,28 @@ const CurrentPresidentCard = ({ currentPresident, orgData }) => {
           {showRevisionModal && (
             <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-20">
               <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
-                <h2 className="text-xl font-bold mb-2">View Revision</h2>
-                <p className="text-gray-600 mb-4">
-                  Here you can view the revision details for this proposal.
-                </p>
+                <h2 className="text-xl font-bold mb-2">Send for Revision</h2>
+                <textarea
+                  value={revisionNotes}
+                  onChange={(e) => setRevisionNotes(e.target.value)}
+                  placeholder="Enter revision notes..."
+                  className="w-full p-2 border rounded-lg mb-4"
+                />
 
                 <div className="flex justify-end gap-3">
                   <button
                     onClick={() => setShowRevisionModal(false)}
                     className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300"
                   >
-                    Close
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() =>
+                      submitUpdate({ status: "Revision from the Adviser" })
+                    }
+                    className="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600"
+                  >
+                    Send Revision
                   </button>
                 </div>
               </div>
@@ -330,10 +389,9 @@ const CurrentPresidentCard = ({ currentPresident, orgData }) => {
                     Cancel
                   </button>
                   <button
-                    onClick={() => {
-                      // ✅ Add approve logic here
-                      setShowApproveModal(false);
-                    }}
+                    onClick={() =>
+                      submitUpdate({ status: "Approved by the Adviser" })
+                    }
                     className="px-4 py-2 rounded-lg bg-amber-500 text-white hover:bg-amber-600"
                   >
                     Approve
@@ -442,24 +500,36 @@ const CurrentPresidentCard = ({ currentPresident, orgData }) => {
           <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2 mb-3">
             Class Schedule
           </h3>
-          <div className="space-y-2">
-            {classSchedule.map((schedule, index) => (
-              <div
-                key={schedule._id || index}
-                className="flex justify-between items-center p-3 bg-gray-50 rounded-lg text-sm"
-              >
-                <div>
-                  <span className="font-medium text-gray-800">
-                    {schedule.subject}
-                  </span>
-                  <span className="text-gray-600 ml-2">• {schedule.day}</span>
-                </div>
-                <div className="text-right text-gray-600">
-                  <div>{schedule.time}</div>
-                  <div className="text-xs">{schedule.place}</div>
-                </div>
-              </div>
-            ))}
+          <div className="overflow-x-auto">
+            <table className="w-full border border-gray-300 text-sm">
+              <thead className="bg-gray-200 text-gray-700">
+                <tr>
+                  <th className="p-2 border text-left">Subject</th>
+                  <th className="p-2 border text-left">Place</th>
+                  <th className="p-2 border text-left">Day</th>
+                  <th className="p-2 border text-left">Class Start</th>
+                  <th className="p-2 border text-left">Class End</th>
+                </tr>
+              </thead>
+              <tbody>
+                {classSchedule.map((schedule, index) => (
+                  <tr
+                    key={schedule._id || index}
+                    className="even:bg-white odd:bg-gray-50"
+                  >
+                    <td className="p-2 border">{schedule.subject || "N/A"}</td>
+                    <td className="p-2 border">{schedule.place || "N/A"}</td>
+                    <td className="p-2 border">{schedule.day || "N/A"}</td>
+                    <td className="p-2 border">
+                      {schedule.time?.start || "N/A"}
+                    </td>
+                    <td className="p-2 border">
+                      {schedule.time?.end || "N/A"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
