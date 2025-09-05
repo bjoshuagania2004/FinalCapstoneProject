@@ -100,12 +100,23 @@ export const AddPresident = async (req, res) => {
   }
 };
 
-export const ApprovePresidentProfile = async (req, res) => {
+export const UpdatePresidentProfileStatus = async (req, res) => {
   const { presidentId } = req.params;
+  const { overallStatus, revisionNotes } = req.body;
 
-  console.log("Approving president profile with ID:", presidentId);
+  console.log(
+    "Updating president profile with ID:",
+    presidentId,
+    "to status:",
+    overallStatus
+  );
+
   if (!presidentId) {
     return res.status(400).json({ message: "President ID is required." });
+  }
+
+  if (!overallStatus) {
+    return res.status(400).json({ message: "Overall status is required." });
   }
 
   try {
@@ -115,18 +126,26 @@ export const ApprovePresidentProfile = async (req, res) => {
       return res.status(404).json({ message: "President profile not found." });
     }
 
-    profile.overAllStatus = "Approved";
+    // ✅ Update status
+    profile.overAllStatus = overallStatus;
+
+    // ✅ Save revision notes if provided
+    if (revisionNotes && revisionNotes.trim() !== "") {
+      profile.revisionNotes = revisionNotes;
+    }
+
     await profile.save();
 
     return res.status(200).json({
-      message: "President profile approved successfully.",
+      message: `President profile ${overallStatus.toLowerCase()} successfully.`,
       updatedProfile: profile,
     });
   } catch (error) {
-    console.log("Error approving president profile:", error);
+    console.log("❌ Error updating president profile:", error);
     return res.status(500).json({ message: "Internal server error." });
   }
 };
+
 export const RevisionPresidentProfile = async (req, res) => {
   const { presidentId } = req.params;
   const { revisionNotes, status } = req.body;

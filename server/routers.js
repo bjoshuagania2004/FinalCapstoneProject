@@ -8,6 +8,17 @@ export const upload = multer({ storage });
 /*
 **********                                **********
 **********                                **********
+          DEAN
+**********                                **********
+**********                                ********** 
+*/
+router.get(
+  "/getOrganizations/:deliveryUnit",
+  Controller.GetOrganizationsByDeliveryUnit
+);
+/*
+**********                                **********
+**********                                **********
           STUDENT DEVELOPMENT ORGANIZATION
 **********                                **********
 **********                                ********** 
@@ -48,8 +59,8 @@ router.get(
 );
 /* ********** STUDENT DEVELOPMENT PRESIDENT ********** */
 router.post(
-  "/approvePresidentProfile/:presidentId",
-  Controller.ApprovePresidentProfile
+  "/updateStatusPresident/:presidentId",
+  Controller.UpdatePresidentProfileStatus
 );
 router.post(
   "/revisionPresidentProfile/:presidentId",

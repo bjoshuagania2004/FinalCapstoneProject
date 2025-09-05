@@ -58,7 +58,7 @@ export default function AddStudentPresident({
   const [addressFormData, setAddressFormData] = useState(null);
 
   const [classSchedules, setClassSchedules] = useState([
-    { subject: "", place: "", time: "", day: "" },
+    { subject: "", place: "", time: { start: "", end: "" }, day: "" },
   ]);
 
   const [talentSkills, setTalentSkills] = useState([{ skill: "", level: "" }]);
@@ -316,36 +316,6 @@ export default function AddStudentPresident({
     }
   };
 
-  const handleClassChange = (index, e) => {
-    const { name, value } = e.target;
-    const updated = [...classSchedules];
-    updated[index][name] = value;
-    setClassSchedules(updated);
-
-    // Add new blank row if current row is complete
-    if (
-      index === classSchedules.length - 1 &&
-      updated[index].subject &&
-      updated[index].place &&
-      updated[index].time &&
-      updated[index].day
-    ) {
-      setClassSchedules([
-        ...updated,
-        { subject: "", place: "", time: "", day: "" },
-      ]);
-    }
-
-    // Clear class schedule validation error
-    if (validationErrors.classSchedule) {
-      setValidationErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors.classSchedule;
-        return newErrors;
-      });
-    }
-  };
-
   const handleSkillChange = (index, e) => {
     const { name, value } = e.target;
     const updated = [...talentSkills];
@@ -359,6 +329,47 @@ export default function AddStudentPresident({
       updated[index].level
     ) {
       setTalentSkills([...updated, { skill: "", level: "" }]);
+    }
+  };
+
+  const handleClassChange = (index, e) => {
+    const { name, value } = e.target;
+    const updated = [...classSchedules];
+
+    if (name === "timeStart" || name === "timeEnd") {
+      const key = name === "timeStart" ? "start" : "end";
+      updated[index] = {
+        ...updated[index],
+        time: { ...updated[index].time, [key]: value },
+      };
+    } else {
+      updated[index] = { ...updated[index], [name]: value };
+    }
+
+    setClassSchedules(updated);
+
+    // ✅ Auto-add new blank row if last row is complete
+    if (
+      index === classSchedules.length - 1 &&
+      updated[index].subject &&
+      updated[index].place &&
+      updated[index].time.start &&
+      updated[index].time.end &&
+      updated[index].day
+    ) {
+      setClassSchedules([
+        ...updated,
+        { subject: "", place: "", time: { start: "", end: "" }, day: "" },
+      ]);
+    }
+
+    // ✅ Clear validation errors for classSchedule
+    if (validationErrors.classSchedule) {
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.classSchedule;
+        return newErrors;
+      });
     }
   };
 
@@ -1252,8 +1263,15 @@ function PresidentClassSchedInfo({
                 <td className="p-2 border">
                   <input
                     type="time"
-                    name="time"
-                    value={cls.time}
+                    name="timeStart"
+                    value={cls.time.start}
+                    onChange={(e) => handleClassChange(index, e)}
+                    className="w-full px-2 py-1.5 border border-gray-300 rounded focus:ring focus:ring-gray-500"
+                  />
+                  <input
+                    type="time"
+                    name="timeEnd"
+                    value={cls.time.end}
                     onChange={(e) => handleClassChange(index, e)}
                     className="w-full px-2 py-1.5 border border-gray-300 rounded focus:ring focus:ring-gray-500"
                   />

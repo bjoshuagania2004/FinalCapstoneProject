@@ -4,6 +4,7 @@ import axios from "axios";
 import { MoreHorizontal, MoreVertical, Users } from "lucide-react";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
+import { DonePopUp } from "../../../../components/components";
 
 export function AdviserRosterData({ orgData }) {
   const [showDropdown, setShowDropdown] = useState(false);
@@ -11,11 +12,15 @@ export function AdviserRosterData({ orgData }) {
   const [revisionModal, setRevisionModal] = useState(false);
   const [approvalModal, setApprovalModal] = useState(false);
   const [exportModal, setExportModal] = useState(false);
+  const [incompleteModal, setIncompleteModal] = useState(false);
+  const [popup, setPopup] = useState(null);
 
   const [rosterData, setRosterData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(
+    `Dear ${orgData.orgName},\n\nWe kindly request you to complete your roster list as part of the accreditation process. Please ensure that all required members and details are submitted at the earliest convenience.\n\nThank you for your cooperation.\n\nSincerely,\nAdviser`
+  );
   const [subject, setSubject] = useState("Notification for Roster Lists");
 
   const fetchRosterMembers = async () => {
@@ -24,7 +29,7 @@ export function AdviserRosterData({ orgData }) {
       const response = await axios.get(
         `${API_ROUTER}/getRosterMembers/${orgData._id}`
       );
-      console.log(response.data.roster._id);
+      console.log(response.data.roster);
       setRosterData(response.data);
       setError(null);
     } catch (err) {
@@ -79,14 +84,22 @@ export function AdviserRosterData({ orgData }) {
       );
 
       console.log("✅ Notification Response:", response.data);
-      alert("Notification sent successfully!");
+      setPopup({
+        type: "success",
+        message: "Your action has been sent successfully!",
+      });
       setError(null);
     } catch (err) {
       console.error("❌ Failed to send notification:", err.response.data);
       setError("Failed to send notification");
+      setPopup({
+        type: "error",
+        message: "Something went wrong while processing your request.",
+      });
     } finally {
       setLoading(false);
       setAlertModal(false);
+      setIncompleteModal(false);
     }
   };
 
@@ -152,12 +165,13 @@ export function AdviserRosterData({ orgData }) {
   };
 
   const handleApproval = async ({ status, revisionNotes }) => {
-    try {
-      // build payload dynamically
-      const payload = {
-        overAllStatus: status, // 👈 interchangeable status
-      };
+    if (!rosterData?.roster?.isComplete) {
+      setIncompleteModal(true); // 👈 open modal
+      return;
+    }
 
+    try {
+      const payload = { overAllStatus: status };
       if (revisionNotes && revisionNotes.trim() !== "") {
         payload.revisionNotes = revisionNotes;
       }
@@ -168,8 +182,16 @@ export function AdviserRosterData({ orgData }) {
       );
 
       console.log("✅ Approval success:", response.data);
-    } catch (error) {
-      console.log("❌ Approval failed:", error);
+      setPopup({
+        type: "success",
+        message: "Your action has been sent successfully!",
+      });
+      setError(null);
+    } catch (err) {
+      setPopup({
+        type: "error",
+        message: "Something went wrong while processing your request.",
+      });
     }
   };
 
@@ -274,7 +296,6 @@ export function AdviserRosterData({ orgData }) {
           )}
         </div>
       </div>
-
       {/* Content */}
       <div className="h-full">
         {!rosterData || rosterMembers.length === 0 ? (
@@ -350,7 +371,6 @@ export function AdviserRosterData({ orgData }) {
           </div>
         </div>
       )}
-
       {/* Approval Modal */}
       {approvalModal && (
         <div className="absolute bg-black/10 backdrop-blur-xs inset-0 flex justify-center items-center">
@@ -385,7 +405,6 @@ export function AdviserRosterData({ orgData }) {
           </div>
         </div>
       )}
-
       {alertModal && (
         <div className="absolute bg-black/10 backdrop-blur-xs inset-0 flex justify-center items-center">
           <div className="h-fit bg-white w-1/3 flex flex-col px-6 py-6 justify-center items-center rounded-2xl shadow-xl">
@@ -427,7 +446,6 @@ export function AdviserRosterData({ orgData }) {
           </div>
         </div>
       )}
-
       {exportModal && (
         <div className="absolute bg-black/10 backdrop-blur-xs inset-0 flex justify-center items-center">
           <div className="h-fit bg-white w-1/3 flex flex-col px-6 py-6 rounded-2xl shadow-xl relative">
@@ -459,6 +477,73 @@ export function AdviserRosterData({ orgData }) {
             </div>
           </div>
         </div>
+      )}
+      {incompleteModal && (
+        <div className="absolute bg-black/10 backdrop-blur-xs inset-0 flex justify-center items-center">
+          <div className="h-fit bg-white w-1/3 flex flex-col px-6 py-6 rounded-2xl shadow-xl relative">
+            <button
+              onClick={() => setIncompleteModal(false)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+            >
+              ✕
+            </button>
+
+            <h1 className="text-lg font-semibold mb-4">Roster Incomplete</h1>
+            <p className="text-sm text-gray-700 mb-4">
+              The roster is not yet complete. Would you like to notify the
+              organization to complete their roster list?
+            </p>
+
+            <div className="flex flex-col gap-4 w-full">
+              {/* Subject */}
+              <div className="flex flex-col gap-1 w-full">
+                <label className="text-sm font-medium text-gray-700">
+                  Subject
+                </label>
+                <input
+                  type="text"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  className="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm"
+                />
+              </div>
+
+              {/* Message */}
+              <div className="flex flex-col gap-1 w-full">
+                <label className="text-sm font-medium text-gray-700">
+                  Message
+                </label>
+                <textarea
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  className="border rounded-lg w-full h-28 p-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setIncompleteModal(false)}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={SendNotification} // 👈 reuse your function
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-sm font-medium shadow-md transition"
+              >
+                Notify Organization
+              </button>
+            </div>
+          </div>
+        </div>
+      )}{" "}
+      {popup && (
+        <DonePopUp
+          type={popup.type}
+          message={popup.message}
+          onClose={() => setPopup(null)}
+        />
       )}
     </div>
   );

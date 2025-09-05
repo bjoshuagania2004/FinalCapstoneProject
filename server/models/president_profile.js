@@ -5,7 +5,7 @@ const { Schema } = mongoose;
 export const classScheduleSchema = new Schema({
   subject: { type: String, required: true },
   place: String,
-  time: String,
+  time: { start: String, end: String },
   day: String,
 });
 

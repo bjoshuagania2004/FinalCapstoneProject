@@ -15,6 +15,7 @@ import StudentLeaderMainPage from "./pages/admin/student-leader/student-leader-m
 import PhilippineAddressForm from "./sandbox";
 import StudentDevMainLayout from "./pages/admin/sdu/sdu-main";
 import { AdviserPage } from "./pages/admin/adviser/adviser_main";
+import { DeanPage } from "./pages/admin/dean/dean-main";
 const MAIN_API_ROUTER = import.meta.env.VITE_API_ROUTER;
 
 export const API_ROUTER = `${MAIN_API_ROUTER}/api`;
@@ -29,15 +30,22 @@ export default function App() {
       <Route element={<ProtectedRoute allowedRoles={["student-leader"]} />}>
         <Route path="/student-leader/*" element={<StudentLeaderMainPage />} />
       </Route>
+
       <Route element={<ProtectedRoute allowedRoles={["SDU", "sdu"]} />}>
         <Route path="/SDU/*" element={<StudentDevMainLayout />} />
       </Route>
+
       <Route
         element={
           <ProtectedRoute allowedRoles={["adviser", "Adviser", "ADVISER"]} />
         }
       >
         <Route path="/adviser/*" element={<AdviserPage />} />
+      </Route>
+      <Route
+        element={<ProtectedRoute allowedRoles={["dean", "Dean", "DEAN"]} />}
+      >
+        <Route path="/dean/*" element={<DeanPage />} />
       </Route>
 
       <Route path="/unauthorized" element={<UnauthorizedPage />} />

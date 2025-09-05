@@ -230,3 +230,6 @@ export function DonePopUp({
     </div>
   );
 }
+export function checkStatus({ position, status }) {
+  const Position = ["adviser", "student-leader", "dean", "ossd", "sdu"];
+}

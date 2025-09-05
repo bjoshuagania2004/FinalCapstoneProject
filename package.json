@@ -13,7 +13,7 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
-    "@tailwindcss/oxide": "^4.1.11",
+    "@tailwindcss/oxide": "^4.1.13",
     "@tailwindcss/vite": "^4.0.8",
     "axios": "^1.8.3",
     "bcrypt": "^6.0.0",
