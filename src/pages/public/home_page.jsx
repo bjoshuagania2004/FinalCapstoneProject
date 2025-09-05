@@ -280,6 +280,7 @@ function DekstopNavigation({ scrollToSection }) {
         <div className="h-16 flex justify-end items-center px-16">
           <nav className="hidden md:flex items-center justify-center space-x-8 py-4">
             <button
+    
               onClick={() => scrollToSection("section0")}
               className="relative group  hover:text-yellow-300 transition-colors duration-300 "
             >
@@ -317,7 +318,7 @@ function DekstopNavigation({ scrollToSection }) {
       {/* Main Content (with top padding so it doesn’t get hidden under nav) */}
       <div id="section0" className="pt-16">
         <div className="h-screen w-full flex justify-center items-center">
-          <div className="bg-red-500 container mx-auto w-1 h-1/3" />
+          <div className="bg-white container mx-auto w-1 h-1/3" />
           <div className="h-full flex flex-col items-start px-8 justify-center w-1/3">
             <p className="stroked-text-cnsc text-[100px] leading-[90px]">
               CNSC
@@ -341,7 +342,7 @@ function DekstopNavigation({ scrollToSection }) {
               />
             )}
           </div>
-          <div className="bg-red-500 container mx-auto w-1 h-full" />
+          <div className="bg-white container mx-auto w-1 h-full" />
         </div>
       </div>
 
@@ -388,7 +389,7 @@ function CellphoneNavigation() {
       <div
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat w-full h-full"
         style={{
-          backgroundImage: `url('/cnscsch.jpg')`,
+          backgroundImage: `url('/cnscbg.jpg')`,
         }}
       />
 
@@ -404,7 +405,7 @@ function CellphoneNavigation() {
               <h1 className="text-cnsc-primary-color font-extrabold text-5xl tracking-wide">
                 CNSC{" "}
                 <span className="text-cnsc-secondary-color font-bold text-5xl tracking-wide">
-                  CODEX
+                  CODE
                 </span>
               </h1>
               <h2></h2>
