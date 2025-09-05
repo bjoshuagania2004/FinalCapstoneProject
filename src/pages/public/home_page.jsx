@@ -26,7 +26,7 @@ export default function HomePage() {
     }
   };
   return (
-    <div className="relative h-screen w-screen ">
+    <div className="relative p-12 h-screen w-screen ">
       {/* Desktop Navigation */}
       <div className="hidden md:flex h-full w-full items-center justify-center z-10 relative">
         <DekstopNavigation scrollToSection={scrollToSection} />
