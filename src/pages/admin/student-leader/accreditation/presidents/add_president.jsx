@@ -573,7 +573,7 @@ export default function AddStudentPresident({
 
   // Step Indicator Component
   const StepIndicator = () => (
-    <div className="flex items-center border-12 justify-center mb-8">
+    <div className="flex items-center  justify-center mb-8">
       <div className="flex items-center space-x-4">
         {steps.map((stepItem, index) => (
           <div key={stepItem.id} className="flex items-center">

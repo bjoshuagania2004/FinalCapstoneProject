@@ -163,11 +163,10 @@ export default function StudentLeaderPresidentListComponent({
   }
 
   return (
-    <div className="flex flex-col mt-4 h-full w-full gap-4 overflow-auto">
-      <div className="grid grid-cols-4 gap-4">
-        {/* Current President (2 columns) */}
-        <div className="col-span-4">
-          <h1>CURRENT PRESIDENT</h1>
+    <div className="flex flex-col h-full w-full gap-4 overflow-auto p-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Current President */}
+        <div className="lg:col-span-2">
           {currentPresident ? (
             <CurrentPresidentCard
               currentPresident={currentPresident}
@@ -175,43 +174,39 @@ export default function StudentLeaderPresidentListComponent({
             />
           ) : (
             <div
-              className="bg-white gap-4 flex flex-col justify-center items-center p-6 relative cursor-pointer group border-2 border-dashed border-gray-300 hover:border-indigo-400 transition-all duration-300"
               onClick={handleAdd}
+              className="group bg-white rounded-xl border border-gray-200 hover:border-indigo-400 hover:shadow-md p-4 flex flex-col justify-center items-center text-center cursor-pointer transition-all duration-200"
             >
-              <div className="w-32 h-32 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-full flex items-center justify-center border-2 border-indigo-200 group-hover:border-indigo-400 transition-all duration-300 group-hover:scale-105">
+              <div className="w-20 h-20 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-full flex items-center justify-center border border-indigo-200 group-hover:border-indigo-400 group-hover:scale-105 transition-all duration-200">
                 <Plus
-                  size={48}
-                  className="text-indigo-600 group-hover:text-indigo-700 transition-colors duration-300"
+                  size={40}
+                  className="text-indigo-600 group-hover:text-indigo-700"
                 />
               </div>
-              <div className="text-center">
-                <h3 className="text-xl font-semibold text-gray-800 group-hover:text-indigo-700 transition-colors duration-300">
-                  Add Current President
-                </h3>
-                <p className="text-sm text-gray-500 mt-1 group-hover:text-gray-600 transition-colors duration-300">
-                  Click to add a new president
-                </p>
-              </div>
+              <h3 className="text-base font-semibold text-gray-800 mt-3 group-hover:text-indigo-700 transition-colors duration-200">
+                Add Current President
+              </h3>
+              <p className="text-xs text-gray-500 mt-1 group-hover:text-gray-600 transition-colors duration-200">
+                Click to add a new president
+              </p>
             </div>
           )}
         </div>
-        <div className="col-span-4 flex flex-col gap-4">
-          <h1> PRESIDENT</h1>
-          <div className="w-full grid grid-cols-4 gap-4">
-            {remainingPresidents.map((president) => (
-              <div className="">
-                <PresidentCard
-                  president={president}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  showActions={false} // never show "current" actions
-                />
-              </div>
-            ))}
+
+        {/* Previous Presidents */}
+        {remainingPresidents.map((president) => (
+          <div key={president._id} className="col-span-1">
+            <PresidentCard
+              president={president}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onUploadPhoto={handleUploadPhoto}
+              showActions={false}
+            />
           </div>
-        </div>{" "}
-        {/* Previous Presidents (filtered list, excludes current) */}
+        ))}
       </div>
+
       {/* Modal */}
       {showAddForm && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/30 backdrop-blur-sm">

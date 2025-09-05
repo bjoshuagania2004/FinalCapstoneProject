@@ -208,24 +208,23 @@ export function StudentLeaderProposal({ orgData }) {
   };
 
   return (
-    <div className="flex flex-col h-full w-full overflow-auto bg-gradient-to-br from-slate-50 via-white to-blue-50 min-h-screen">
-      {/* Enhanced Header with gradient background */}
-      <div className="relative p-6 border-b border-gray-200/70 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-xl">
-        <div className="absolute inset-0 bg-black/10"></div>
+    <div className="flex flex-col h-full w-full overflow-auto bg-gradient-to-br from-amber-50 via-white to-amber-50 min-h-screen">
+      {/* Enhanced Header with maroon gradient */}
+      <div className="relative p-6 border-b border-amber-200 bg-gradient-to-r from-gray-700 via-gray-600 to-gray-800 text-white shadow-xl">
         <div className="relative flex justify-between items-center">
           <div>
             <h1 className="text-4xl font-bold mb-2 text-white drop-shadow-lg">
               Student Leader Proposals
             </h1>
-            <p className="text-blue-100 text-lg">
+            <p className="text-amber-100 text-lg">
               Manage and track student organization proposals
             </p>
           </div>
           <button
             onClick={() => setShowAddForm(true)}
-            className="group relative bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-6 py-3 rounded-xl flex items-center gap-3 transition-all duration-300 hover:scale-105 hover:shadow-2xl border border-white/20 hover:border-white/30"
+            className="group relative bg-amber-500 hover:bg-amber-600 text-[#800000] px-6 py-3 rounded-xl flex items-center gap-3 transition-all duration-300 hover:scale-105 hover:shadow-2xl border border-amber-400 hover:border-amber-300"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-white/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-amber-400/20 to-amber-300/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <Plus
               size={22}
               className="group-hover:rotate-90 transition-transform duration-300"
