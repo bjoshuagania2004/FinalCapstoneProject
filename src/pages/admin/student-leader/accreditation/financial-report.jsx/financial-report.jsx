@@ -24,7 +24,7 @@ import {
   Cell,
 } from "recharts";
 import DocumentUploader from "../../../../../components/document_uploader";
-import { API_ROUTER } from "../../../../../App";
+import { API_ROUTER, DOCU_API_ROUTER } from "../../../../../App";
 import axios from "axios";
 
 export default function FinancialReport({ orgData }) {
@@ -43,9 +43,11 @@ export default function FinancialReport({ orgData }) {
   const GetFinancialReportApi = async () => {
     try {
       setLoading(true);
+      console.log(`${API_ROUTER}/getFinancialReport/${orgData._id}`);
       const response = await axios.get(
         `${API_ROUTER}/getFinancialReport/${orgData._id}`
       );
+      console.log(response.data);
       setFinancialReport(response.data);
       setCurrentBalance(response.data.initialBalance);
     } catch (error) {
@@ -476,14 +478,20 @@ export default function FinancialReport({ orgData }) {
     </div>
   );
 }
+
 function ViewTransactionModal({ isOpen, onClose, transaction, type }) {
   if (!isOpen || !transaction) return null;
 
   const isReimbursement = type === "reimbursement";
 
+  // Build file URL (adjust base path if needed for your backend)
+  const fileUrl = transaction?.document?.fileName
+    ? `${DOCU_API_ROUTER}/${transaction.organizationProfile}/${transaction.document.fileName}`
+    : transaction?.file;
+
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden">
+      <div className="bg-white w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden">
         {/* Header */}
         <div
           className={`px-6 py-4 border-b ${
@@ -508,7 +516,7 @@ function ViewTransactionModal({ isOpen, onClose, transaction, type }) {
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-4">
+        <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
           <div>
             <p className="text-sm font-semibold text-gray-600">Description</p>
             <p className="text-gray-900">{transaction.description}</p>
@@ -549,17 +557,26 @@ function ViewTransactionModal({ isOpen, onClose, transaction, type }) {
             <p className="text-gray-900">{transaction.name}</p>
           </div>
 
-          {transaction.file && (
+          {fileUrl && (
             <div>
-              <p className="text-sm font-semibold text-gray-600">Document</p>
-              <a
-                href={transaction.file}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:underline"
-              >
-                View Uploaded Document
-              </a>
+              <p className="text-sm font-semibold text-gray-600 mb-2">
+                Document
+              </p>
+              <iframe
+                src={fileUrl}
+                className="w-full h-96 border rounded-lg"
+                title="Transaction Document"
+              />
+              <div className="mt-2">
+                <a
+                  href={fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline"
+                >
+                  Open in New Tab
+                </a>
+              </div>
             </div>
           )}
         </div>

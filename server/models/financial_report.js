@@ -5,12 +5,15 @@ export const ReceiptSchema = new mongoose.Schema(
   {
     organizationProfile: {
       type: Schema.Types.ObjectId,
-      ref: "organizationProfile",
+      ref: "OrganizationProfile", // ✅ exact match
     },
     description: String,
     amount: Number,
     expenseType: String,
-    document: { type: Schema.Types.ObjectId, ref: "Document" },
+    document: {
+      type: Schema.Types.ObjectId,
+      ref: "Documents", // ✅ matches your model registration
+    },
     date: { type: Date, default: Date.now },
   },
   { timestamps: true }
