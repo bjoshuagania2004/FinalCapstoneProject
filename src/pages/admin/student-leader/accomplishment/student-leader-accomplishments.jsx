@@ -290,12 +290,12 @@ export function StudentLeaderAccomplishmentReport({ orgData }) {
       {/* Analytics Dashboard */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Status Overview */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
+        <div className="bg-[#FDF8F8] rounded-xl shadow-lg p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">
+            <h3 className="text-lg font-semibold text-[#4B1C1C]">
               Status Overview
             </h3>
-            <PieChart className="w-5 h-5 text-blue-600" />
+            <PieChart className="w-5 h-5 text-[#800000]" />
           </div>
           <ResponsiveContainer width="100%" height={200}>
             <RechartsPieChart>
@@ -326,9 +326,9 @@ export function StudentLeaderAccomplishmentReport({ orgData }) {
                     className="w-3 h-3 rounded-full"
                     style={{ backgroundColor: item.color }}
                   />
-                  <span className="text-gray-600">{item.name}</span>
+                  <span className="text-[#5C2C2C]">{item.name}</span>
                 </div>
-                <span className="font-medium text-gray-800">{item.value}</span>
+                <span className="font-medium text-[#4B1C1C]">{item.value}</span>
               </div>
             ))}
           </div>
@@ -337,33 +337,40 @@ export function StudentLeaderAccomplishmentReport({ orgData }) {
         {/* Budget Analysis */}
         <div className="bg-white rounded-xl shadow-lg p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">
+            <h3 className="text-lg font-semibold text-[#4B1C1C]">
               Budget Distribution
             </h3>
-            <BarChart3 className="w-5 h-5 text-green-600" />
+            <BarChart3 className="w-5 h-5 text-[#C67B5C]" />{" "}
+            {/* Warm Terracotta Accent */}
           </div>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart
               data={budgetData}
               margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
             >
-              <CartesianGrid strokeDasharray="3 3" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#EAD8D8" />
               <XAxis
                 dataKey="name"
                 angle={-45}
                 textAnchor="end"
                 height={60}
                 fontSize={12}
+                stroke="#4B1C1C"
               />
               <YAxis
                 tickFormatter={(value) => `₱${(value / 1000).toFixed(0)}K`}
                 fontSize={12}
+                stroke="#4B1C1C"
               />
               <Tooltip
                 formatter={(value) => [`₱${value.toLocaleString()}`, "Budget"]}
-                labelStyle={{ color: "#374151" }}
+                contentStyle={{
+                  backgroundColor: "#FFF8F6",
+                  borderColor: "#C67B5C",
+                }}
+                labelStyle={{ color: "#4B1C1C" }}
               />
-              <Bar dataKey="budget" fill="#10B981" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="budget" fill="#C67B5C" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -371,16 +378,17 @@ export function StudentLeaderAccomplishmentReport({ orgData }) {
         {/* Timeline Trends */}
         <div className="bg-white rounded-xl shadow-lg p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">
+            <h3 className="text-lg font-semibold text-[#4B1C1C]">
               Activity Timeline
             </h3>
-            <TrendingUp className="w-5 h-5 text-purple-600" />
+            <TrendingUp className="w-5 h-5 text-[#7D9D9C]" />{" "}
+            {/* Muted Teal Accent */}
           </div>
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={timelineData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" fontSize={12} />
-              <YAxis fontSize={12} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#EAD8D8" />
+              <XAxis dataKey="month" fontSize={12} stroke="#4B1C1C" />
+              <YAxis fontSize={12} stroke="#4B1C1C" />
               <Tooltip
                 formatter={(value, name) => [
                   name === "count"
@@ -388,14 +396,18 @@ export function StudentLeaderAccomplishmentReport({ orgData }) {
                     : `₱${value.toLocaleString()}`,
                   name === "count" ? "Proposals" : "Total Budget",
                 ]}
+                contentStyle={{
+                  backgroundColor: "#FFF8F6",
+                  borderColor: "#7D9D9C",
+                }}
               />
               <Area
                 type="monotone"
                 dataKey="count"
                 stackId="1"
-                stroke="#8B5CF6"
-                fill="#8B5CF6"
-                fillOpacity={0.6}
+                stroke="#7D9D9C"
+                fill="#7D9D9C"
+                fillOpacity={0.5}
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -404,10 +416,11 @@ export function StudentLeaderAccomplishmentReport({ orgData }) {
 
       {/* Key Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-amber-500 rounded-xl p-4 text-white">
+        {/* Total Budget */}
+        <div className="bg-[#800000] rounded-xl p-4 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-blue-100 text-sm">Total Budget</p>
+              <p className="text-red-200 text-sm">Total Budget</p>
               <p className="text-2xl font-bold">
                 {formatBudget(
                   proposals.reduce(
@@ -419,14 +432,15 @@ export function StudentLeaderAccomplishmentReport({ orgData }) {
                 )}
               </p>
             </div>
-            <DollarSign className="w-8 h-8 text-blue-200" />
+            <DollarSign className="w-8 h-8 text-red-300" />
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white">
+        {/* Completed */}
+        <div className="bg-gradient-to-br from-[#C67B5C] to-[#A04040] rounded-xl p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-green-100 text-sm">Completed</p>
+              <p className="text-red-100 text-sm">Completed</p>
               <p className="text-2xl font-bold">
                 {
                   proposals.filter((p) => p.overallStatus === "Completed")
@@ -434,11 +448,12 @@ export function StudentLeaderAccomplishmentReport({ orgData }) {
                 }
               </p>
             </div>
-            <CheckCircle className="w-8 h-8 text-green-200" />
+            <CheckCircle className="w-8 h-8 text-red-200" />
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl p-6 text-white">
+        {/* In Progress */}
+        <div className="bg-gradient-to-br from-[#E3B778] to-[#B87700] rounded-xl p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-yellow-100 text-sm">In Progress</p>
@@ -453,10 +468,11 @@ export function StudentLeaderAccomplishmentReport({ orgData }) {
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white">
+        {/* Ready for Report */}
+        <div className="bg-gradient-to-br from-[#7D9D9C] to-[#566D6D] rounded-xl p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-purple-100 text-sm">Ready for Report</p>
+              <p className="text-gray-100 text-sm">Ready for Report</p>
               <p className="text-2xl font-bold">
                 {
                   proposals.filter(
@@ -465,7 +481,7 @@ export function StudentLeaderAccomplishmentReport({ orgData }) {
                 }
               </p>
             </div>
-            <Activity className="w-8 h-8 text-purple-200" />
+            <Activity className="w-8 h-8 text-gray-200" />
           </div>
         </div>
       </div>

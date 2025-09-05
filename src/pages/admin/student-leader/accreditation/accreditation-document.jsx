@@ -286,7 +286,7 @@ export function AccreditationDocuments({ orgData }) {
       </h2>
 
       {/* Documents Grid */}
-      <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-3 h-full">
         <DocumentCard
           label="Joint Statement"
           doc={JointStatement}

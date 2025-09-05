@@ -19,6 +19,9 @@ import {
   X,
   CameraIcon,
   Plus,
+  Bell,
+  MessageSquare,
+  HelpCircle,
 } from "lucide-react";
 
 import axios from "axios";
@@ -34,6 +37,7 @@ import { AccreditationDocuments } from "./accreditation/accreditation-document";
 import { StudentProposedPlan } from "./accreditation/propose-plan/proposed-plan";
 import { StudentLeaderProposal } from "./proposal/student-leader-proposals";
 import { StudentLeaderAccomplishmentReport } from "./accomplishment/student-leader-accomplishments";
+import backgroundImage from "./../../../assets/cnsc-codex-2.svg";
 
 export default function StudentLeaderMainPage() {
   // User and organization data
@@ -128,12 +132,35 @@ export default function StudentLeaderMainPage() {
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden">
       {/* Header */}
-      <div className="flex min-h-12 bg-amber-600" />
+      <div className="flex items-center justify-between bg-cnsc-secondary-color h-14 w-full px-4 shadow-2xl">
+        {/* Left: Logo + Title */}
+        <div className="flex items-center space-x-2">
+          <img
+            src={backgroundImage} // replace with your actual logo path
+            alt="CNSC Codex Logo"
+            className="h-8 w-8 bg-white"
+          />
+          <span className="font-bold text-cnsc-primary-color">CNSC CODEX</span>
+        </div>
+
+        {/* Right: Manual + Icons */}
+        <div className="flex items-center space-x-4">
+          <button className="flex items-center space-x-1 bg-amber-100 text-amber-600 px-2 py-1 rounded text-sm font-medium hover:bg-amber-200 transition">
+            <HelpCircle size={16} />
+            <span>Manual</span>
+          </button>
+
+          <Bell
+            size={20}
+            className="text-cnsc-primary-color cursor-pointer hover:scale-110 transition"
+          />
+        </div>
+      </div>
 
       {/* Main content area */}
       <div className="flex h-full overflow-auto">
         {/* Sidebar */}
-        <div className="w-1/5 h-full flex flex-col  bg-cnsc-primary-color">
+        <div className="w-1/5 h-full flex flex-col bg-cnsc-primary-color">
           <StudentNavigation orgData={orgData} />
           <LogoutButton />
         </div>
@@ -164,6 +191,7 @@ export default function StudentLeaderMainPage() {
     </div>
   );
 }
+
 function StudentRoutes({ orgData, accreditationData }) {
   return (
     <div className="flex flex-col w-full h-full bg-gray-200 overflow-hidden">
@@ -351,7 +379,7 @@ function StudentNavigation({ orgData }) {
           <div className="my-1 ml-3 w-15 aspect-square rounded-full bg-cnsc-secondary-color flex items-center justify-center text-2xl cursor-pointer overflow-hidden hover:bg-white hover:text-cnsc-primary-color transition-all duration-500">
             {imageSrc ? (
               <img
-                src={imageSrc}
+                src={backgroundImage}
                 alt="Organization Logo"
                 className="w-full h-full object-cover rounded-full"
               />
@@ -372,7 +400,7 @@ function StudentNavigation({ orgData }) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex flex-col gap-2">
+        <nav className="flex flex-col gap-1 mx-2 ">
           {[
             {
               key: "home",
