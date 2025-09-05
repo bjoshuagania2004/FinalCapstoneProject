@@ -26,7 +26,7 @@ export default function HomePage() {
     }
   };
   return (
-    <div className="relative p-12 h-screen w-screen ">
+    <div className="relative h-screen w-screen ">
       {/* Desktop Navigation */}
       <div className="hidden md:flex h-full w-full items-center justify-center z-10 relative">
         <DekstopNavigation scrollToSection={scrollToSection} />
@@ -280,7 +280,6 @@ function DekstopNavigation({ scrollToSection }) {
         <div className="h-16 flex justify-end items-center px-16">
           <nav className="hidden md:flex items-center justify-center space-x-8 py-4">
             <button
-    
               onClick={() => scrollToSection("section0")}
               className="relative group  hover:text-yellow-300 transition-colors duration-300 "
             >
