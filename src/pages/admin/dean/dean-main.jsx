@@ -15,12 +15,32 @@ import {
 } from "lucide-react";
 import { DeanMainAccreditation } from "./accreditation/dean-accreditation";
 import { DeanOverviewComponent } from "./accreditation/dean-accreditation-overview";
+import { DeanPresident } from "./accreditation/dean-accreditation-president";
+import { constructFrom } from "date-fns";
 
 export function DeanPage() {
   const { user } = useOutletContext();
   const [selectedOrg, setSelectedOrg] = useState(null);
   const [orgs, setOrgs] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [accreditationStatus, setAccreditationStatus] = useState(null);
+
+  const fetchStatus = async () => {
+    try {
+      const res = await axios.get(
+        `${API_ROUTER}/checkAccreditationApprovalStatuses/${selectedOrg._id}`
+      );
+
+      console.log(res.data);
+      setAccreditationStatus(res.data);
+
+      if (res.data.isEverythingApproved) {
+        setShowApprovalPopup(true);
+      }
+    } catch (error) {
+      console.error("Failed to fetch accreditation data", error);
+    }
+  };
 
   // Function to fetch organizations
   const fetchOrganizations = async () => {
@@ -30,51 +50,10 @@ export function DeanPage() {
         `${API_ROUTER}/getOrganizations/${user.deliveryUnit}`
       );
 
+      console.log(res.data);
       // Transform the API response to match component expectations
-      const transformedData = res.data.data.map((item) => ({
-        _id: item._id,
-        organizationProfile: {
-          _id: item._id,
-          orgName: item.orgName,
-          orgAcronym: item.orgAcronym,
-          orgClass: item.orgClass,
-          orgCourse: item.orgCourse,
-          orgDepartment: item.orgDepartment,
-          orgSpecialization: item.orgSpecialization,
-          orgLogo: item.orgLogo,
-          isActive: item.isActive,
-          overAllStatus: item.overAllStatus,
-          adviserName: item.adviser?.name,
-          adviserEmail: item.adviser?.email,
-        },
-        PresidentProfile: item.orgPresident
-          ? {
-              name: item.orgPresident.name,
-              course: item.orgPresident.course,
-              year: item.orgPresident.year,
-              contactNo: item.orgPresident.contactNo,
-              profilePicture: item.orgPresident.profilePicture,
-              overAllStatus: item.orgPresident.overAllStatus,
-            }
-          : null,
-        overallStatus: item.overAllStatus,
-        createdAt: item.createdAt,
-        updatedAt: item.updatedAt,
-        // Add placeholder data for missing fields
-        JointStatement: null,
-        ConstitutionAndByLaws: null,
-        PledgeAgainstHazing: null,
-        Roster: {
-          overAllStatus: "N/A",
-          isComplete: false,
-        },
-        FinancialReport: null,
-        // Keep original structure for legacy compatibility
-        orgName: item.orgName,
-        orgLogo: item.orgLogo,
-      }));
 
-      setOrgs(transformedData);
+      setOrgs(res.data.data);
     } catch (err) {
       console.error("Error fetching organizations:", err);
       setOrgs([]);
@@ -86,7 +65,10 @@ export function DeanPage() {
   // Fetch organizations on component mount
   useEffect(() => {
     fetchOrganizations();
-  }, []);
+    if (selectedOrg?._id) {
+      fetchStatus();
+    }
+  }, [location, selectedOrg]);
 
   return (
     <div className="flex h-screen w-screen bg-gray-50">
@@ -100,6 +82,7 @@ export function DeanPage() {
           onSelectOrg={setSelectedOrg}
           setLoading={setLoading}
           loading={loading}
+          accreditationStatus={accreditationStatus}
           user={user}
         />
       </div>
@@ -209,9 +192,8 @@ function DeanComponent({
   selectedOrg,
   orgs,
   onSelectOrg,
-  user,
-  setLoading,
   loading,
+  accreditationStatus,
 }) {
   // Helper to get status badge styling
   const getStatusBadge = (status) => {
@@ -227,21 +209,20 @@ function DeanComponent({
 
   // Helper to handle specialization/department display
   const renderAcademicInfo = (org) => {
-    const profile = org.organizationProfile;
-    if (!profile) return null;
+    if (!org) return null;
 
-    if (profile.orgClass === "System-wide") {
-      if (profile.orgSpecialization?.toLowerCase() === "student government") {
+    if (org.orgClass === "System-wide") {
+      if (org.orgSpecialization?.toLowerCase() === "student government") {
         return (
           <>
             <p>
               <span className="font-medium text-gray-600">Specialization:</span>{" "}
-              <span className="text-gray-800">{profile.orgSpecialization}</span>
+              <span className="text-gray-800">{org.orgSpecialization}</span>
             </p>
             <p>
               <span className="font-medium text-gray-600">Department:</span>{" "}
               <span className="text-gray-800">
-                {profile.orgDepartment || "N/A"}
+                {org.orgDepartment || "N/A"}
               </span>
             </p>
           </>
@@ -251,7 +232,7 @@ function DeanComponent({
         <p>
           <span className="font-medium text-gray-600">Specialization:</span>{" "}
           <span className="text-gray-800">
-            {profile.orgSpecialization || "N/A"}
+            {org.orgSpecialization || "N/A"}
           </span>
         </p>
       );
@@ -262,13 +243,11 @@ function DeanComponent({
       <>
         <p>
           <span className="font-medium text-gray-600">Course:</span>{" "}
-          <span className="text-gray-800">{profile.orgCourse || "N/A"}</span>
+          <span className="text-gray-800">{org.orgCourse || "N/A"}</span>
         </p>
         <p>
           <span className="font-medium text-gray-600">Department:</span>{" "}
-          <span className="text-gray-800">
-            {profile.orgDepartment || "N/A"}
-          </span>
+          <span className="text-gray-800">{org.orgDepartment || "N/A"}</span>
         </p>
       </>
     );
@@ -276,7 +255,7 @@ function DeanComponent({
 
   // Helper to render president information
   const renderPresidentInfo = (org) => {
-    const president = org.PresidentProfile;
+    const president = org.orgPresident;
     if (!president) {
       return (
         <div className="bg-gray-50 p-3 rounded-lg">
@@ -286,11 +265,11 @@ function DeanComponent({
     }
 
     return (
-      <div className="bg-blue p-3 rounded-lg space-y-1">
+      <div className="bg-blue-50 p-3 rounded-lg space-y-1">
         <div className="flex items-center gap-2">
           {president.profilePicture ? (
             <img
-              src={`${DOCU_API_ROUTER}/${org.organizationProfile._id}/${president.profilePicture}`}
+              src={`${DOCU_API_ROUTER}/${org._id}/${president.profilePicture}`}
               alt="President"
               className="w-8 h-8 rounded-full object-cover"
             />
@@ -323,11 +302,18 @@ function DeanComponent({
   };
 
   // Helper to render document status
-  const renderDocumentStatus = (org) => {
+  const renderDocumentStatus = (accreditationStatus) => {
+    accreditationStatus;
     const documents = [
-      { name: "Joint Statement", data: org.JointStatement },
-      { name: "Constitution & By-Laws", data: org.ConstitutionAndByLaws },
-      { name: "Pledge Against Hazing", data: org.PledgeAgainstHazing },
+      { name: "Joint Statement", data: accreditationStatus.JointStatement },
+      {
+        name: "Constitution & By-Laws",
+        data: accreditationStatus.ConstitutionAndByLaws,
+      },
+      {
+        name: "Pledge Against Hazing",
+        data: accreditationStatus.PledgeAgainstHazing,
+      },
     ];
 
     return (
@@ -393,27 +379,20 @@ function DeanComponent({
     );
   };
 
-  // Separate organizations by active status
-  const activeOrgs = orgs.filter(
-    (org) => org.organizationProfile?.isActive === true
-  );
-  const inactiveOrgs = orgs.filter(
-    (org) => org.organizationProfile?.isActive === false
-  );
+  const activeOrgs = orgs.filter((org) => org.isActive === true);
+  const inactiveOrgs = orgs.filter((org) => org.isActive === false);
 
   const renderOrganizationCard = (org) => {
     const isSelected = selectedOrg?._id === org._id;
-    const isActive = org.organizationProfile?.isActive;
-    const overallStatus =
-      org.overallStatus || org.organizationProfile?.overAllStatus;
+    const isActive = org.isActive;
+    const overallStatus = org.overAllStatus || org.overallStatus;
 
+    console.log(org);
     return (
       <div
         key={org._id}
         onClick={() =>
-          selectedOrg === org.organizationProfile._id
-            ? onSelectOrg(null)
-            : onSelectOrg(org.organizationProfile)
+          selectedOrg === org._id ? onSelectOrg(null) : onSelectOrg(org)
         }
         className={`shadow-lg rounded-2xl border bg-white cursor-pointer transition-all duration-200 ${
           isSelected
@@ -427,10 +406,10 @@ function DeanComponent({
           {/* Header with Logo and Basic Info */}
           <div className="flex items-start gap-4">
             <div className="flex-shrink-0">
-              {org.organizationProfile.orgLogo ? (
+              {org.orgLogo ? (
                 <img
-                  src={`${DOCU_API_ROUTER}/${org.organizationProfile._id}/${org.organizationProfile.orgLogo}`}
-                  alt={`${org.organizationProfile.orgName} Logo`}
+                  src={`${DOCU_API_ROUTER}/${org._id}/${org.orgLogo}`}
+                  alt={`${org.orgName} Logo`}
                   className="w-16 h-16 object-cover rounded-full border-3 border-white shadow-md"
                 />
               ) : (
@@ -442,7 +421,7 @@ function DeanComponent({
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-2">
                 <h2 className="text-lg font-bold text-gray-800 leading-tight">
-                  {org.organizationProfile?.orgName || "Unnamed Organization"}
+                  {org.orgName || "Unnamed Organization"}
                 </h2>
                 <div className="flex flex-col gap-1">
                   <span
@@ -464,26 +443,21 @@ function DeanComponent({
                 </div>
               </div>
               <p className="text-sm text-gray-600 mt-1">
-                <span className="font-medium">
-                  {org.organizationProfile?.orgAcronym}
-                </span>
+                <span className="font-medium">{org.orgAcronym}</span>
                 {" • "}
-                <span className="capitalize">
-                  {org.organizationProfile?.orgClass}
-                </span>
+                <span className="capitalize">{org.orgClass}</span>
               </p>
             </div>
           </div>
 
           {/* Academic Information */}
-          <div className="text-sm space-y-1 ">
+          <div className="text-sm space-y-1">
             {renderAcademicInfo(org)}
             <p>
               <span className="font-medium text-gray-600">Adviser:</span>{" "}
               <span className="text-gray-800">
-                {org.organizationProfile?.adviserName || "Not assigned"}
-                {org.organizationProfile?.adviserEmail &&
-                  ` (${org.organizationProfile.adviserEmail})`}
+                {org.adviser?.name || "Not assigned"}
+                {org.adviser?.email && ` (${org.adviser.email})`}
               </span>
             </p>
           </div>
@@ -548,26 +522,8 @@ function DeanComponent({
     );
   };
 
-  // Simple organization card for selection (original design)
-  const renderSimpleOrgCard = (org) => (
-    <div
-      key={org._id}
-      onClick={() => onSelectOrg(org)}
-      className="border border-gray-200 rounded p-4 cursor-pointer hover:bg-gray-50 hover:border-gray-300"
-    >
-      <div className="flex items-center gap-3">
-        <img
-          src={`${DOCU_API_ROUTER}/${org._id}/${org.orgLogo}`}
-          alt="Organization Logo"
-          className="w-12 h-12 rounded-full"
-        />
-        <h3 className="font-medium text-gray-800">{org.orgName}</h3>
-      </div>
-    </div>
-  );
-
   return (
-    <div className="flex-1 w-full  bg-white h-full overflow-auto">
+    <div className="flex-1 w-full bg-white h-full overflow-auto">
       {/* Selected Organization Display */}
       {selectedOrg && (
         <div className="p-4 bg-amber-100 border-b flex items-center justify-between">
@@ -577,7 +533,7 @@ function DeanComponent({
               alt="Selected Organization"
               className="w-16 aspect-square rounded-full"
             />
-            <div className="flex flex-col ">
+            <div className="flex flex-col">
               <span className="font-medium text-xl">{selectedOrg.orgName}</span>
               <span className="italic text-xs">Selected Organization</span>
             </div>
@@ -637,9 +593,7 @@ function DeanComponent({
               />
               <Route
                 path="president-information"
-                element={
-                  <div>Dean President Info for {selectedOrg.orgName}</div>
-                }
+                element={<DeanPresident selectedOrg={selectedOrg} />}
               />
               <Route
                 path="settings"
@@ -746,7 +700,7 @@ function DeanComponent({
                     <div className="text-center">
                       <div className="text-2xl font-bold text-yellow-600">
                         {
-                          orgs.filter((org) => org.overallStatus === "Pending")
+                          orgs.filter((org) => org.overAllStatus === "Pending")
                             .length
                         }
                       </div>

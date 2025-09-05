@@ -16,657 +16,515 @@ import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { API_ROUTER, DOCU_API_ROUTER } from "../../../../App";
 
-export function AdviserPresident({ orgData, accreditationData }) {
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [presidents, setPresidents] = useState([]);
-  const [currentPresident, setCurrentPresident] = useState(null);
-  const [remainingPresidents, setRemainingPresidents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const orgId = orgData.organization;
+export function DeanPresident({ selectedOrg }) {
+  const [presidentData, setPresidentData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  console.log(selectedOrg);
+
+  const [noPresidentFound, setNoPresidentFound] = useState(false);
+  const [showPopup, setShowPopup] = useState({
+    show: false,
+    type: "",
+    member: null,
+  });
+
+  const [isManagePresidentProfileOpen, setManagePresidentProfileOpen] =
+    useState(false);
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
-    const GetAndSetPresidents = async () => {
-      if (!orgId) return;
+    setPresidentData(null);
+    setNoPresidentFound(false);
 
+    if (!selectedOrg?.orgPresident) {
+      setNoPresidentFound(true);
+      return;
+    }
+
+    const fetchPresident = async () => {
       try {
-        setLoading(true);
-        setError(null);
-
-        const response = await axios.get(
-          `${API_ROUTER}/getPresidents/${orgId}`
+        setIsLoading(true);
+        const res = await axios.get(
+          `${API_ROUTER}/getPresident/${selectedOrg.orgPresident}`
         );
-        const data = response.data;
 
-        setPresidents(data);
-
-        if (orgData?.orgPresident?._id) {
-          const orgPresidentId = orgData.orgPresident._id;
-
-          const matchedPresident = data.find(
-            (president) => president._id === orgPresidentId
-          );
-
-          if (matchedPresident) {
-            setCurrentPresident(matchedPresident);
-
-            // Remaining presidents (exclude current one)
-            const remaining = data.filter(
-              (president) => president._id !== orgPresidentId
-            );
-            setRemainingPresidents(remaining);
-          } else {
-            // No match found → treat all as previous
-            setRemainingPresidents(data);
-          }
-        } else {
-          // No orgPresident → all are previous
-          setRemainingPresidents(data);
-        }
+        console.log(res);
+        setPresidentData(res.data);
       } catch (error) {
-        console.error("Error fetching presidents:", error);
-        setError("Failed to load presidents. Please try again.");
+        console.error("Failed to fetch president data", error);
+        setNoPresidentFound(true);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
-    GetAndSetPresidents();
-  }, [orgId, orgData?.orgPresident]);
+    fetchPresident();
+  }, [selectedOrg]);
 
-  const handleEdit = (president) => {
-    console.log("Edit clicked for:", president.name);
+  const handleButtonClick = (action) => {
+    console.log("Button clicked:", action);
+    setShowPopup({ show: true, type: action });
   };
 
-  const handleAdd = () => {
-    setShowAddForm(true);
-  };
-
-  const handleDelete = (president) => {
-    console.log("Delete clicked for:", president.name);
-  };
-
-  // Show loading screen while fetching data
-  if (loading) {
-    <div className="flex flex-col h-full w-full items-center justify-center min-h-96">
-      <div className="flex flex-col items-center space-y-6">
-        {/* Animated spinner */}
-        <div className="relative">
-          <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
-          <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-r-indigo-400 rounded-full animate-spin animation-delay-150"></div>
-        </div>
-
-        {/* Loading text */}
-        <div className="text-center">
-          <h3 className="text-xl font-semibold text-gray-700 mb-2">
-            Loading Presidents...
-          </h3>
-          <p className="text-sm text-gray-500">
-            Please wait while we fetch the data
-          </p>
-        </div>
-
-        {/* Animated dots */}
-        <div className="flex space-x-1">
-          <div className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce"></div>
-          <div className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce animation-delay-200"></div>
-          <div className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce animation-delay-400"></div>
-        </div>
-      </div>
-    </div>;
+  if (isLoading) {
+    return <p className="text-gray-500">Loading president data...</p>;
   }
 
-  // Show error message if there's an error
-  if (error) {
+  if (noPresidentFound) {
     return (
-      <div className="flex flex-col  h-full w-full items-center justify-center min-h-96">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg
-              className="w-8 h-8 text-red-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M6 18L18 6M6 6l12 12"
-              ></path>
-            </svg>
-          </div>
-          <h3 className="text-xl font-semibold text-red-600 mb-2">
-            Error Loading Data
-          </h3>
-          <p className="text-sm text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
-          >
-            Retry
-          </button>
-        </div>
+      <div className="flex h-full w-full items-center justify-center text-center">
+        <p className="text-red-500 font-semibold">
+          No president found for this organization
+        </p>
       </div>
     );
   }
 
+  if (!presidentData) {
+    return null;
+  }
+
+  const {
+    name,
+    profilePicture,
+    department,
+    course,
+    year,
+    age,
+    sex,
+    religion,
+    nationality,
+    birthplace,
+    presentAddress,
+    parentGuardian,
+    sourceOfFinancialSupport,
+    talentSkills,
+    contactNo,
+    overAllStatus,
+    addressPhoneNo,
+    facebookAccount,
+    classSchedule,
+  } = presidentData;
+
   return (
-    <div className="flex flex-col mt-4 h-full w-full gap-4 overflow-auto">
-      <div className="grid grid-cols-4 gap-4">
-        {/* Current President (2 columns) */}
-        <div className="col-span-4">
-          <h1>CURRENT PRESIDENT</h1>
-          {currentPresident ? (
-            <CurrentPresidentCard
-              currentPresident={currentPresident}
-              orgData={orgData}
-            />
-          ) : (
-            <div
-              className="bg-white gap-4 flex flex-col justify-center items-center p-6 relative cursor-pointer group border-2 border-dashed border-gray-300 hover:border-indigo-400 transition-all duration-300"
-              onClick={handleAdd}
+    <div className="p-4 ">
+      <div className="">
+        <div className="border-b pb-4  flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-gray-800 ">
+            Organization President
+          </h2>
+
+          <div className="relative inline-block text-left" ref={dropdownRef}>
+            <button
+              onClick={() => setManagePresidentProfileOpen((prev) => !prev)}
+              className={`px-4 py-2 bg-cnsc-primary-color w-48 text-white transition-colors hover:bg-cnsc-primary-color-dark ${
+                isManagePresidentProfileOpen ? "rounded-t-lg" : "rounded-lg"
+              }`}
             >
-              <div className="w-32 h-32 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-full flex items-center justify-center border-2 border-indigo-200 group-hover:border-indigo-400 transition-all duration-300 group-hover:scale-105">
-                <Plus
-                  size={48}
-                  className="text-indigo-600 group-hover:text-indigo-700 transition-colors duration-300"
-                />
+              Manage President Profile
+            </button>
+
+            {isManagePresidentProfileOpen && (
+              <div className="absolute right-0 w-48 bg-white border rounded-b-lg shadow-lg z-10">
+                <button
+                  onClick={() => handleButtonClick("approve")}
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
+                >
+                  Approve
+                </button>
+                <button
+                  onClick={() => handleButtonClick("notes")}
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
+                >
+                  Revision Notes
+                </button>
+                <button
+                  onClick={() => handleButtonClick("history")}
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
+                >
+                  View Previous Presidents
+                </button>
               </div>
-              <div className="text-center">
-                <h3 className="text-xl font-semibold text-gray-800 group-hover:text-indigo-700 transition-colors duration-300">
-                  Add Current President
-                </h3>
-                <p className="text-sm text-gray-500 mt-1 group-hover:text-gray-600 transition-colors duration-300">
-                  Click to add a new president
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-        <div className="col-span-4 flex flex-col gap-4">
-          <h1> PRESIDENT</h1>
-          <div className="w-full grid grid-cols-4 gap-4">
-            {remainingPresidents.map((president) => (
-              <div className="">
-                <PresidentCard
-                  president={president}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  showActions={false} // never show "current" actions
-                />
-              </div>
-            ))}
+            )}
           </div>
-        </div>{" "}
-        {/* Previous Presidents (filtered list, excludes current) */}
+        </div>
+
+        <div className="flex mt-2 mb-4 items-center p-4  gap-6">
+          <div className="w-32 h-32 bg-gray-200 rounded-full overflow-hidden">
+            {profilePicture ? (
+              <img
+                src={`${DOCU_API_ROUTER}/${selectedOrg._id}/${profilePicture}`}
+                alt="Profile"
+                className="w-full h-full rounded-full object-cover border"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-gray-500">
+                No Image
+              </div>
+            )}
+          </div>
+
+          <div>
+            <h3 className="text-xl font-semibold text-indigo-700">{name}</h3>
+            <p className="text-gray-600">{department}</p>
+            <p className="text-gray-600">
+              {course} • {year}
+            </p>
+            <h3 className=" text-indigo-700">Status: {overAllStatus}</h3>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2  gap-4 mt-4text-sm text-gray-700">
+          <div>
+            <h4 className="text-lg font-medium text-indigo-600 ">
+              Personal Information
+            </h4>
+            <p>
+              <strong>Age:</strong> {age}
+            </p>
+            <p>
+              <strong>Sex:</strong> {sex}
+            </p>
+            <p>
+              <strong>Religion:</strong> {religion}
+            </p>
+            <p>
+              <strong>Nationality:</strong> {nationality}
+            </p>
+            <p>
+              <strong>Birthplace:</strong> {birthplace || "N/A"}
+            </p>
+          </div>
+
+          <div>
+            <h4 className="text-lg font-medium text-indigo-600 ">Address</h4>
+            <p>
+              <strong>Present:</strong> {presentAddress?.fullAddress || "N/A"}
+            </p>
+            <p>
+              <strong>Contact No.:</strong> {contactNo || "N/A"}
+            </p>
+            <p>
+              <strong>Landline:</strong> {addressPhoneNo || "N/A"}
+            </p>
+          </div>
+
+          <div>
+            <h4 className="text-lg font-medium text-indigo-600 ">
+              Family / Support
+            </h4>
+            <p>
+              <strong>Parent/Guardian:</strong> {parentGuardian || "N/A"}
+            </p>
+            <p>
+              <strong>Financial Support:</strong>{" "}
+              {sourceOfFinancialSupport || "N/A"}
+            </p>
+          </div>
+
+          <div>
+            <h4 className="text-lg font-medium text-indigo-600 ">
+              Social & Skills
+            </h4>
+            <p>
+              <strong>Facebook:</strong>{" "}
+              {facebookAccount ? (
+                <a
+                  href={facebookAccount}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 underline"
+                >
+                  {facebookAccount}
+                </a>
+              ) : (
+                "N/A"
+              )}
+            </p>
+            <div className="flex flex-wrap">
+              <strong className="text-lg font-medium text-indigo-600 ">
+                Skills:
+              </strong>
+              <ul className="list-disc ml-5">
+                {talentSkills?.length > 0 ? (
+                  talentSkills.map((skillObj, idx) => (
+                    <li key={idx}>
+                      {skillObj.skill} ({skillObj.level})
+                    </li>
+                  ))
+                ) : (
+                  <li>No skills listed</li>
+                )}
+              </ul>
+            </div>
+          </div>
+
+          <div className="md:col-span-2">
+            <h4 className="text-lg font-medium text-indigo-600 mb-2">
+              Class Schedule
+            </h4>
+            <div className="overflow-x-auto">
+              <table className="w-full table-auto border border-gray-300 text-sm">
+                <thead>
+                  <tr className="bg-gray-100 text-left">
+                    <th className="px-4 py-2 border">Subject</th>
+                    <th className="px-4 py-2 border">Place</th>
+                    <th className="px-4 py-2 border">Time</th>
+                    <th className="px-4 py-2 border">Day</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {classSchedule?.length > 0 ? (
+                    classSchedule.map((sched, idx) => (
+                      <tr key={idx}>
+                        <td className="px-4 py-2 border">{sched.subject}</td>
+                        <td className="px-4 py-2 border">{sched.place}</td>
+                        <td className="px-4 py-2 border">{sched.time}</td>
+                        <td className="px-4 py-2 border">{sched.day}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="4" className="px-4 py-2 border text-center">
+                        No schedule available
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {showPopup.show && (
+        <div className="absolute  top-0 left-0 z-11 w-full h-full flex bg-black/20 items-center justify-center">
+          <div className="relative h-fit w-fit px-12 py-6 bg-white">
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">
+              Manage President Profile
+            </h3>
+            <X
+              size={20}
+              onClick={() =>
+                setShowPopup({ show: false, type: "", member: null })
+              }
+              className="absolute top-2 right-2 cursor-pointer text-gray-500 hover:text-gray-700 transition-colors"
+            />
+
+            {showPopup.type === "approve" && (
+              <ApprovePresidentProfile
+                presidentData={presidentData}
+                setShowPopup={setShowPopup}
+              />
+            )}
+
+            {showPopup.type === "notes" && (
+              <RevisePresidentProfile
+                presidentData={presidentData}
+                setShowPopup={setShowPopup}
+              />
+            )}
+            {showPopup.type === "history" && (
+              <HistoryPresidents orgId={selectedOrg.organization} />
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function ApprovePresidentProfile({
+  presidentData,
+  setShowPopup,
+}) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [confirmationMessage, setConfirmationMessage] = useState(""); // for success/error message
+  const [showConfirmation, setShowConfirmation] = useState(false); // toggle popup
+
+  const HandleSubmitApprovalOfPresidentProfile = async () => {
+    console.log(
+      "Submitting approval for president profile:",
+      presidentData._id
+    );
+    try {
+      setIsLoading(true);
+      const res = await axios.post(
+        `${API_ROUTER}/approvePresidentProfile/${presidentData._id}`
+      );
+      console.log("Approval response:", res.data);
+
+      setConfirmationMessage("Approved successfully!");
+      setShowConfirmation(true);
+
+      // auto-close popup after 1s
+      setTimeout(() => {
+        setShowConfirmation(false);
+        setShowPopup({ show: false, type: "", member: null });
+      }, 1000);
+    } catch (error) {
+      console.error("Failed to approve president profile", error);
+
+      setConfirmationMessage("❌ Failed to approve president profile.");
+      setShowConfirmation(true);
+
+      // auto-close popup after 1s
+      setTimeout(() => {
+        setShowConfirmation(false);
+      }, 1000);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const CancelSubmissionOfPresidentProfile = () => {
+    console.log("Cancelling submission for president profile");
+    setShowPopup({ show: false, type: "", member: null });
+  };
+
+  return (
+    <div className="flex flex-col gap-2 w-full justify-start">
+      <h1 className="text-lg font-semibold text-gray-800">
+        Approve President Profile of {presidentData?.name}?
+      </h1>
+
+      <button
+        onClick={HandleSubmitApprovalOfPresidentProfile}
+        className="border px-4 py-2 bg-green-500 text-white rounded"
+        disabled={isLoading}
+      >
+        {isLoading ? "Approving..." : "Approve"}
+      </button>
+
+      <button
+        onClick={CancelSubmissionOfPresidentProfile}
+        className="border px-4 py-2 bg-gray-300 text-black rounded"
+        disabled={isLoading}
+      >
+        Cancel
+      </button>
+
+      {/* Confirmation popup */}
+      {showConfirmation && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50">
+          <div className="bg-white flex items-center justify-center  h-auto aspect-square  px-6 py-4 rounded shadow-lg">
+            <p className="text-center text-lg">{confirmationMessage}</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function RevisePresidentProfile({ presidentData, setShowPopup }) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [revisionNotes, setRevisionNotes] = useState("");
+
+  const HandleSubmitApprovalOfPresidentProfile = async () => {
+    console.log(
+      "Submitting revision for president profile:",
+      presidentData._id,
+      "Notes:",
+      revisionNotes
+    );
+    try {
+      setIsLoading(true);
+      const res = await axios.post(
+        `${API_ROUTER}/revisionPresidentProfile/${presidentData._id}`,
+        { revisionNotes, status: "Revision From the SDU" } // Send notes to backend
+      );
+      console.log("Revision response:", res.data);
+      setShowPopup({ show: false, type: "", member: null });
+    } catch (error) {
+      console.error("Failed to revise president profile", error);
+      alert("Failed to submit revision notes.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const CancelSubmissionOfPresidentProfile = () => {
+    console.log("Cancelling revision for president profile");
+    setShowPopup({ show: false, type: "", member: null });
+  };
+
+  return (
+    <div className="flex flex-col gap-3 w-full justify-start">
+      <h1 className="text-lg font-semibold text-gray-800">
+        Send Revision Notes for {presidentData?.name}
+      </h1>
+
+      <textarea
+        className="border rounded p-2 w-full min-h-[100px]"
+        placeholder="Enter your revision notes here..."
+        value={revisionNotes}
+        onChange={(e) => setRevisionNotes(e.target.value)}
+      />
+
+      <div className="flex gap-2">
+        <button
+          onClick={HandleSubmitApprovalOfPresidentProfile}
+          className="border px-4 py-2 bg-green-500 text-white rounded"
+          disabled={isLoading || !revisionNotes.trim()}
+        >
+          {isLoading ? "Sending..." : "Send Notes"}
+        </button>
+        <button
+          onClick={CancelSubmissionOfPresidentProfile}
+          className="border px-4 py-2 bg-gray-300 text-black rounded"
+          disabled={isLoading}
+        >
+          Cancel
+        </button>
       </div>
     </div>
   );
 }
 
-const CurrentPresidentCard = ({ currentPresident, orgData }) => {
-  // Handle empty or missing data gracefully
-  const president = currentPresident || {};
-  const {
-    name,
-    course,
-    year,
-    department,
-    age,
-    sex,
-    religion,
-    nationality,
-    profilePicture,
-    presentAddress,
-    contactNo,
-    facebookAccount,
-    overAllStatus,
-    parentGuardian,
-    sourceOfFinancialSupport,
-    talentSkills,
-    classSchedule,
-  } = president;
+function HistoryPresidents({ orgId }) {
+  const [presidents, setPresidents] = useState([]);
 
-  console.log(president);
-  const profilePictureUrl = `${DOCU_API_ROUTER}/${president.organizationProfile}/${profilePicture}`;
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [showRevisionModal, setShowRevisionModal] = useState(false);
-  const [showApproveModal, setShowApproveModal] = useState(false);
-  const [revisionNotes, setRevisionNotes] = useState("");
-  const [popup, setPopup] = useState({ open: false, type: "", message: "" });
+  useEffect(() => {
+    const fetchPresident = async () => {
+      try {
+        const res = await axios.get(
+          `${API_ROUTER}/getPreviousPresident/${orgId}`
+        );
 
-  const submitUpdate = async ({ status }) => {
-    try {
-      const payload = { overallStatus: status };
-
-      if (revisionNotes && revisionNotes.trim() !== "") {
-        payload.revisionNotes = revisionNotes;
+        // Store data directly
+        setPresidents(res.data);
+      } catch (error) {
+        console.error("Failed to fetch president data", error);
       }
+    };
 
-      const response = await axios.post(
-        `${API_ROUTER}/updateStatusPresident/${currentPresident._id}`, // 👈 change to correct proposal/org id
-        payload
-      );
+    fetchPresident();
+  }, [orgId]);
 
-      console.log("✅ Update success:", response.data);
-
-      setShowRevisionModal(false);
-      setShowApproveModal(false);
-
-      // ✅ Show success popup
-      setPopup({
-        open: true,
-        type: "success",
-        message: `Proposal successfully ${status}`,
-      });
-
-      // Optionally refresh proposals (if you pass a function down as prop)
-      // fetchProposals?.();
-    } catch (error) {
-      console.log("❌ Update failed:", error);
-
-      // ❌ Show error popup
-      setPopup({
-        open: true,
-        type: "error",
-        message: "Failed to update proposal. Please try again.",
-      });
-    }
-  };
-  return (
-    <div className="bg-white shadow-xl relative">
-      {/* Header Section */}
-      <div className="">
-        <div className="relative p-6 bg-white ">
-          <div className="flex flex-col md:flex-row items-center gap-6">
-            {/* Profile Image */}
-            <div className="w-32 h-32 rounded-full overflow-hidden ring-4 ring-white flex items-center justify-center bg-gray-100">
-              {profilePictureUrl ? (
-                <img
-                  src={profilePictureUrl}
-                  alt="President"
-                  className="w-full h-full object-cover"
-                  onError={(e) => (e.currentTarget.style.display = "none")}
-                />
-              ) : (
-                <div className="w-20 h-20 text-gray-500 flex items-center justify-center">
-                  <span>No Img</span>
-                </div>
-              )}
-            </div>
-
-            {/* Basic Info */}
-            <div className="text-center md:text-left">
-              <h1 className="text-2xl md:text-3xl font-bold mb-2">{name}</h1>
-              <p className="text-lg mb-1">{course}</p>
-              <p className="text-lg mb-1">
-                {year} • {department}
-              </p>
-              <p>Status: {overAllStatus}</p>
-            </div>
-          </div>
-
-          {/* More Options Dropdown */}
-          <div className="absolute top-4 right-4">
-            <button
-              onClick={() => setShowDropdown((prev) => !prev)}
-              className="p-2 rounded-full hover:bg-gray-100"
-            >
-              <MoreHorizontal />
-            </button>
-
-            {showDropdown && (
-              <div className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg z-10">
-                <button
-                  onClick={() => {
-                    setShowRevisionModal(true);
-                    setShowDropdown(false);
-                  }}
-                  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                >
-                  View Revision
-                </button>
-                <button
-                  onClick={() => {
-                    setShowApproveModal(true);
-                    setShowDropdown(false);
-                  }}
-                  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                >
-                  Approve
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Revision Modal */}
-          {showRevisionModal && (
-            <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-20">
-              <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
-                <h2 className="text-xl font-bold mb-2">Send for Revision</h2>
-                <textarea
-                  value={revisionNotes}
-                  onChange={(e) => setRevisionNotes(e.target.value)}
-                  placeholder="Enter revision notes..."
-                  className="w-full p-2 border rounded-lg mb-4"
-                />
-
-                <div className="flex justify-end gap-3">
-                  <button
-                    onClick={() => setShowRevisionModal(false)}
-                    className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() =>
-                      submitUpdate({ status: "Revision from the Adviser" })
-                    }
-                    className="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600"
-                  >
-                    Send Revision
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Approve Modal */}
-          {showApproveModal && (
-            <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-20">
-              <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
-                <h2 className="text-xl font-bold mb-2">Approve Proposal</h2>
-                <p className="text-gray-600 mb-4">
-                  Are you sure you want to approve this proposal?
-                </p>
-
-                <div className="flex justify-end gap-3">
-                  <button
-                    onClick={() => setShowApproveModal(false)}
-                    className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() =>
-                      submitUpdate({ status: "Approved by the Adviser" })
-                    }
-                    className="px-4 py-2 rounded-lg bg-amber-500 text-white hover:bg-amber-600"
-                  >
-                    Approve
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Content Grid */}
-      <div className="p-6 grid md:grid-cols-2 gap-6">
-        {/* Personal Information */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
-            Personal Information
-          </h3>
-          <div className="space-y-3 text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Age:</span>
-              <span className="font-medium">{age}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Sex:</span>
-              <span className="font-medium">{sex}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Religion:</span>
-              <span className="font-medium">{religion}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Nationality:</span>
-              <span className="font-medium">{nationality}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Contact:</span>
-              <span className="font-medium">{contactNo}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Additional Information */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
-            Additional Information
-          </h3>
-          <div className="space-y-3 text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Parent/Guardian:</span>
-              <span className="font-medium">{parentGuardian}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Financial Support:</span>
-              <span className="font-medium">{sourceOfFinancialSupport}</span>
-            </div>
-            {facebookAccount && (
-              <div className="flex justify-between">
-                <span className="text-gray-600">Facebook:</span>
-                <a
-                  href={facebookAccount}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline font-medium truncate max-w-32"
-                >
-                  View Profile
-                </a>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Address Section */}
-      {presentAddress?.fullAddress && (
-        <div className="px-6 pb-4">
-          <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2 mb-3">
-            Address
-          </h3>
-          <p className="text-sm text-gray-700">{presentAddress.fullAddress}</p>
-        </div>
-      )}
-
-      {/* Skills Section */}
-      {talentSkills.length > 0 && (
-        <div className="px-6 pb-4">
-          <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2 mb-3">
-            Skills & Talents
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {talentSkills.map((talent, index) => (
-              <span
-                key={index}
-                className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
-              >
-                {talent.skill} ({talent.level})
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Class Schedule */}
-      {classSchedule.length > 0 && (
-        <div className="px-6 pb-6">
-          <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2 mb-3">
-            Class Schedule
-          </h3>
-          <div className="overflow-x-auto">
-            <table className="w-full border border-gray-300 text-sm">
-              <thead className="bg-gray-200 text-gray-700">
-                <tr>
-                  <th className="p-2 border text-left">Subject</th>
-                  <th className="p-2 border text-left">Place</th>
-                  <th className="p-2 border text-left">Day</th>
-                  <th className="p-2 border text-left">Class Start</th>
-                  <th className="p-2 border text-left">Class End</th>
-                </tr>
-              </thead>
-              <tbody>
-                {classSchedule.map((schedule, index) => (
-                  <tr
-                    key={schedule._id || index}
-                    className="even:bg-white odd:bg-gray-50"
-                  >
-                    <td className="p-2 border">{schedule.subject || "N/A"}</td>
-                    <td className="p-2 border">{schedule.place || "N/A"}</td>
-                    <td className="p-2 border">{schedule.day || "N/A"}</td>
-                    <td className="p-2 border">
-                      {schedule.time?.start || "N/A"}
-                    </td>
-                    <td className="p-2 border">
-                      {schedule.time?.end || "N/A"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-const PresidentCard = ({
-  president,
-  onEdit,
-  onDelete,
-  showActions = false, // Default to false
-}) => {
-  if (!president) {
-    return (
-      <div className="bg-white rounded-lg p-6 text-center">
-        <div className="text-gray-500">
-          <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-4"></div>
-          <p>No president assigned</p>
-        </div>
-      </div>
-    );
-  }
+  const formatDate = (date) =>
+    new Date(date).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
 
   return (
-    <div className="bg-white h-full w-full duration-200 p-4 relative">
-      {/* Action buttons - only show for current president */}
-      {showActions && (
-        <div className="absolute top-3 right-3 flex gap-1">
-          <button
-            onClick={() => onEdit(president)}
-            className="text-gray-400 hover:text-blue-600 p-1"
-            title="Edit"
+    <div>
+      <h2 className="text-lg font-bold mb-2">Previous Presidents</h2>
+      <ul className="space-y-2">
+        {presidents.map((p) => (
+          <li
+            key={p._id}
+            className="p-3 border rounded-md shadow-sm bg-white flex justify-between"
           >
-            <Edit className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => onDelete(president)}
-            className="text-gray-400 hover:text-red-600 p-1"
-            title="Delete"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-
-      {/* Header with profile picture */}
-      <div className="flex items-center justify-center mb-4 relative">
-        {president.profilePicture ? (
-          <img
-            src={`${DOCU_API_ROUTER}/${president.organizationProfile}/${president.profilePicture}`}
-            alt={`${president.name}'s profile`}
-            className="w-42 h-auto aspect-square rounded-full object-cover border-2 border-gray-200"
-            onError={(e) => {
-              // Fallback to initials if image fails to load
-              e.target.style.display = "none";
-              e.target.nextSibling.style.display = "flex";
-            }}
-          />
-        ) : null}
-
-        {/* Fallback avatar with initials */}
-        <div
-          className={`min-w-32 h-auto aspect-square bg-indigo-100 rounded-full flex items-center justify-center border-2 border-gray-200 ${
-            president.profilePicture ? "hidden" : "flex"
-          }`}
-        >
-          <span className="text-2xl font-bold text-indigo-600">
-            {president.name ? president.name.charAt(0).toUpperCase() : "P"}
-          </span>
-        </div>
-      </div>
-
-      {/* Main Info */}
-      <div className="text-center space-y-2">
-        <h3 className="text-xl font-semibold text-gray-900">
-          {president.name}
-        </h3>
-        <p
-          className={`text-sm font-medium px-3 py-1 rounded-full inline-block ${
-            president.isCurrent
-              ? "text-indigo-600 bg-indigo-50"
-              : "text-gray-600 bg-gray-50"
-          }`}
-        >
-          {president.isCurrent ? "Current President" : "Former President"}
-        </p>
-        <div className="text-sm text-gray-600 space-y-1">
-          <p>{president.courseYear}</p>
-          <p>Age: {president.age}</p>
-        </div>
-      </div>
-
-      {/* Contact Info */}
-      <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
-        <div className="text-sm">
-          <p className="text-gray-500">Contact:</p>
-          <p className="text-gray-700">{president.contactNo}</p>
-        </div>
-
-        {president.facebookAccount && (
-          <div className="text-sm">
-            <p className="text-gray-500">Facebook:</p>
-            <a
-              href={president.facebookAccount}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:text-blue-800 text-xs break-all"
-            >
-              {president.facebookAccount.replace(
-                "https://www.facebook.com/",
-                "@"
-              )}
-            </a>
-          </div>
-        )}
-      </div>
-
-      {/* Additional Info */}
-      <div className="mt-4 pt-4 border-t border-gray-100">
-        <div className="text-xs text-gray-500 space-y-1">
-          <p>
-            <span className="font-medium">Address:</span>{" "}
-            <span>{president.permanentAddress?.fullAddress}</span>
-          </p>
-          <p>
-            <span className="font-medium">Financial Support:</span>{" "}
-            {president.sourceOfFinancialSupport}
-          </p>
-          {president.talentSkills && president.talentSkills.length > 0 && (
-            <p>
-              <span className="font-medium">Skills:</span>{" "}
-              {president.talentSkills.map((skill) => skill.skill).join(", ")}
-            </p>
-          )}
-        </div>
-      </div>
+            <span>{p.name}</span>
+            <span className="text-sm text-gray-600">
+              {formatDate(p.createdAt)} - {formatDate(p.updatedAt)}
+            </span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
-};
+}

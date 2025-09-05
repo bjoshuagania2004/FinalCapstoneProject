@@ -47,6 +47,7 @@ import { FinancialReportOverview } from "./accreditation/sdu-accreditation-finan
 // This should be used in your main App.js router
 export default function StudentDevMainLayout() {
   const [selectedOrg, setSelectedOrg] = useState(null);
+  const [accreditationStatus, setAccreditationStatus] = useState(null);
 
   return (
     <div className="flex h-screen w-screen bg-gray-50">

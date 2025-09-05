@@ -14,7 +14,9 @@ import {
   Briefcase,
   GraduationCap,
   Layers,
+  Check,
   BookOpen,
+  Edit,
   DollarSign,
   Calendar,
 } from "lucide-react";
