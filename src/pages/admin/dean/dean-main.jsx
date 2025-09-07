@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
-import { useOutletContext } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { Outlet, useOutletContext } from "react-router-dom";
 import axios from "axios";
 import { Routes, Route } from "react-router-dom";
 import { API_ROUTER, DOCU_API_ROUTER } from "./../../../App";
-import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { useNavigate, useLocation, NavLink, useParams } from "react-router-dom";
 import {
   Home,
   FolderOpen,
@@ -11,12 +11,15 @@ import {
   PenSquare,
   Clock,
   BookMarked,
+  ClipboardList,
   Search,
+  ChevronDown,
+  Users,
+  Check,
+  Phone,
+  FileArchive,
 } from "lucide-react";
-import { DeanMainAccreditation } from "./accreditation/dean-accreditation";
-import { DeanOverviewComponent } from "./accreditation/dean-accreditation-overview";
-import { DeanPresident } from "./accreditation/dean-accreditation-president";
-import { constructFrom } from "date-fns";
+import { DeanComponent } from "./dean-route-components";
 
 export function DeanPage() {
   const { user } = useOutletContext();
@@ -50,10 +53,7 @@ export function DeanPage() {
         `${API_ROUTER}/getOrganizations/${user.deliveryUnit}`
       );
 
-      console.log(res.data);
-      // Transform the API response to match component expectations
-
-      setOrgs(res.data.data);
+      setOrgs(res.data);
     } catch (err) {
       console.error("Error fetching organizations:", err);
       setOrgs([]);
@@ -188,571 +188,280 @@ function DeanMainNavigation() {
   );
 }
 
-function DeanComponent({
-  selectedOrg,
-  orgs,
-  onSelectOrg,
-  loading,
-  accreditationStatus,
-}) {
-  // Helper to get status badge styling
-  const getStatusBadge = (status) => {
-    const statusStyles = {
-      Approved: "bg-green-100 text-green-700 border-green-200",
-      Pending: "bg-yellow-100 text-yellow-700 border-yellow-200",
-      "Revision From SDU": "bg-red-100 text-red-700 border-red-200",
-      Rejected: "bg-red-100 text-red-700 border-red-200",
-      "Approved by the Adviser": "bg-blue-100 text-blue-700 border-blue-200",
-    };
-    return statusStyles[status] || "bg-gray-100 text-gray-600 border-gray-200";
-  };
+export function DeanAccreditationNavigationSubRoute({ selectedOrg }) {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [accreditationStatus, setAccreditationStatus] = useState(null);
+  const [showApprovalPopup, setShowApprovalPopup] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Helper to handle specialization/department display
-  const renderAcademicInfo = (org) => {
-    if (!org) return null;
+  const navigate = useNavigate();
+  const location = useLocation();
+  const dropdownRef = useRef(null);
 
-    if (org.orgClass === "System-wide") {
-      if (org.orgSpecialization?.toLowerCase() === "student government") {
-        return (
-          <>
-            <p>
-              <span className="font-medium text-gray-600">Specialization:</span>{" "}
-              <span className="text-gray-800">{org.orgSpecialization}</span>
-            </p>
-            <p>
-              <span className="font-medium text-gray-600">Department:</span>{" "}
-              <span className="text-gray-800">
-                {org.orgDepartment || "N/A"}
-              </span>
-            </p>
-          </>
-        );
+  // Navigation items with enhanced styling data
+  const navigationItems = [
+    {
+      key: "overview",
+      label: "Overview",
+      shortLabel: "Overview",
+      icon: <Home className="w-4 h-4" />,
+      path: `/dean/accreditation/`,
+      description: "General information and status",
+    },
+    {
+      key: "president",
+      label: "President's Information Sheet",
+      shortLabel: "President's Info",
+      icon: <FileText className="w-4 h-4" />,
+      path: `/dean/accreditation/president-information`,
+      description: "President details and information",
+    },
+    {
+      key: "financial",
+      label: "Financial Report",
+      shortLabel: "Financial Report",
+      icon: <ClipboardList className="w-4 h-4" />,
+      path: `/dean/accreditation/financial-report`,
+      description: "Financial statements and reports",
+    },
+    {
+      key: "roster",
+      label: "Roster of Members",
+      shortLabel: "Members Roster",
+      icon: <Users className="w-4 h-4" />,
+      path: `/dean/accreditation/roster-of-members`,
+      description: "Complete list of organization members",
+    },
+    {
+      key: "plan",
+      label: "Proposed Action Plan",
+      shortLabel: "Action Plan",
+      icon: <FolderOpen className="w-4 h-4" />,
+      path: `/dean/accreditation/proposed-action-plan`,
+      description: "Strategic plans and proposals",
+    },
+    {
+      key: "documents",
+      label: "Accreditation Documents",
+      shortLabel: "Documents",
+      icon: <FileArchive className="w-4 h-4" />,
+      path: `/dean/accreditation/document`,
+      description: "All supporting documents",
+    },
+  ];
+
+  // Find current active item
+  const activeItem =
+    navigationItems.find((item) => location.pathname === item.path) ||
+    navigationItems.find((item) => location.pathname.startsWith(item.path)) ||
+    navigationItems[0];
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
       }
-      return (
-        <p>
-          <span className="font-medium text-gray-600">Specialization:</span>{" "}
-          <span className="text-gray-800">
-            {org.orgSpecialization || "N/A"}
-          </span>
-        </p>
-      );
     }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
-    // Local and other orgClass types
-    return (
-      <>
-        <p>
-          <span className="font-medium text-gray-600">Course:</span>{" "}
-          <span className="text-gray-800">{org.orgCourse || "N/A"}</span>
-        </p>
-        <p>
-          <span className="font-medium text-gray-600">Department:</span>{" "}
-          <span className="text-gray-800">{org.orgDepartment || "N/A"}</span>
-        </p>
-      </>
-    );
-  };
+  // Fetch accreditation status
+  const fetchStatus = async () => {
+    if (!selectedOrg?._id) return;
 
-  // Helper to render president information
-  const renderPresidentInfo = (org) => {
-    const president = org.orgPresident;
-    if (!president) {
-      return (
-        <div className="bg-gray-50 p-3 rounded-lg">
-          <p className="text-sm text-gray-500">👤 No president assigned</p>
-        </div>
+    try {
+      const res = await axios.get(
+        `${API_ROUTER}/checkAccreditationApprovalStatuses/${selectedOrg._id}`
       );
+      setAccreditationStatus(res.data);
+
+      if (res.data.isEverythingApproved) {
+        setShowApprovalPopup(true);
+      }
+    } catch (error) {
+      console.error("Failed to fetch accreditation data", error);
     }
-
-    return (
-      <div className="bg-blue-50 p-3 rounded-lg space-y-1">
-        <div className="flex items-center gap-2">
-          {president.profilePicture ? (
-            <img
-              src={`${DOCU_API_ROUTER}/${org._id}/${president.profilePicture}`}
-              alt="President"
-              className="w-8 h-8 rounded-full object-cover"
-            />
-          ) : (
-            <div className="w-8 h-8 bg-blue-200 rounded-full flex items-center justify-center">
-              <span className="text-blue-600 text-xs font-medium">👤</span>
-            </div>
-          )}
-          <div>
-            <p className="text-sm font-medium text-gray-800">
-              {president.name}
-            </p>
-            <p className="text-xs text-gray-600">
-              {president.year} - {president.course}
-            </p>
-          </div>
-        </div>
-        <div className="flex gap-4 text-xs text-gray-600">
-          <span>📞 {president.contactNo}</span>
-          <span
-            className={`px-2 py-1 rounded text-xs font-medium border ${getStatusBadge(
-              president.overAllStatus
-            )}`}
-          >
-            {president.overAllStatus}
-          </span>
-        </div>
-      </div>
-    );
   };
 
-  // Helper to render document status
-  const renderDocumentStatus = (accreditationStatus) => {
-    accreditationStatus;
-    const documents = [
-      { name: "Joint Statement", data: accreditationStatus.JointStatement },
-      {
-        name: "Constitution & By-Laws",
-        data: accreditationStatus.ConstitutionAndByLaws,
-      },
-      {
-        name: "Pledge Against Hazing",
-        data: accreditationStatus.PledgeAgainstHazing,
-      },
-    ];
+  useEffect(() => {
+    fetchStatus();
+  }, [location, selectedOrg]);
 
-    return (
-      <div className="space-y-2">
-        <p className="text-sm font-medium text-gray-700">📄 Document Status</p>
-        <div className="grid grid-cols-1 gap-1 text-xs">
-          {documents.map((doc, index) => (
-            <div key={index} className="flex justify-between items-center">
-              <span className="text-gray-600">{doc.name}:</span>
-              {doc.data ? (
-                <span
-                  className={`px-2 py-1 rounded text-xs font-medium border ${getStatusBadge(
-                    doc.data.status
-                  )}`}
-                >
-                  {doc.data.status}
-                </span>
-              ) : (
-                <span className="text-gray-400">Not submitted</span>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
+  // Send approval letter
+  const sendApprovalLetter = async () => {
+    if (isSubmitting) return;
 
-  // Helper to render financial information
-  const renderFinancialInfo = (org) => {
-    const financial = org.FinancialReport;
-    if (!financial) return null;
-
-    const balance = financial.initialBalance || 0;
-    const reimbursements = financial.reimbursements?.length || 0;
-    const disbursements = financial.disbursements?.length || 0;
-
-    return (
-      <div className="bg-green-50 p-3 rounded-lg space-y-1">
-        <p className="text-sm font-medium text-gray-700">
-          💰 Financial Overview
-        </p>
-        <div className="grid grid-cols-3 gap-2 text-xs">
-          <div className="text-center">
-            <p className="text-gray-600">Balance</p>
-            <p
-              className={`font-medium ${
-                balance >= 0 ? "text-green-600" : "text-red-600"
-              }`}
-            >
-              ₱{balance.toLocaleString()}
-            </p>
-          </div>
-          <div className="text-center">
-            <p className="text-gray-600">Reimbursements</p>
-            <p className="font-medium text-blue-600">{reimbursements}</p>
-          </div>
-          <div className="text-center">
-            <p className="text-gray-600">Disbursements</p>
-            <p className="font-medium text-orange-600">{disbursements}</p>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const activeOrgs = orgs.filter((org) => org.isActive === true);
-  const inactiveOrgs = orgs.filter((org) => org.isActive === false);
-
-  const renderOrganizationCard = (org) => {
-    const isSelected = selectedOrg?._id === org._id;
-    const isActive = org.isActive;
-    const overallStatus = org.overAllStatus || org.overallStatus;
-
-    console.log(org);
-    return (
-      <div
-        key={org._id}
-        onClick={() =>
-          selectedOrg === org._id ? onSelectOrg(null) : onSelectOrg(org)
+    setIsSubmitting(true);
+    try {
+      const res = await axios.post(
+        `${API_ROUTER}/sendAccreditationConfirmationEmail/${selectedOrg._id}`,
+        {
+          orgName: selectedOrg.orgName,
+          orgId: selectedOrg._id,
         }
-        className={`shadow-lg rounded-2xl border bg-white cursor-pointer transition-all duration-200 ${
-          isSelected
-            ? "ring-2 ring-blue-500 bg-blue-50 border-blue-200 transform scale-[1.02]"
-            : isActive
-            ? "border-gray-200 hover:shadow-xl hover:border-blue-300"
-            : "border-gray-300 hover:shadow-lg hover:border-gray-400 opacity-90"
-        }`}
-      >
-        <div className="p-5 space-y-4">
-          {/* Header with Logo and Basic Info */}
-          <div className="flex items-start gap-4">
-            <div className="flex-shrink-0">
-              {org.orgLogo ? (
-                <img
-                  src={`${DOCU_API_ROUTER}/${org._id}/${org.orgLogo}`}
-                  alt={`${org.orgName} Logo`}
-                  className="w-16 h-16 object-cover rounded-full border-3 border-white shadow-md"
-                />
-              ) : (
-                <div className="w-16 h-16 bg-cnsc-primary-color flex justify-center items-center text-white rounded-full border shadow-md">
-                  <School2 className="w-8 h-8" />
-                </div>
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-2">
-                <h2 className="text-lg font-bold text-gray-800 leading-tight">
-                  {org.orgName || "Unnamed Organization"}
-                </h2>
-                <div className="flex flex-col gap-1">
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusBadge(
-                      overallStatus
-                    )}`}
-                  >
-                    {overallStatus}
-                  </span>
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      isActive
-                        ? "bg-green-100 text-green-700 border-green-200"
-                        : "bg-gray-100 text-gray-600 border-gray-200"
-                    }`}
-                  >
-                    {isActive ? "🟢 Active" : "🔴 Inactive"}
-                  </span>
-                </div>
-              </div>
-              <p className="text-sm text-gray-600 mt-1">
-                <span className="font-medium">{org.orgAcronym}</span>
-                {" • "}
-                <span className="capitalize">{org.orgClass}</span>
-              </p>
-            </div>
-          </div>
+      );
+      console.log("Approval letter sent:", res.data);
+      setShowApprovalPopup(false);
 
-          {/* Academic Information */}
-          <div className="text-sm space-y-1">
-            {renderAcademicInfo(org)}
-            <p>
-              <span className="font-medium text-gray-600">Adviser:</span>{" "}
-              <span className="text-gray-800">
-                {org.adviser?.name || "Not assigned"}
-                {org.adviser?.email && ` (${org.adviser.email})`}
-              </span>
-            </p>
-          </div>
-
-          {/* President Information */}
-          <div>{renderPresidentInfo(org)}</div>
-
-          {/* Roster Status */}
-          <div className="bg-purple-50 p-3 rounded-lg">
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="text-sm font-medium text-gray-700">
-                  📋 Roster Status
-                </p>
-                <div className="flex gap-4 text-xs text-gray-600 mt-1">
-                  <span
-                    className={`px-2 py-1 rounded font-medium border ${getStatusBadge(
-                      org.Roster?.overAllStatus || "N/A"
-                    )}`}
-                  >
-                    {org.Roster?.overAllStatus || "N/A"}
-                  </span>
-                  <span
-                    className={`px-2 py-1 rounded font-medium ${
-                      org.Roster?.isComplete
-                        ? "bg-green-100 text-green-700 border-green-200"
-                        : "bg-orange-100 text-orange-700 border-orange-200"
-                    }`}
-                  >
-                    {org.Roster?.isComplete ? "✅ Complete" : "⏳ Incomplete"}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Document Status */}
-          <div>{renderDocumentStatus(org)}</div>
-
-          {/* Financial Information */}
-          <div>{renderFinancialInfo(org)}</div>
-
-          {/* Timestamps */}
-          <div className="text-xs text-gray-500 space-y-1 border-t pt-3">
-            <div className="flex justify-between">
-              <span>Created:</span>
-              <span>
-                {new Date(org.createdAt).toLocaleDateString()} at{" "}
-                {new Date(org.createdAt).toLocaleTimeString()}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span>Last Updated:</span>
-              <span>
-                {new Date(org.updatedAt).toLocaleDateString()} at{" "}
-                {new Date(org.updatedAt).toLocaleTimeString()}
-              </span>
-            </div>
-          </div>
+      // Success notification
+      const notification = document.createElement("div");
+      notification.innerHTML = `
+        <div class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+          Approval letter sent successfully!
         </div>
-      </div>
-    );
+      `;
+      document.body.appendChild(notification);
+      setTimeout(() => notification.remove(), 3000);
+    } catch (error) {
+      console.error("Failed to send approval letter:", error);
+
+      // Error notification
+      const notification = document.createElement("div");
+      notification.innerHTML = `
+        <div class="fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+          </svg>
+          Failed to send approval letter. Please try again.
+        </div>
+      `;
+      document.body.appendChild(notification);
+      setTimeout(() => notification.remove(), 3000);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleNavigate = (item) => {
+    navigate(item.path);
+    setIsDropdownOpen(false);
   };
 
   return (
-    <div className="flex-1 w-full bg-white h-full overflow-auto">
-      {/* Selected Organization Display */}
-      {selectedOrg && (
-        <div className="p-4 bg-amber-100 border-b flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img
-              src={`${DOCU_API_ROUTER}/${selectedOrg._id}/${selectedOrg.orgLogo}`}
-              alt="Selected Organization"
-              className="w-16 aspect-square rounded-full"
-            />
-            <div className="flex flex-col">
-              <span className="font-medium text-xl">{selectedOrg.orgName}</span>
-              <span className="italic text-xs">Selected Organization</span>
-            </div>
-          </div>
-          <button
-            onClick={() => onSelectOrg(null)}
-            className="text-gray-500 hover:text-gray-700 text-xl font-bold"
-          >
-            ×
-          </button>
-        </div>
-      )}
-
-      {/* Main Content */}
-      <div className="">
-        {selectedOrg ? (
-          <Routes>
-            {/* Dashboard/Home route */}
-            <Route
-              path="/"
-              element={
-                <div>Dean Organization Dashboard for {selectedOrg.orgName}</div>
-              }
-            />
-
-            {/* Proposals route */}
-            <Route
-              path="/proposal"
-              element={
-                <div>Dean Organization Proposals for {selectedOrg.orgName}</div>
-              }
-            />
-
-            {/* Accreditation routes */}
-            <Route path="/accreditation/" element={<DeanMainAccreditation />}>
-              <Route
-                index
-                element={<DeanOverviewComponent selectedOrg={selectedOrg} />}
-              />
-              <Route
-                path="financial-report"
-                element={<div>Dean Financial Report</div>}
-              />
-              <Route
-                path="roster-of-members"
-                element={<div>Dean Roster for {selectedOrg.orgName}</div>}
-              />
-              <Route
-                path="document"
-                element={<div>Dean Documents for {selectedOrg.orgName}</div>}
-              />
-              <Route
-                path="proposed-action-plan"
-                element={
-                  <div>Dean Proposed Action Plan for {selectedOrg.orgName}</div>
-                }
-              />
-              <Route
-                path="president-information"
-                element={<DeanPresident selectedOrg={selectedOrg} />}
-              />
-              <Route
-                path="settings"
-                element={<div>Dean Accreditation Settings</div>}
-              />
-              <Route
-                path="history"
-                element={
-                  <div>
-                    Dean Accreditation History for {selectedOrg.orgName}
+    <div className="flex flex-col h-full w-full overflow-hidden bg-gray-50">
+      {/* Enhanced Navigation Header */}
+      <div className="bg-white border-b border-gray-500">
+        <div className="px-4 py-2">
+          {/* Dropdown Navigation */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className={`group w-85 border max-w-md px-4 py-3 flex items-center justify-between 
+      ${isDropdownOpen ? "rounded-t-xl" : "rounded-xl"}`}
+            >
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-lg`}>{activeItem.icon}</div>
+                <div className="text-left">
+                  <div className="font-semibold text-lg ">
+                    {activeItem.label}
                   </div>
-                }
-              />
-            </Route>
-
-            {/* Accomplishments route */}
-            <Route
-              path="/accomplishment"
-              element={
-                <div>
-                  Dean Organization Accomplishments for {selectedOrg.orgName}
                 </div>
-              }
-            />
-
-            {/* Posts route */}
-            <Route
-              path="/post"
-              element={
-                <div>Dean Organization Posts for {selectedOrg.orgName}</div>
-              }
-            />
-
-            {/* Logs route */}
-            <Route path="/log" element={<div>Dean Logs Page</div>} />
-          </Routes>
-        ) : (
-          // Organization Selection View
-          <div className="p-6 overflow-auto space-y-8">
-            {orgs.length === 0 ? (
-              <div className="text-center py-12">
-                {loading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-gray-500 text-lg">
-                      Loading organizations...
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <div className="text-gray-400 mb-4">
-                      <svg
-                        className="mx-auto h-12 w-12"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        />
-                      </svg>
-                    </div>
-                    <p className="text-gray-500 text-lg">
-                      No accreditation data found.
-                    </p>
-                    <p className="text-gray-400 text-sm mt-2">
-                      Organizations will appear here once they submit their
-                      accreditation requirements.
-                    </p>
-                  </>
-                )}
               </div>
-            ) : (
-              <>
-                {/* Summary Statistics */}
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-100">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-4">
-                    📊 Accreditation Overview
-                  </h2>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-600">
-                        {orgs.length}
+              <ChevronDown
+                className={`w-5 h-5 transition-transform duration-200 ${
+                  isDropdownOpen ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+            {/* Dropdown Menu */}
+            {isDropdownOpen && (
+              <div
+                className={`absolute w-85 top-full left-0 right-0 rounded-b-xl border border-gray-500 bg-white  z-50 overflow-hidden max-w-md`}
+              >
+                <div className="py-2">
+                  {navigationItems.map((item, index) => (
+                    <button
+                      key={item.key}
+                      onClick={() => handleNavigate(item)}
+                      className={`w-full px-4 py-3 text-left hover:bg-gray-100 transition-colors duration-150 flex items-center gap-4 group `}
+                    >
+                      <div className={` rounded-lg`}>{item.icon}</div>
+                      <div className="flex-1 min-w-0">
+                        <div
+                          className={`text-lg ${
+                            activeItem.key === item.key
+                              ? "text-blue-700"
+                              : "text-gray-900"
+                          }`}
+                        >
+                          {item.shortLabel}
+                        </div>
                       </div>
-                      <div className="text-sm text-gray-600">
-                        Total Organizations
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">
-                        {activeOrgs.length}
-                      </div>
-                      <div className="text-sm text-gray-600">Active</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-gray-600">
-                        {inactiveOrgs.length}
-                      </div>
-                      <div className="text-sm text-gray-600">Inactive</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-yellow-600">
-                        {
-                          orgs.filter((org) => org.overAllStatus === "Pending")
-                            .length
-                        }
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        Pending Review
-                      </div>
-                    </div>
-                  </div>
+                      {activeItem.key === item.key && (
+                        <Check className="w-4 h-4 text-blue-600" />
+                      )}
+                    </button>
+                  ))}
                 </div>
-
-                {/* Active Organizations Section */}
-                {activeOrgs.length > 0 && (
-                  <div>
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-1 h-6 bg-green-500 rounded-full"></div>
-                      <h3 className="text-xl font-bold text-gray-800">
-                        Active Organizations
-                      </h3>
-                      <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium border border-green-200">
-                        {activeOrgs.length} organization
-                        {activeOrgs.length !== 1 ? "s" : ""}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                      {activeOrgs.map(renderOrganizationCard)}
-                    </div>
-                  </div>
-                )}
-
-                {/* Inactive Organizations Section */}
-                {inactiveOrgs.length > 0 && (
-                  <div>
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-1 h-6 bg-gray-400 rounded-full"></div>
-                      <h3 className="text-xl font-bold text-gray-800">
-                        Inactive Organizations
-                      </h3>
-                      <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm font-medium border border-gray-200">
-                        {inactiveOrgs.length} organization
-                        {inactiveOrgs.length !== 1 ? "s" : ""}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                      {inactiveOrgs.map(renderOrganizationCard)}
-                    </div>
-                  </div>
-                )}
-              </>
+              </div>
             )}
           </div>
-        )}
+        </div>
       </div>
+
+      {/* Content Area */}
+      <div className="flex-1 overflow-hidden">
+        <Outlet />
+      </div>
+
+      {/* Enhanced Approval Modal */}
+      {showApprovalPopup && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 transform scale-100 transition-all">
+            <div className="p-6 text-center">
+              {/* Icon */}
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Bell className="w-8 h-8 text-green-600" />
+              </div>
+
+              {/* Content */}
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                Accreditation Complete!
+              </h3>
+              <p className="text-gray-600 mb-6">
+                The accreditation process for{" "}
+                <span className="font-semibold text-gray-900">
+                  "{selectedOrg.orgName}"
+                </span>{" "}
+                has been completed successfully. Would you like to notify them
+                with an approval letter?
+              </p>
+
+              {/* Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowApprovalPopup(false)}
+                  className="flex-1 px-4 py-2.5 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
+                  disabled={isSubmitting}
+                >
+                  Later
+                </button>
+                <button
+                  onClick={sendApprovalLetter}
+                  disabled={isSubmitting}
+                  className="flex-1 px-4 py-2.5 bg-gradient-to-r from-cnsc-primary-color to-cnsc-secondary-color text-white rounded-lg font-medium hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      Send Letter
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

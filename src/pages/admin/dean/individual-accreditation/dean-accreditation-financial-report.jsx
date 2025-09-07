@@ -25,17 +25,19 @@ import {
 import { API_ROUTER } from "../../../../App";
 import axios from "axios";
 
-export function AdviserFinancialReport({ orgData }) {
+export function DeanFinancialReport({ selectedOrg }) {
   const [financialReport, setFinancialReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentBalance, setCurrentBalance] = useState(""); // You might want to get this from the backend as well
+  const [pendingAction, setPendingAction] = useState(null); // to store action type
 
+  console.log(selectedOrg);
   useEffect(() => {
     const GetFinancialReportApi = async () => {
       try {
         setLoading(true);
         const response = await axios.get(
-          `${API_ROUTER}/getFinancialReport/${orgData._id}`
+          `${API_ROUTER}/getFinancialReport/${selectedOrg._id}`
         );
         console.log("Financial Report Response:", response.data);
         setFinancialReport(response.data);
@@ -48,7 +50,7 @@ export function AdviserFinancialReport({ orgData }) {
     };
 
     GetFinancialReportApi();
-  }, [orgData._id]);
+  }, []);
 
   // Generate monthly data from actual backend data
   const generateMonthlyData = () => {
@@ -147,7 +149,7 @@ export function AdviserFinancialReport({ orgData }) {
 
       // Refresh the financial report after successful submission
       const updatedReport = await axios.get(
-        `${API_ROUTER}/getFinancialReport/${orgData._id}`
+        `${API_ROUTER}/getFinancialReport/${selectedOrg._id}`
       );
       setFinancialReport(updatedReport.data);
     } catch (error) {

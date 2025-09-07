@@ -23,6 +23,19 @@ router.get(
 **********                                **********
 **********                                ********** 
 */
+
+/*
+**********    **********
+**********    **********
+          DEAN
+**********    **********
+**********    ********** 
+*/
+router.post(
+  "/updateOrganizationProfileStatus",
+  Controller.PostStatusUpdateOrganization
+);
+
 /* ********** STUDENT DEVELOPMENT ORGANIZATION ********** */
 router.get("/getAllOrganizationProfile", Controller.GetAllOrganizationProfile);
 router.get(

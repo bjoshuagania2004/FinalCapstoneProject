@@ -23,13 +23,9 @@ import { DonePopUp } from "../../../../components/components";
 export function AdviserProposal({ orgData }) {
   const [proposals, setProposals] = useState([]);
   const [selectedProposal, setSelectedProposal] = useState(null);
-  const [showEditModal, setShowEditModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showManageModal, setShowManageModal] = useState(false);
   const [showRevisionModal, setShowRevisionModal] = useState(false);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
-  const [editForm, setEditForm] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [revisionNotes, setRevisionNotes] = useState("");

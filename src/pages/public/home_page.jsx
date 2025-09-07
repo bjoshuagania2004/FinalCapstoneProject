@@ -317,7 +317,6 @@ function DekstopNavigation({ scrollToSection }) {
       {/* Main Content (with top padding so it doesn’t get hidden under nav) */}
       <div id="section0" className="pt-16">
         <div className="h-screen w-full flex justify-center items-center">
-          <div className="bg-white container mx-auto w-1 h-1/3" />
           <div className="h-full flex flex-col items-start px-8 justify-center w-1/3">
             <p className="stroked-text-cnsc text-[100px] leading-[90px]">
               CNSC
@@ -341,7 +340,6 @@ function DekstopNavigation({ scrollToSection }) {
               />
             )}
           </div>
-          <div className="bg-white container mx-auto w-1 h-full" />
         </div>
       </div>
 

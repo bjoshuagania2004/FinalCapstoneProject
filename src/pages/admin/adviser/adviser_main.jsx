@@ -21,7 +21,7 @@ import { AdviserFinancialReport } from "./accreditation.jsx/adviser-accreditatio
 import { AdviserAccreditationDocument } from "./accreditation.jsx/adviser-accreditation-documents";
 import { AdviserRosterData } from "./accreditation.jsx/adviser-accreditation-roster";
 import { AdviserPresident } from "./accreditation.jsx/adviser-accreditation-president";
-import { AdviserProposal } from "./accreditation.jsx/adviser-accreditation-Proposal";
+import { AdviserProposal } from "./accreditation.jsx/adviser-accreditation-proposal";
 import { AdviserAccreditationMainComponent } from "./accreditation.jsx/adviser-accreditation-overview";
 
 export function AdviserPage() {

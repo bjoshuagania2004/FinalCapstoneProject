@@ -6,7 +6,7 @@ import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import { DonePopUp } from "../../../../components/components";
 
-export function AdviserRosterData({ orgData }) {
+export function DeanRosterData({ selectedOrg }) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [alertModal, setAlertModal] = useState(false);
   const [revisionModal, setRevisionModal] = useState(false);
@@ -14,22 +14,30 @@ export function AdviserRosterData({ orgData }) {
   const [exportModal, setExportModal] = useState(false);
   const [incompleteModal, setIncompleteModal] = useState(false);
   const [popup, setPopup] = useState(null);
+  const [confirmUpdateModal, setConfirmUpdateModal] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null); // to store action type
+  const [confirmMessage, setConfirmMessage] = useState("");
 
   const [rosterData, setRosterData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(
-    `Dear ${orgData.orgName},\n\nWe kindly request you to complete your roster list as part of the accreditation process. Please ensure that all required members and details are submitted at the earliest convenience.\n\nThank you for your cooperation.\n\nSincerely,\nAdviser`
+    `Dear ${selectedOrg.orgName},\n\nWe kindly request you to complete your roster list as part of the accreditation process. Please ensure that all required members and details are submitted at the earliest convenience.\n\nThank you for your cooperation.\n\nSincerely,\nAdviser`
   );
   const [subject, setSubject] = useState("Notification for Roster Lists");
+
+  const validAdviserStatuses = [
+    "Approved by the Adviser",
+    "Revision from the Adviser",
+  ];
 
   const fetchRosterMembers = async () => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `${API_ROUTER}/getRosterMembers/${orgData._id}`
+        `${API_ROUTER}/getRosterMembers/${selectedOrg._id}`
       );
-      console.log(response.data.roster);
+      console.log(response.data);
       setRosterData(response.data);
       setError(null);
     } catch (err) {
@@ -41,10 +49,10 @@ export function AdviserRosterData({ orgData }) {
   };
 
   useEffect(() => {
-    if (orgData._id) {
+    if (selectedOrg._id) {
       fetchRosterMembers();
     }
-  }, [orgData._id]);
+  }, [selectedOrg._id]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -67,7 +75,7 @@ export function AdviserRosterData({ orgData }) {
     }
 
     console.log({
-      organizationId: orgData._id,
+      organizationId: selectedOrg._id,
       subject,
       message,
     });
@@ -77,7 +85,7 @@ export function AdviserRosterData({ orgData }) {
       const response = await axios.post(
         `${API_ROUTER}/sendNotificationRoster`,
         {
-          organizationId: orgData._id,
+          organizationId: selectedOrg._id,
           subject,
           message,
         }
@@ -186,6 +194,7 @@ export function AdviserRosterData({ orgData }) {
         type: "success",
         message: "Your action has been sent successfully!",
       });
+      fetchRosterMembers();
       setError(null);
     } catch (err) {
       setPopup({
@@ -220,17 +229,49 @@ export function AdviserRosterData({ orgData }) {
       </div>
     );
   }
-  // Add this inside AdviserRosterData
-  const handleDropdownAction = (id) => {
-    setShowDropdown(false);
 
-    if (id === "revision") {
-      setRevisionModal(true);
-    } else if (id === "Approval") {
-      setApprovalModal(true);
-    } else if (id === "export") {
-      setExportModal(true);
+  const handleDropdownAction = (id) => {
+    const deanStatuses = ["Revision From the Dean", "Approved By the Dean"];
+    const adviserStatuses = validAdviserStatuses;
+
+    const currentStatus = rosterData?.roster?.overAllStatus
+      ?.toLowerCase()
+      .trim();
+
+    const isDeanUpdated = deanStatuses.some(
+      (status) => status.toLowerCase().trim() === currentStatus
+    );
+
+    const isAdviserValid = adviserStatuses.some(
+      (status) => status.toLowerCase().trim() === currentStatus
+    );
+
+    // Show confirmation modal if:
+    if (isDeanUpdated || !isAdviserValid) {
+      setPendingAction(id);
+
+      // Set dynamic message
+      if (isDeanUpdated) {
+        setConfirmMessage(
+          "This roster has already been updated by the Dean. Do you want to continue updating it again?"
+        );
+      } else if (!isAdviserValid) {
+        setConfirmMessage(
+          "This roster has not yet been reviewed by the Adviser. Do you want to proceed anyway?"
+        );
+      }
+
+      setConfirmUpdateModal(true);
+      setShowDropdown(false);
+      return;
     }
+
+    // Otherwise, open modal normally
+    if (id === "revision") setRevisionModal(true);
+    else if (id === "Approval") setApprovalModal(true);
+    else if (id === "export") setExportModal(true);
+
+    setShowDropdown(false);
   };
 
   const rosterMembers = rosterData?.rosterMembers || [];
@@ -285,7 +326,9 @@ export function AdviserRosterData({ orgData }) {
                 {dropdownItems.map((item) => (
                   <button
                     key={item.id}
-                    onClick={() => handleDropdownAction(item.id)} // ✅ now it works
+                    onClick={() => {
+                      handleDropdownAction(item.id);
+                    }} // ✅ now it works
                     className="w-full  justify-end px-4 py-3 flex hover:bg-amber-200 items-center gap-3 transition-colors duration-300"
                   >
                     <span className="font-medium text-black">{item.label}</span>
@@ -320,7 +363,7 @@ export function AdviserRosterData({ orgData }) {
               <RosterMemberCard
                 key={member._id}
                 member={member}
-                orgId={orgData._id}
+                orgId={selectedOrg._id}
               />
             ))}
           </div>
@@ -332,7 +375,9 @@ export function AdviserRosterData({ orgData }) {
           <div className="h-fit bg-white w-1/3 flex flex-col px-6 py-6 rounded-2xl shadow-xl relative">
             {/* Close Button */}
             <button
-              onClick={() => setRevisionModal(false)}
+              onClick={() => {
+                setRevisionModal(false);
+              }}
               className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
             >
               ✕
@@ -359,7 +404,7 @@ export function AdviserRosterData({ orgData }) {
             <button
               onClick={() => {
                 handleApproval({
-                  status: "Revision From the Adviser",
+                  status: "Revision From the Dean",
                   revisionNotes: message,
                 }); // 👈 call with "Revision"
                 setRevisionModal(false);
@@ -395,7 +440,7 @@ export function AdviserRosterData({ orgData }) {
 
             <button
               onClick={() => {
-                handleApproval("Approved By the Adviser"); // 👈 call with "Approved"
+                handleApproval("Approved By the Dean"); // 👈 call with "Approved"
                 setApprovalModal(false);
               }}
               className="mt-6 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-sm font-medium shadow-md transition"
@@ -545,12 +590,48 @@ export function AdviserRosterData({ orgData }) {
           onClose={() => setPopup(null)}
         />
       )}
+      {confirmUpdateModal && (
+        <div className="absolute bg-black/10 backdrop-blur-xs inset-0 flex justify-center items-center">
+          <div className="h-fit bg-white w-1/3 flex flex-col px-6 py-6 rounded-2xl shadow-xl relative">
+            <button
+              onClick={() => setConfirmUpdateModal(false)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+            >
+              ✕
+            </button>
+
+            <h1 className="text-lg font-semibold mb-4">Confirmation</h1>
+            <p className="text-sm text-gray-700 mb-4">{confirmMessage}</p>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setConfirmUpdateModal(false)}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  // Trigger the correct modal based on pending action
+                  if (pendingAction === "revision") setRevisionModal(true);
+                  else if (pendingAction === "Approval") setApprovalModal(true);
+                  else if (pendingAction === "export") setExportModal(true);
+
+                  setConfirmUpdateModal(false);
+                }}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-sm font-medium shadow-md transition"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 const RosterMemberCard = ({ member, orgId }) => {
-  console.log(`${DOCU_API_ROUTER}/${orgId}/${member.profilePicture}`);
   return (
     <div className="bg-white w-full h-full rounded-lg flex flex-col gap-2 items-center shadow-md p-6 border border-gray-200 hover:shadow-lg transition-shadow">
       <div className="flex items-center justify-between">

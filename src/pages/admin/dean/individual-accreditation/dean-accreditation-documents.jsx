@@ -22,7 +22,7 @@ import {
 import axios from "axios";
 import { DonePopUp } from "../../../../components/components";
 
-export function AdviserAccreditationDocument({ orgData }) {
+export function DeanAccreditationDocument({ selectedOrg }) {
   const [accreditationDocumentData, setAccreditationDocumentData] =
     useState(null);
   const [showDetailsPopup, setShowDetailsPopup] = useState(false);
@@ -34,10 +34,10 @@ export function AdviserAccreditationDocument({ orgData }) {
   const [approvalModal, setApprovalModal] = useState(false);
   useEffect(() => {
     const fetchAccreditationInfo = async () => {
-      if (!orgData._id) return;
+      if (!selectedOrg._id) return;
       try {
         const { data } = await axios.get(
-          `${API_ROUTER}/getAccreditatationDocuments/${orgData._id}`,
+          `${API_ROUTER}/getAccreditatationDocuments/${selectedOrg._id}`,
           {
             withCredentials: true,
           }
@@ -50,7 +50,7 @@ export function AdviserAccreditationDocument({ orgData }) {
       }
     };
     fetchAccreditationInfo();
-  }, [orgData._id]);
+  }, [selectedOrg._id]);
 
   const getStatusStyle = (status) => {
     switch (status?.toLowerCase()) {
@@ -108,7 +108,7 @@ export function AdviserAccreditationDocument({ orgData }) {
       ...doc,
       label,
       docKey,
-      url: `${DOCU_API_ROUTER}/${orgData._id}/${doc.fileName}`,
+      url: `${DOCU_API_ROUTER}/${selectedOrg._id}/${doc.fileName}`,
     });
     setShowDetailsPopup(true);
   };
@@ -168,7 +168,7 @@ export function AdviserAccreditationDocument({ orgData }) {
           {/* PDF Viewer */}
           <div className="flex-1  overflow-hidden">
             <iframe
-              src={`${DOCU_API_ROUTER}/${orgData._id}/${doc.fileName}#toolbar=0&navpanes=0&scrollbar=0`}
+              src={`${DOCU_API_ROUTER}/${selectedOrg._id}/${doc.fileName}#toolbar=0&navpanes=0&scrollbar=0`}
               title={`${label} PDF Viewer`}
               className="w-full h-full"
             />

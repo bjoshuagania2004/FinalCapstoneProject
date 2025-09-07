@@ -62,6 +62,53 @@ export const PostOrganizationalLogo = async (req, res) => {
   }
 };
 
+export const PostStatusUpdateOrganization = async (req, res) => {
+  try {
+    const { orgId, overAllStatus, revisionNotes } = req.body;
+
+    console.log(req.body);
+    // Validate input
+    if (!orgId) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization ID is required",
+      });
+    }
+
+    // Build update object
+
+    // Update organization profile
+    const updatedOrganization = await OrganizationProfile.findByIdAndUpdate(
+      { _id: orgId },
+      {
+        overAllStatus,
+        revisionNotes,
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedOrganization) {
+      return res.status(404).json({
+        success: false,
+        message: "Organization not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Organization status updated successfully",
+      data: updatedOrganization,
+    });
+  } catch (error) {
+    console.error("Error updating organization status:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
 export const GetAllActiveOrganizationsWithDetails = async (req, res) => {
   try {
     const organizations = await OrganizationProfile.find({ isActive: true }) // ✅ filter only active orgs
@@ -303,11 +350,7 @@ export const GetOrganizationsByDeliveryUnit = async (req, res) => {
       });
     }
 
-    res.status(200).json({
-      success: true,
-      count: organizations.length,
-      data: organizations,
-    });
+    res.status(200).json(organizations);
   } catch (error) {
     console.error("Error fetching organizations by delivery unit:", error);
     res.status(500).json({
