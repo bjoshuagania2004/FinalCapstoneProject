@@ -94,7 +94,6 @@ export const GetUsers = async (req, res) => {
       .lean();
 
     res.status(200).json({
-      message: "Users fetched successfully",
       count: users.length,
       users,
     });
