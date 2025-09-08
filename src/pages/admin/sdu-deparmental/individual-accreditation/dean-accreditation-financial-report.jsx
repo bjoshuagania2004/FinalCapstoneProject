@@ -1,14 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  X,
-  TrendingUp,
-  TrendingDown,
-  DollarSign,
-  Calendar,
-  User,
-  FileText,
-  Tag,
-} from "lucide-react";
+import { X, TrendingUp, TrendingDown, DollarSign } from "lucide-react";
 import {
   XAxis,
   YAxis,
@@ -22,33 +13,33 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { API_ROUTER } from "../../../../App";
+import { API_ROUTER, DOCU_API_ROUTER } from "../../../../App";
 import axios from "axios";
 
-export function DeanFinancialReport({ selectedOrg }) {
+export function DeanFinancialReport({ selectedOrg, user }) {
   const [financialReport, setFinancialReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentBalance, setCurrentBalance] = useState(""); // You might want to get this from the backend as well
-  const [pendingAction, setPendingAction] = useState(null); // to store action type
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [inquirePopupOpen, setInquirePopupOpen] = useState(false);
+  const [inquiryText, setInquiryText] = useState("");
+  const [submittingInquiry, setSubmittingInquiry] = useState(false);
 
-  console.log(selectedOrg);
+  const GetFinancialReportApi = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(
+        `${API_ROUTER}/getFinancialReport/${selectedOrg._id}`
+      );
+      setFinancialReport(response.data);
+      setCurrentBalance(response.data.initialBalance);
+    } catch (error) {
+      console.error("Error fetching financial report:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
-    const GetFinancialReportApi = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get(
-          `${API_ROUTER}/getFinancialReport/${selectedOrg._id}`
-        );
-        console.log("Financial Report Response:", response.data);
-        setFinancialReport(response.data);
-        setCurrentBalance(response.data.initialBalance);
-      } catch (error) {
-        console.error("Error fetching financial report:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     GetFinancialReportApi();
   }, []);
 
@@ -118,45 +109,45 @@ export function DeanFinancialReport({ selectedOrg }) {
     }).format(amount);
   };
 
-  const [modalOpen, setModalOpen] = useState(false);
-  const [transactionType, setTransactionType] = useState(null);
-
-  const handleAddClick = (type) => {
-    setTransactionType(type);
-    setModalOpen(true);
+  const handleTransactionClick = (item, type) => {
+    setSelectedTransaction({ ...item, type });
   };
 
-  const handleModalClose = () => {
-    setModalOpen(false);
-    setTransactionType(null);
-  };
+  // Submit the inquiry
+  const handleInquirySubmit = async () => {
+    if (!inquiryText.trim()) return; // optional: prevent empty submissions
 
-  const handleTransactionSubmit = async (formData) => {
-    console.log("🔍 Logging submitted FormData:");
-
-    for (let [key, value] of formData.entries()) {
-      console.log(`${key}:`, value);
-    }
+    setSubmittingInquiry(true); // start loading
 
     try {
-      const response = await axios.post(`${API_ROUTER}/addReciept`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      console.log("✅ Successfully submitted:", response.data);
-
-      // Refresh the financial report after successful submission
-      const updatedReport = await axios.get(
-        `${API_ROUTER}/getFinancialReport/${selectedOrg._id}`
+      const response = await axios.post(
+        `${API_ROUTER}/financialReportInquiry`,
+        {
+          userPosition: user.position,
+          userName: user.name,
+          inquiryText,
+          selectedTransaction,
+          orgId: selectedOrg._id,
+          orgName: selectedOrg.orgName,
+        }
       );
-      setFinancialReport(updatedReport.data);
+
+      console.log("✅ Inquiry submitted:", response.data);
+
+      // Show success message (you can use toast or alert)
+      alert("Inquiry submitted successfully!");
+
+      // Close inquiry popup and transaction modal
+      setInquirePopupOpen(false);
+      setSelectedTransaction(null);
+
+      // Refresh page or refetch data
     } catch (error) {
-      console.error(
-        "❌ Error submitting transaction:",
-        error.response?.data || error.message
-      );
+      console.error("❌ Inquiry submission failed:", error);
+      alert("Failed to submit inquiry. Please try again.");
+    } finally {
+      setSubmittingInquiry(false); // stop loading
+      GetFinancialReportApi();
     }
   };
 
@@ -190,8 +181,6 @@ export function DeanFinancialReport({ selectedOrg }) {
     0
   );
 
-  // Replace the existing expenseBreakdown calculation with this improved version
-
   // Create expense breakdown from actual data based on expenseType total amount
   const createExpenseBreakdown = () => {
     const reimbursementTypes = {};
@@ -199,6 +188,7 @@ export function DeanFinancialReport({ selectedOrg }) {
 
     // Process reimbursements
     financialReport.reimbursements.forEach((reimbursement) => {
+      console.log(reimbursement);
       const expenseType = reimbursement.expenseType || "uncategorized";
       if (!reimbursementTypes[expenseType]) {
         reimbursementTypes[expenseType] = 0;
@@ -442,6 +432,7 @@ export function DeanFinancialReport({ selectedOrg }) {
               financialReport.reimbursements.map((item, index) => (
                 <div
                   key={`reimbursement-${index}`}
+                  onClick={() => handleTransactionClick(item, "Reimbursement")}
                   className="bg-green-50 p-4  border border-green-200"
                 >
                   <div className="flex justify-between items-start mb-2">
@@ -485,6 +476,7 @@ export function DeanFinancialReport({ selectedOrg }) {
                 <div
                   key={`disbursement-${index}`}
                   className="bg-red-50 p-4  border border-red-200"
+                  onClick={() => handleTransactionClick(item, "Disbursement")}
                 >
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="font-medium text-gray-800">
@@ -503,7 +495,192 @@ export function DeanFinancialReport({ selectedOrg }) {
                 </div>
               ))
             )}
+
+            {selectedTransaction &&
+              (console.log(selectedTransaction),
+              (
+                <ViewTransactionModal
+                  isOpen={!!selectedTransaction}
+                  onClose={() => setSelectedTransaction(null)}
+                  transaction={selectedTransaction}
+                  type={selectedTransaction.type}
+                  onInquire={() => {
+                    setInquirePopupOpen(true);
+                  }}
+                />
+              ))}
+
+            {/* Inquiry Popup */}
+            {inquirePopupOpen &&
+              (console.log(selectedTransaction),
+              (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                  <div className="bg-white w-96 p-6 rounded-xl shadow-lg relative">
+                    {/* Close */}
+                    <button
+                      className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+                      onClick={() => setInquirePopupOpen(false)}
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+
+                    {/* Inquiry form */}
+                    <h3 className="text-xl font-bold text-gray-800 mb-4">
+                      Submit Inquiry
+                    </h3>
+                    <textarea
+                      className="w-full border rounded-lg p-2 text-gray-700"
+                      rows="4"
+                      placeholder="Type your inquiry here..."
+                      value={inquiryText}
+                      onChange={(e) => setInquiryText(e.target.value)}
+                    />
+                    <button
+                      onClick={handleInquirySubmit}
+                      disabled={submittingInquiry}
+                      className={`mt-4 w-full px-4 py-2 rounded-lg text-white ${
+                        submittingInquiry
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-green-600 hover:bg-green-700"
+                      }`}
+                    >
+                      {submittingInquiry ? "Submitting..." : "Done"}
+                    </button>
+                  </div>
+                </div>
+              ))}
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ViewTransactionModal({
+  isOpen,
+  onClose,
+  transaction,
+  type,
+  setInquirePopupOpen,
+  onInquire,
+}) {
+  if (!isOpen || !transaction) return null;
+
+  const isReimbursement = type === "reimbursement";
+
+  // Build file URL (adjust base path if needed for your backend)
+  const fileUrl = transaction?.document?.fileName
+    ? `${DOCU_API_ROUTER}/${transaction.organizationProfile}/${transaction.document.fileName}`
+    : transaction?.file;
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-white w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden">
+        {/* Header */}
+        <div
+          className={`px-6 py-4 border-b ${
+            isReimbursement
+              ? "bg-gradient-to-r from-emerald-500 to-teal-600"
+              : "bg-gradient-to-r from-red-500 to-rose-600"
+          }`}
+        >
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-bold text-white">
+              {isReimbursement
+                ? "Reimbursement Details"
+                : "Disbursement Details"}
+            </h2>
+            <button
+              onClick={onClose}
+              className="text-white/80 hover:text-white hover:bg-white/20 p-2 rounded-full transition"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+          <div>
+            <p className="text-sm font-semibold text-gray-600">Description</p>
+            <p className="text-gray-900">{transaction.description}</p>
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold text-gray-600">Amount</p>
+            <p
+              className={`text-lg font-bold ${
+                isReimbursement ? "text-green-600" : "text-red-600"
+              }`}
+            >
+              {new Intl.NumberFormat("en-US", {
+                style: "currency",
+                currency: "USD",
+              }).format(transaction.amount)}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold text-gray-600">Date</p>
+            <p className="text-gray-900">
+              {new Date(transaction.date).toLocaleDateString()}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold text-gray-600">Expense Type</p>
+            <p className="text-gray-900">
+              {transaction.expenseType || "Uncategorized"}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold text-gray-600">
+              {isReimbursement ? "Requestor" : "Recipient"}
+            </p>
+            <p className="text-gray-900">{transaction.name}</p>
+          </div>
+
+          {fileUrl && (
+            <div>
+              <p className="text-sm font-semibold text-gray-600 mb-2">
+                Document
+              </p>
+              <iframe
+                src={fileUrl}
+                className="w-full h-96 border rounded-lg"
+                title="Transaction Document"
+              />
+              <div className="mt-2">
+                <a
+                  href={fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline"
+                >
+                  Open in New Tab
+                </a>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-4 bg-gray-50 border-t flex justify-end">
+          <button
+            onClick={() => {
+              onInquire();
+            }}
+            className="px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+          >
+            Submit Inquiry
+          </button>
+          <button
+            onClick={onClose}
+            className="px-5 py-2 bg-gray-200 rounded-lg text-gray-700 hover:bg-gray-300 transition"
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>

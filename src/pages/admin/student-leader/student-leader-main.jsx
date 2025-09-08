@@ -132,29 +132,31 @@ export default function StudentLeaderMainPage() {
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between bg-cnsc-secondary-color h-14 w-full px-4 shadow-2xl">
+      <div className="flex items-center justify-center bg-cnsc-secondary-color h-fit w-full px-4 shadow-2xl">
         {/* Left: Logo + Title */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 p-4">
           <img
             src={backgroundImage} // replace with your actual logo path
             alt="CNSC Codex Logo"
-            className="h-8 w-8 bg-white"
+            className="h-12 aspect-square rounded-full bg-white"
           />
-          <span className="font-bold text-cnsc-primary-color">CNSC CODEX</span>
+          <span className="font-bold text-xl text-cnsc-primary-color">
+            CNSC CODEX
+          </span>
         </div>
 
         {/* Right: Manual + Icons */}
-        <div className="flex items-center space-x-4">
-          <button className="flex items-center space-x-1 bg-amber-100 text-amber-600 px-2 py-1 rounded text-sm font-medium hover:bg-amber-200 transition">
-            <HelpCircle size={16} />
-            <span>Manual</span>
-          </button>
+        {/* <div className="flex items-center space-x-4">
+        <button className="flex items-center space-x-1 bg-amber-100 text-amber-600 px-2 py-1 rounded text-sm font-medium hover:bg-amber-200 transition">
+          <HelpCircle size={16} />
+          <span>Manual</span>
+        </button>
 
-          <Bell
-            size={20}
-            className="text-cnsc-primary-color cursor-pointer hover:scale-110 transition"
-          />
-        </div>
+        <Bell
+          size={20}
+          className="text-cnsc-primary-color cursor-pointer hover:scale-110 transition"
+        />
+      </div> */}
       </div>
 
       {/* Main content area */}
@@ -376,26 +378,30 @@ function StudentNavigation({ orgData }) {
     <>
       <div className=" h-full w-full flex-col">
         <div className="text-white mt-2 mb-4 font-bold flex items-center space-x-4 hover:cursor-pointer">
-          <div className="my-1 ml-3 w-15 aspect-square rounded-full bg-cnsc-secondary-color flex items-center justify-center text-2xl cursor-pointer overflow-hidden hover:bg-white hover:text-cnsc-primary-color transition-all duration-500">
+          <div className="my-1 ml-3 w-15 aspect-square rounded-full bg-cnsc-secondary-color flex items-center justify-center cursor-pointer overflow-hidden group relative">
             {imageSrc ? (
               <img
-                src={backgroundImage}
+                src={imageSrc}
                 alt="Organization Logo"
                 className="w-full h-full object-cover rounded-full"
               />
             ) : (
-              <span
-                className="relative inline-block"
-                onClick={handleUploadClick}
-              >
-                <CameraIcon size={48} />
-                <Plus
-                  size={24}
-                  className="absolute top-0 right-0 transform translate-x-1/3 bg-cnsc-secondary-color rounded-full"
+              <div onClick={handleUploadClick}>
+                {/* Background image */}
+                <img
+                  src={backgroundImage}
+                  alt="Organization Logo"
+                  className="w-full h-full object-cover rounded-full"
                 />
-              </span>
+                {/* Plus icon, visible only on hover */}
+                <Plus
+                  size={48}
+                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                />
+              </div>
             )}
           </div>
+
           <h1>{orgData.orgName}</h1>
         </div>
 

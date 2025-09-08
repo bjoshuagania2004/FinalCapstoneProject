@@ -10,6 +10,7 @@ import {
   BookMarked,
   SearchCheck,
   Search,
+  User,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
@@ -43,6 +44,7 @@ import {
   SduProposedActionPlanOverview,
 } from "./accreditation/sdu-accreditation-proposed-action-plan";
 import { FinancialReportOverview } from "./accreditation/sdu-accreditation-financial-report";
+import { SduUserManagement } from "./sdu-user-management";
 
 // This should be used in your main App.js router
 export default function StudentDevMainLayout() {
@@ -201,6 +203,7 @@ function StudentDevUnitComponent({ selectedOrg, onSelectOrg }) {
             )
           }
         />
+        <Route path="/user-management" element={<SduUserManagement />} />
       </Routes>
     </div>
   );
@@ -242,6 +245,12 @@ function StudentDevMainNavigation() {
       label: "Accreditations",
       path: "/SDU/accreditation",
     },
+    {
+      key: "users",
+      icon: <User className="w-5 h-5" />,
+      label: "User management",
+      path: "/SDU/user-management",
+    },
 
     {
       key: "accomplishments",
@@ -260,12 +269,6 @@ function StudentDevMainNavigation() {
       icon: <PenSquare className="w-5 h-5" />,
       label: "Posts",
       path: "/SDU/post",
-    },
-    {
-      key: "logs",
-      icon: <Clock className="w-5 h-5" />,
-      label: "Logs",
-      path: "/SDU/log",
     },
   ];
 
@@ -526,26 +529,6 @@ function OrganizationProposals({ selectedOrg }) {
         <p>
           Proposal content and management tools for {selectedOrg.orgName} will
           be displayed here.
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function OrganizationPresidentInfo({ selectedOrg }) {
-  return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold text-gray-800 mb-2">
-        President Information - {selectedOrg.orgName}
-      </h1>
-      <p className="text-gray-600 mb-6">
-        President details and contact information
-      </p>
-      <div className="bg-indigo-50 p-6 rounded-lg">
-        <h3 className="text-lg font-semibold mb-4">President Information</h3>
-        <p>
-          President information for {selectedOrg.orgName} will be displayed
-          here.
         </p>
       </div>
     </div>

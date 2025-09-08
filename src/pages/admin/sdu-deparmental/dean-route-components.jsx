@@ -9,7 +9,13 @@ import { DeanFinancialReport } from "./individual-accreditation/dean-accreditati
 import { DeanProposedPlan } from "./individual-accreditation/dean-accreditation-proposed-plan";
 import { DeanAccreditationDocument } from "./individual-accreditation/dean-accreditation-documents";
 
-export function DeanComponent({ selectedOrg, orgs, onSelectOrg, loading }) {
+export function DeanComponent({
+  selectedOrg,
+  orgs,
+  onSelectOrg,
+  loading,
+  user,
+}) {
   const activeOrgs = orgs.filter((org) => org.isActive === true);
   const inactiveOrgs = orgs.filter((org) => org.isActive === false);
   // Helper to get status badge styling
@@ -313,7 +319,7 @@ export function DeanComponent({ selectedOrg, orgs, onSelectOrg, loading }) {
               path="financial-report"
               element={
                 selectedOrg ? (
-                  <DeanFinancialReport selectedOrg={selectedOrg} />
+                  <DeanFinancialReport selectedOrg={selectedOrg} user={user} />
                 ) : (
                   <OrganizationSelector title="Accreditation" />
                 )

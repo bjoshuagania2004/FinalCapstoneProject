@@ -158,9 +158,6 @@ export function DeanAccreditationDocument({ selectedOrg }) {
                     <span>{doc.status}</span>
                   </div>
                 </div>
-                <button className="px-3 py-1.5 rounded-full bg-blue-100 text-blue-700 text-xs items-center gap-1.5">
-                  Action
-                </button>
               </div>
             </div>
           </div>
@@ -198,13 +195,13 @@ export function DeanAccreditationDocument({ selectedOrg }) {
   }
 
   return (
-    <div className="w-full  p-4 gap-4 flex flex-col h-full">
+    <div className="w-full  p-4 gap-4 flex flex-col h-full bg-gray-200">
       {/* Summary Stats */}
-      <div className="bg-white rounded-lg shadow-sm border p-6">
+      <div className="bg-white rounded-lg shadow-md p-4">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
           Accreditation Summary
         </h2>
-        <div className="grid grid-cols-2  md:grid-cols-4 gap-4">
+        <div className="flex items-center justify-evenly gap-4">
           <div className="text-center">
             <div className="text-2xl font-bold text-green-600">
               {
@@ -243,12 +240,6 @@ export function DeanAccreditationDocument({ selectedOrg }) {
               }
             </div>
             <div className="text-sm text-gray-600">Missing Documents</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">
-              {accreditationDocumentData.isActive ? "Active" : "Inactive"}
-            </div>
-            <div className="text-sm text-gray-600">Organization Status</div>
           </div>
         </div>
       </div>
@@ -464,7 +455,7 @@ export function DeanAccreditationDocument({ selectedOrg }) {
             <button
               onClick={() => {
                 handleApproval({
-                  status: "Revision From the Adviser",
+                  status: "Revision From the Dean",
                   revisionNotes: message,
                 }); // 👈 call with "Revision"
                 setRevisionModal(false);
@@ -502,7 +493,7 @@ export function DeanAccreditationDocument({ selectedOrg }) {
             <button
               onClick={() => {
                 handleApproval({
-                  status: "Approved by the Adviser",
+                  status: "Approved by the Dean",
                 }); // 👈 call with "Revision" // 👈 call with "Approved"
                 setApprovalModal(false);
               }}

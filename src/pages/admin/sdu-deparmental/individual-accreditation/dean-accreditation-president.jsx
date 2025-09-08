@@ -24,6 +24,7 @@ export function DeanPresident({ selectedOrg }) {
   const [remainingPresidents, setRemainingPresidents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
   const orgId = selectedOrg.organization._id;
 
   useEffect(() => {
@@ -223,6 +224,9 @@ const CurrentPresidentCard = ({ currentPresident, selectedOrg }) => {
     "Approved by the Adviser",
     "Revision from the Adviser",
   ];
+  const [confirmUpdateModal, setConfirmUpdateModal] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null); // to store action type
+  const [confirmMessage, setConfirmMessage] = useState("");
 
   console.log(president);
   const profilePictureUrl = `${DOCU_API_ROUTER}/${president.organizationProfile}/${profilePicture}`;
@@ -265,6 +269,50 @@ const CurrentPresidentCard = ({ currentPresident, selectedOrg }) => {
         message: "Failed to update President Profile. Please try again.",
       });
     }
+  };
+
+  // Add this inside CurrentPresidentCard component
+  const handleDropdownAction = (id) => {
+    const deanStatuses = ["Revision from the Dean", "Approved by the Dean"];
+    const adviserStatuses = [
+      "Approved by the Adviser",
+      "Revision from the Adviser",
+    ];
+
+    const currentStatus = currentPresident?.overAllStatus?.toLowerCase().trim();
+
+    const isDeanUpdated = deanStatuses.some(
+      (status) => status.toLowerCase().trim() === currentStatus
+    );
+
+    const isAdviserValid = adviserStatuses.some(
+      (status) => status.toLowerCase().trim() === currentStatus
+    );
+
+    // Show confirmation modal if:
+    if (isDeanUpdated || !isAdviserValid) {
+      setPendingAction(id);
+
+      if (isDeanUpdated) {
+        setConfirmMessage(
+          "This President Profile has already been updated by the Dean. Do you want to continue updating it again?"
+        );
+      } else if (!isAdviserValid) {
+        setConfirmMessage(
+          "This President Profile has not yet been reviewed by the Adviser. Do you want to proceed anyway?"
+        );
+      }
+
+      setConfirmUpdateModal(true);
+      setShowDropdown(false);
+      return;
+    }
+
+    // Otherwise, open modal normally
+    if (id === "revision") setShowRevisionModal(true);
+    else if (id === "Approval") setShowApproveModal(true);
+
+    setShowDropdown(false);
   };
 
   return (
@@ -312,47 +360,13 @@ const CurrentPresidentCard = ({ currentPresident, selectedOrg }) => {
             {showDropdown && (
               <div className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg z-10">
                 <button
-                  onClick={() => {
-                    if (
-                      !validAdviserStatuses.includes(
-                        currentPresident?.overAllStatus
-                      )
-                    ) {
-                      setPopup({
-                        open: true,
-                        type: "warning",
-                        message:
-                          "This President Profile cannot be updated. It has not yet been reviewed by the adviser.",
-                      });
-                      return; // 🚫 Stop execution here
-                    }
-
-                    setShowRevisionModal(true);
-                    setShowDropdown(false);
-                  }}
+                  onClick={() => handleDropdownAction("revision")}
                   className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                 >
                   View Revision
                 </button>
                 <button
-                  onClick={() => {
-                    if (
-                      !validAdviserStatuses.includes(
-                        currentPresident?.overAllStatus
-                      )
-                    ) {
-                      setPopup({
-                        open: true,
-                        type: "warning",
-                        message:
-                          "This President Profile cannot be updated. It has not yet been reviewed by the adviser.",
-                      });
-                      return; // 🚫 Stop execution here
-                    }
-
-                    setShowApproveModal(true);
-                    setShowDropdown(false);
-                  }}
+                  onClick={() => handleDropdownAction("Approval")}
                   className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                 >
                   Approve
@@ -559,6 +573,42 @@ const CurrentPresidentCard = ({ currentPresident, selectedOrg }) => {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+      {confirmUpdateModal && (
+        <div className="fixed bg-black/10 backdrop-blur-xs inset-0  flex justify-center items-center">
+          <div className="h-fit bg-white w-1/3 flex flex-col px-6 py-6 rounded-2xl shadow-xl relative">
+            <button
+              onClick={() => setConfirmUpdateModal(false)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+            >
+              ✕
+            </button>
+
+            <h1 className="text-lg font-semibold mb-4">Confirmation</h1>
+            <p className="text-sm text-gray-700 mb-4">{confirmMessage}</p>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setConfirmUpdateModal(false)}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (pendingAction === "revision") setShowRevisionModal(true);
+                  else if (pendingAction === "Approval")
+                    setShowApproveModal(true);
+
+                  setConfirmUpdateModal(false);
+                }}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-sm font-medium shadow-md transition"
+              >
+                Continue
+              </button>
+            </div>
           </div>
         </div>
       )}

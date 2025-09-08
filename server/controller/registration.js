@@ -14,6 +14,95 @@ const nanoid = customAlphabet(
 );
 const initialPassword = nanoid();
 
+export const PostUser = async (req, res) => {
+  try {
+    const {
+      name,
+      email,
+      username,
+      deliveryUnit,
+      position,
+      organizationProfile,
+      Organization,
+    } = req.body;
+
+    // 🔑 Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ message: "User already exists with this email" });
+    }
+
+    // Generate initial password
+    const initialPassword = nanoid();
+
+    // 📌 Create User
+    const newUser = new User({
+      name,
+      email,
+      username,
+      deliveryUnit,
+      password: initialPassword, // ⚠️ hash later with bcrypt
+      position,
+      organizationProfile,
+      Organization,
+    });
+
+    const savedUser = await newUser.save();
+
+    // Step 11: Send email with login credentials
+    const org_email_subject = "Account Created Successfully";
+    const org_email_message = `
+      Hello ${name},
+
+      Your account has been successfully created.
+
+      Here are your login details:
+      - Email: ${email}
+      - Initial Password: ${initialPassword}
+
+      Please log in and change your password as soon as possible.
+
+      Thank you.
+    `;
+
+    await NodeEmail(email, org_email_subject, org_email_message);
+
+    res.status(201).json({
+      message: "User created successfully and email sent",
+      user: savedUser,
+    });
+  } catch (error) {
+    console.error("Error in PostUser:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+export const GetUsers = async (req, res) => {
+  try {
+    // Optional query filter (e.g., ?position=adviser)
+    const { position } = req.query;
+
+    let filter = {};
+    if (position) {
+      filter.position = position; // only return users with this position
+    }
+
+    const users = await User.find(filter)
+      .select("-password") // exclude password for safety
+      .lean();
+
+    res.status(200).json({
+      message: "Users fetched successfully",
+      count: users.length,
+      users,
+    });
+  } catch (error) {
+    console.error("Error in getUsers:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
 export const ChangePasswordAdviser = async (req, res) => {
   try {
     const { adviserId, newPassword } = req.body;

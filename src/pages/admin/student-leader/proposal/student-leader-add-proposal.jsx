@@ -1,6 +1,6 @@
 import axios from "axios";
 import { API_ROUTER } from "../../../../App";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Upload } from "lucide-react";
 import { DonePopUp } from "../../../../components/components";
 

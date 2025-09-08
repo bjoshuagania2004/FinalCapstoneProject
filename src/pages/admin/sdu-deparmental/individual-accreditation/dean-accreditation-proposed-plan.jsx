@@ -375,7 +375,7 @@ export function DeanProposedPlan({ selectedOrg }) {
                 {/* Average Budget */}
                 <div className="bg-green-50 p-4 rounded-xl border border-green-200">
                   <h4 className="text-sm font-medium text-green-800">
-                    Average Budget
+                    Estimated Budget
                   </h4>
                   <p className="text-3xl font-bold text-green-900">
                     {proposals.length > 0

@@ -16,6 +16,76 @@ const __dirname = dirname(__filename);
 
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
+export const SendFinancialEmailInquiry = async (req, res) => {
+  try {
+    const {
+      orgId,
+      orgName,
+      inquiryText,
+      userPosition,
+      userName,
+      selectedTransaction,
+    } = req.body;
+
+    // Find the active user linked to the organization profile, return only email
+    const organization = await User.findOne({
+      organizationProfile: orgId,
+    });
+
+    if (!organization || !organization.email) {
+      return res.status(404).json({
+        success: false,
+        error: "Organization email not found.",
+      });
+    }
+
+    const orgEmail = organization.email;
+
+    // Destructure relevant transaction details
+    const { description, amount, type, date, document } = selectedTransaction;
+
+    const documentInfo = document
+      ? `Attached Document: ${document.fileName} (Status: ${document.status})`
+      : "No attached document.";
+
+    // --- Email to Adviser ---
+    const Subject = "New Financial Report Inquiry";
+    const Message = `
+Hello ${orgName},
+
+A new inquiry has been submitted regarding a transaction in your organization's financial report.
+
+Transaction Details:
+- Type: ${type}
+- Description: ${description}
+- Amount: ₱${amount.toLocaleString()}
+- Date: ${new Date(date).toLocaleDateString()}
+- ${documentInfo}
+
+Inquiry Details:
+- From: ${userPosition} ${userName}  
+- Message: ${inquiryText}
+
+Please log in to the system to review.
+
+Thank you.
+    `;
+
+    await NodeEmail(orgEmail, Subject, Message);
+
+    return res.status(200).json({
+      success: true,
+      message: "Inquiry emails sent successfully.",
+    });
+  } catch (error) {
+    console.error("❌ Error sending inquiry emails:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Failed to send inquiry emails.",
+    });
+  }
+};
+
 export const CheckAccreditationApprovalStatus = async (req, res) => {
   const { orgProfileId } = req.params;
 
@@ -183,7 +253,7 @@ export const Login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // Find the user by email and populate organizationProfile
+    // Find the user by email
     const user = await User.findOne({ email });
 
     // Check if user exists and password matches
@@ -193,9 +263,10 @@ export const Login = async (req, res) => {
 
     console.log("User:", user);
 
-    // Set session
+    // Set session (name is optional)
     req.session.user = {
       userId: user._id,
+      name: user.name || null, // fallback if name is missing
       position: user.position,
       email: user.email,
       deliveryUnit: user.deliveryUnit,
@@ -219,6 +290,7 @@ export const Logout = (req, res) => {
     res.json({ message: "Logged out" });
   });
 };
+
 import OpenAI from "openai";
 import PdfParse from "pdf-parse";
 

@@ -16,21 +16,8 @@ router.get(
   "/getOrganizations/:deliveryUnit",
   Controller.GetOrganizationsByDeliveryUnit
 );
-/*
-**********                                **********
-**********                                **********
-          STUDENT DEVELOPMENT ORGANIZATION
-**********                                **********
-**********                                ********** 
-*/
-
-/*
-**********    **********
-**********    **********
-          DEAN
-**********    **********
-**********    ********** 
-*/
+router.post("/financialReportInquiry", Controller.SendFinancialEmailInquiry);
+router.get("/getAllUser", Controller.GetUsers);
 router.post(
   "/updateOrganizationProfileStatus",
   Controller.PostStatusUpdateOrganization

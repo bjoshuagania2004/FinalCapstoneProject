@@ -26,11 +26,6 @@ export function DeanRosterData({ selectedOrg }) {
   );
   const [subject, setSubject] = useState("Notification for Roster Lists");
 
-  const validAdviserStatuses = [
-    "Approved by the Adviser",
-    "Revision from the Adviser",
-  ];
-
   const fetchRosterMembers = async () => {
     try {
       setLoading(true);
@@ -232,7 +227,10 @@ export function DeanRosterData({ selectedOrg }) {
 
   const handleDropdownAction = (id) => {
     const deanStatuses = ["Revision From the Dean", "Approved By the Dean"];
-    const adviserStatuses = validAdviserStatuses;
+    const adviserStatuses = [
+      "Approved by the Adviser",
+      "Revision from the Adviser",
+    ];
 
     const currentStatus = rosterData?.roster?.overAllStatus
       ?.toLowerCase()
