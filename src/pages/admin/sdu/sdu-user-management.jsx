@@ -286,6 +286,268 @@ export function SduUserManagement() {
     return colors[position.toLowerCase()] || "bg-gray-100 text-gray-800";
   };
 
+  // ---------------- Add User Modal ----------------
+  function AddUserModal({
+    formData,
+    formLoading,
+    positions,
+    organization,
+    handleCloseModal,
+    handleFormInputChange,
+    handleAddUser,
+  }) {
+    return (
+      <div className="fixed inset-0 flex bg-black/50 backdrop-blur-sm justify-center items-center z-50">
+        <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+              <Plus className="w-5 h-5" />
+              Add New User
+            </h2>
+            <button
+              onClick={handleCloseModal}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <form onSubmit={handleAddUser} className="p-6 space-y-4">
+            {/* Full Name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Full Name
+              </label>
+              <div className="relative">
+                <User className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) =>
+                    handleFormInputChange("name", e.target.value)
+                  }
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter full name"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Email Address
+              </label>
+              <div className="relative">
+                <Mail className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) =>
+                    handleFormInputChange("email", e.target.value)
+                  }
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter email address"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Position */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Position
+              </label>
+              <select
+                value={formData.position}
+                onChange={(e) =>
+                  handleFormInputChange("position", e.target.value)
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              >
+                <option value="">Select Position</option>
+                {positions.map((pos) => (
+                  <option key={pos} value={pos} className="capitalize">
+                    {pos === "sdu" ? "SDU" : pos.replace("-", " ")}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Organization dropdown */}
+            {["student-leader", "adviser"].includes(formData.position) && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {formData.position === "adviser"
+                    ? "Department"
+                    : "Organization"}
+                </label>
+                <select
+                  value={formData.organizationId}
+                  onChange={(e) =>
+                    handleFormInputChange("organizationId", e.target.value)
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                >
+                  <option value="">
+                    Select{" "}
+                    {formData.position === "adviser"
+                      ? "Department"
+                      : "Organization"}
+                  </option>
+                  {organization.map((org) => (
+                    <option key={org._id} value={org._id}>
+                      {org.orgName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Delivery Unit */}
+            {formData.position !== "sdu" && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Delivery Unit
+                </label>
+                <div className="relative">
+                  <Building className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={formData.deliveryUnit}
+                    onChange={(e) =>
+                      handleFormInputChange("deliveryUnit", e.target.value)
+                    }
+                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter delivery unit"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Password */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Password
+              </label>
+              <input
+                type="password"
+                value={formData.password}
+                onChange={(e) =>
+                  handleFormInputChange("password", e.target.value)
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Enter password"
+                required
+              />
+            </div>
+
+            {/* Buttons */}
+            <div className="flex space-x-3 pt-4">
+              <button
+                type="submit"
+                disabled={formLoading}
+                className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition-colors flex items-center justify-center gap-2"
+              >
+                {formLoading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    Create User
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={handleCloseModal}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  // ---------------- Edit User Modal ----------------
+  function EditUserModal({
+    formData,
+    formLoading,
+    positions,
+    organization,
+    handleCloseModal,
+    handleFormInputChange,
+    handleEditUser,
+  }) {
+    return (
+      <div className="fixed inset-0 flex bg-black/50 backdrop-blur-sm justify-center items-center z-50">
+        <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+              <Edit className="w-5 h-5" />
+              Edit User
+            </h2>
+            <button
+              onClick={handleCloseModal}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <form onSubmit={handleEditUser} className="p-6 space-y-4">
+            {/* Same fields as AddUserModal except password */}
+            {/* Password for edit */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                New Password (leave blank to keep current)
+              </label>
+              <input
+                type="password"
+                value={formData.password}
+                onChange={(e) =>
+                  handleFormInputChange("password", e.target.value)
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Enter new password"
+              />
+            </div>
+
+            {/* Buttons */}
+            <div className="flex space-x-3 pt-4">
+              <button
+                type="submit"
+                disabled={formLoading}
+                className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition-colors flex items-center justify-center gap-2"
+              >
+                {formLoading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    Update User
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={handleCloseModal}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -573,256 +835,6 @@ export function SduUserManagement() {
             handleEditUser={handleEditUser}
           />
         )}
-      </div>
-    </div>
-  );
-}
-
-// ---------------- Add User Modal ----------------
-function AddUserModal({}) {
-  return (
-    <div className="fixed inset-0 flex bg-black/50 backdrop-blur-sm justify-center items-center z-50">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-            <Plus className="w-5 h-5" />
-            Add New User
-          </h2>
-          <button
-            onClick={handleCloseModal}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <form onSubmit={handleAddUser} className="p-6 space-y-4">
-          {/* Full Name */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Full Name
-            </label>
-            <div className="relative">
-              <User className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => handleFormInputChange("name", e.target.value)}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Enter full name"
-                required
-              />
-            </div>
-          </div>
-
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email Address
-            </label>
-            <div className="relative">
-              <Mail className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleFormInputChange("email", e.target.value)}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Enter email address"
-                required
-              />
-            </div>
-          </div>
-
-          {/* Position */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Position
-            </label>
-            <select
-              value={formData.position}
-              onChange={(e) =>
-                handleFormInputChange("position", e.target.value)
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            >
-              <option value="">Select Position</option>
-              {positions.map((pos) => (
-                <option key={pos} value={pos} className="capitalize">
-                  {pos === "sdu" ? "SDU" : pos.replace("-", " ")}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Organization dropdown */}
-          {["student-leader", "adviser"].includes(formData.position) && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {formData.position === "adviser"
-                  ? "Department"
-                  : "Organization"}
-              </label>
-              <select
-                value={formData.organizationId}
-                onChange={(e) =>
-                  handleFormInputChange("organizationId", e.target.value)
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              >
-                <option value="">
-                  Select{" "}
-                  {formData.position === "adviser"
-                    ? "Department"
-                    : "Organization"}
-                </option>
-                {organization.map((org) => (
-                  <option key={org._id} value={org._id}>
-                    {org.orgName}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {/* Delivery Unit */}
-          {formData.position !== "sdu" && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Delivery Unit
-              </label>
-              <div className="relative">
-                <Building className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={formData.deliveryUnit}
-                  onChange={(e) =>
-                    handleFormInputChange("deliveryUnit", e.target.value)
-                  }
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter delivery unit"
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Password */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              value={formData.password}
-              onChange={(e) =>
-                handleFormInputChange("password", e.target.value)
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter password"
-              required
-            />
-          </div>
-
-          {/* Buttons */}
-          <div className="flex space-x-3 pt-4">
-            <button
-              type="submit"
-              disabled={formLoading}
-              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition-colors flex items-center justify-center gap-2"
-            >
-              {formLoading ? (
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              ) : (
-                <>
-                  <Save className="w-4 h-4" />
-                  Create User
-                </>
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={handleCloseModal}
-              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-// ---------------- Edit User Modal ----------------
-function EditUserModal({
-  formData,
-  formLoading,
-  positions,
-  organization,
-  handleCloseModal,
-  handleFormInputChange,
-  handleEditUser,
-}) {
-  return (
-    <div className="fixed inset-0 flex bg-black/50 backdrop-blur-sm justify-center items-center z-50">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-            <Edit className="w-5 h-5" />
-            Edit User
-          </h2>
-          <button
-            onClick={handleCloseModal}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <form onSubmit={handleEditUser} className="p-6 space-y-4">
-          {/* Same fields as AddUserModal except password */}
-          {/* Password for edit */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              New Password (leave blank to keep current)
-            </label>
-            <input
-              type="password"
-              value={formData.password}
-              onChange={(e) =>
-                handleFormInputChange("password", e.target.value)
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter new password"
-            />
-          </div>
-
-          {/* Buttons */}
-          <div className="flex space-x-3 pt-4">
-            <button
-              type="submit"
-              disabled={formLoading}
-              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition-colors flex items-center justify-center gap-2"
-            >
-              {formLoading ? (
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              ) : (
-                <>
-                  <Save className="w-4 h-4" />
-                  Update User
-                </>
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={handleCloseModal}
-              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
       </div>
     </div>
   );
