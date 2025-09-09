@@ -112,44 +112,11 @@ export function DeanProposedPlan({ selectedOrg }) {
     }).format(amount);
   };
 
-  const getSDGColor = (sdg) => {
-    const colors = {
-      "SDG 1": "bg-red-100 text-red-800",
-      "SDG 2": "bg-orange-100 text-orange-800",
-      "SDG 3": "bg-green-100 text-green-800",
-      "SDG 4": "bg-blue-100 text-blue-800",
-      "SDG 5": "bg-pink-100 text-pink-800",
-      "SDG 6": "bg-cyan-100 text-cyan-800",
-      "SDG 7": "bg-yellow-100 text-yellow-800",
-      "SDG 8": "bg-purple-100 text-purple-800",
-      "SDG 9": "bg-indigo-100 text-indigo-800",
-      "SDG 10": "bg-violet-100 text-violet-800",
-      "SDG 11": "bg-lime-100 text-lime-800",
-      "SDG 12": "bg-amber-100 text-amber-800",
-      "SDG 13": "bg-emerald-100 text-emerald-800",
-      "SDG 14": "bg-sky-100 text-sky-800",
-      "SDG 15": "bg-teal-100 text-teal-800",
-      "SDG 16": "bg-slate-100 text-slate-800",
-      "SDG 17": "bg-stone-100 text-stone-800",
-    };
-    return colors[sdg] || "bg-gray-100 text-gray-800";
-  };
-
   const latestUpdate = proposals.length
     ? new Date(
         Math.max(...proposals.map((p) => new Date(p.updatedAt).getTime()))
       )
     : null;
-
-  const formattedUpdate = latestUpdate
-    ? latestUpdate.toLocaleString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    : "No updates yet";
 
   const handleView = (proposal) => {
     console.log(proposal);

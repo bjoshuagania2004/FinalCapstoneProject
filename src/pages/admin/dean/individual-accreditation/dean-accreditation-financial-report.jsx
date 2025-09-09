@@ -273,8 +273,8 @@ export function DeanFinancialReport({ selectedOrg, user }) {
   const expenseBreakdown = financialReport ? createExpenseBreakdown() : [];
 
   return (
-    <div className="h-full w-full pt-4 bg-transparent flex gap-4 ">
-      <div className="bg-white flex flex-col flex-1 p-6   shadow-lg border border-gray-100 overflow-hidden">
+    <div className="h-full w-full pt-4 bg-gray-200 p-4 flex gap-4 ">
+      <div className="bg-white shadow-lg flex flex-col flex-1 p-6    border border-gray-100 overflow-hidden">
         {/* Header */}
         <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
           {/* Left Section: Icon and Title */}
@@ -412,7 +412,7 @@ export function DeanFinancialReport({ selectedOrg, user }) {
       {/* Reimbursements and Disbursements */}
       <div className="flex flex-col flex-1 gap-4 h-full overflow-hidden">
         {/* Reimbursements */}
-        <div className="bg-white p-0  border overflow-hidden border-gray-100 flex-1 flex flex-col">
+        <div className="bg-white p-0 shadow-lg border overflow-hidden border-gray-100 flex-1 flex flex-col">
           <div className="sticky flex justify-between w-full top-0 z-10 bg-white p-6 border-b border-gray-400 items-center gap-3">
             <div className="flex gap-2 items-center">
               <div className="p-2.5 bg-green-100 rounded-lg">
@@ -561,7 +561,6 @@ function ViewTransactionModal({
   onClose,
   transaction,
   type,
-  setInquirePopupOpen,
   onInquire,
 }) {
   if (!isOpen || !transaction) return null;
@@ -575,13 +574,11 @@ function ViewTransactionModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden">
+      <div className="bg-white flex flex-col w-1/2 h-9/10   shadow-2xl overflow-hidden">
         {/* Header */}
         <div
-          className={`px-6 py-4 border-b ${
-            isReimbursement
-              ? "bg-gradient-to-r from-emerald-500 to-teal-600"
-              : "bg-gradient-to-r from-red-500 to-rose-600"
+          className={`px-6 py-4 ${
+            isReimbursement ? "bg-green-500" : "bg-red-500"
           }`}
         >
           <div className="flex justify-between items-center">
@@ -600,13 +597,10 @@ function ViewTransactionModal({
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-          <div>
+        <div className=" flex h-full overflow-y-auto ">
+          <div className="flex w-1/4 p-4  flex-col gap-4">
             <p className="text-sm font-semibold text-gray-600">Description</p>
             <p className="text-gray-900">{transaction.description}</p>
-          </div>
-
-          <div>
             <p className="text-sm font-semibold text-gray-600">Amount</p>
             <p
               className={`text-lg font-bold ${
@@ -618,16 +612,10 @@ function ViewTransactionModal({
                 currency: "USD",
               }).format(transaction.amount)}
             </p>
-          </div>
-
-          <div>
             <p className="text-sm font-semibold text-gray-600">Date</p>
             <p className="text-gray-900">
               {new Date(transaction.date).toLocaleDateString()}
             </p>
-          </div>
-
-          <div>
             <p className="text-sm font-semibold text-gray-600">Expense Type</p>
             <p className="text-gray-900">
               {transaction.expenseType || "Uncategorized"}
@@ -635,38 +623,26 @@ function ViewTransactionModal({
           </div>
 
           <div>
-            <p className="text-sm font-semibold text-gray-600">
-              {isReimbursement ? "Requestor" : "Recipient"}
-            </p>
             <p className="text-gray-900">{transaction.name}</p>
           </div>
 
           {fileUrl && (
-            <div>
-              <p className="text-sm font-semibold text-gray-600 mb-2">
-                Document
-              </p>
-              <iframe
-                src={fileUrl}
-                className="w-full h-96 border rounded-lg"
-                title="Transaction Document"
-              />
-              <div className="mt-2">
-                <a
-                  href={fileUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline"
-                >
-                  Open in New Tab
-                </a>
-              </div>
-            </div>
+            <iframe
+              src={fileUrl}
+              className="w-full full border"
+              title="Transaction Document"
+            />
           )}
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-gray-50 border-t flex justify-end">
+        <div className="px-6 py-4 bg-gray-50 border-t flex justify-end gap-4">
+          <button
+            onClick={onClose}
+            className="px-5 py-2 bg-gray-200 rounded-lg text-gray-700 hover:bg-gray-300 transition"
+          >
+            Close
+          </button>
           <button
             onClick={() => {
               onInquire();
@@ -674,12 +650,6 @@ function ViewTransactionModal({
             className="px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
           >
             Submit Inquiry
-          </button>
-          <button
-            onClick={onClose}
-            className="px-5 py-2 bg-gray-200 rounded-lg text-gray-700 hover:bg-gray-300 transition"
-          >
-            Close
           </button>
         </div>
       </div>

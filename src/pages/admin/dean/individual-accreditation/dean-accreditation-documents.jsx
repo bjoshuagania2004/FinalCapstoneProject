@@ -28,7 +28,7 @@ export function DeanAccreditationDocument({ selectedOrg }) {
   const [showDetailsPopup, setShowDetailsPopup] = useState(false);
   const [selectedDocumentDetails, setSelectedDocumentDetails] = useState(null);
   const [revisionModal, setRevisionModal] = useState(false);
-  const [message, setMessage] = useState(false);
+  const [message, setMessage] = useState("");
   const [popup, setPopup] = useState(null);
 
   const [approvalModal, setApprovalModal] = useState(false);
@@ -427,7 +427,7 @@ export function DeanAccreditationDocument({ selectedOrg }) {
       {/* Revision Modal */}
       {revisionModal && (
         <div className="absolute bg-black/10 backdrop-blur-xs inset-0 flex justify-center items-center z-100">
-          <div className="h-fit bg-white w-1/3 flex flex-col px-6 py-6 rounded-2xl shadow-xl relative">
+          <div className="h-fit bg-white w-1/6 flex flex-col px-6 py-6 rounded-2xl shadow-xl relative">
             {/* Close Button */}
             <button
               onClick={() => setRevisionModal(false)}

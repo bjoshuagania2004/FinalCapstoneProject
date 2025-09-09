@@ -15,7 +15,7 @@ import StudentLeaderMainPage from "./pages/admin/student-leader/student-leader-m
 import PhilippineAddressForm from "./sandbox";
 import StudentDevMainLayout from "./pages/admin/sdu/sdu-main";
 import { AdviserPage } from "./pages/admin/adviser/adviser_main";
-import { DeanPage } from "./pages/admin/sdu-deparmental/dean-main";
+import { DeanPage } from "./pages/admin/dean/dean-main";
 const MAIN_API_ROUTER = import.meta.env.VITE_API_ROUTER;
 
 export const API_ROUTER = `${MAIN_API_ROUTER}/api`;

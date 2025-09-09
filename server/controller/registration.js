@@ -14,17 +14,58 @@ const nanoid = customAlphabet(
 );
 const initialPassword = nanoid();
 
-export const PostUser = async (req, res) => {
+// controllers/userController.js
+
+export const UpdateUser = async (req, res) => {
+  console.log(req.body);
   try {
+    const { id } = req.params; // get user ID from request URL
     const {
       name,
       email,
       username,
-      deliveryUnit,
+      deparment,
       position,
       organizationProfile,
-      Organization,
+      organization,
     } = req.body;
+
+    // 🔍 Check if user exists
+    const existingUser = await User.findById(id);
+    if (!existingUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // ✏️ Update fields
+    existingUser.name = name || existingUser.name;
+    existingUser.email = email || existingUser.email;
+    existingUser.username = username || existingUser.username;
+    existingUser.deliveryUnit = deparment || existingUser.deliveryUnit;
+    existingUser.position = position || existingUser.position;
+    existingUser.organizationProfile =
+      organizationProfile || existingUser.organizationProfile;
+    existingUser.organization = organization || existingUser.organization;
+
+    // 💾 Save updated user
+    const updatedUser = await existingUser.save();
+
+    return res.status(200).json({
+      message: "User updated successfully",
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    return res
+      .status(500)
+      .json({ message: "Server error", error: error.message });
+  }
+};
+
+export const PostUser = async (req, res) => {
+  console.log(req.body);
+  try {
+    const { name, email, position, department, password, organizationId } =
+      req.body;
 
     // 🔑 Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -34,40 +75,44 @@ export const PostUser = async (req, res) => {
         .json({ message: "User already exists with this email" });
     }
 
-    // Generate initial password
-    const initialPassword = nanoid();
+    // Use frontend-provided password or generate fallback
+    const userPassword = password || nanoid();
 
-    // 📌 Create User
-    const newUser = new User({
+    // 📌 Base user object
+    const newUserData = {
       name,
       email,
-      username,
-      deliveryUnit,
-      password: initialPassword, // ⚠️ hash later with bcrypt
       position,
-      organizationProfile,
-      Organization,
-    });
+      password: userPassword, // ⚠️ hash later with bcrypt
+    };
 
+    // Add conditional fields based on position
+    if (position === "student-leader" || position === "adviser") {
+      newUserData.organizationProfile = organizationId;
+    } else if (position === "dean" || position === "sdu-coordinator") {
+      newUserData.deliveryUnit = department;
+    }
+
+    const newUser = new User(newUserData);
     const savedUser = await newUser.save();
 
     // Step 11: Send email with login credentials
-    const org_email_subject = "Account Created Successfully";
-    const org_email_message = `
+    const subject = "Request for Account";
+    const message = `
       Hello ${name},
 
       Your account has been successfully created.
 
       Here are your login details:
       - Email: ${email}
-      - Initial Password: ${initialPassword}
+      - Initial Password: ${userPassword}
 
-      Please log in and change your password as soon as possible.
+      You may now login and change your password.
 
       Thank you.
     `;
 
-    await NodeEmail(email, org_email_subject, org_email_message);
+    await NodeEmail(email, subject, message);
 
     res.status(201).json({
       message: "User created successfully and email sent",
@@ -75,6 +120,44 @@ export const PostUser = async (req, res) => {
     });
   } catch (error) {
     console.error("Error in PostUser:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+export const DeleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // 🔑 Check if user exists
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Delete user
+    await User.findByIdAndDelete(id);
+
+    // 📧 Optional: Send email notification
+    const subject = "Account Deleted";
+    const message = `
+      Hello ${user.name},
+
+      Your account with email ${user.email} has been deleted by the administrator.
+
+      If you believe this is a mistake, please contact support.
+
+      Thank you.
+    `;
+
+    await NodeEmail(user.email, subject, message);
+
+    res.status(200).json({
+      sucess: true,
+      message: "User deleted successfully",
+      userId: id,
+    });
+  } catch (error) {
+    console.error("Error in DeleteUser:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };

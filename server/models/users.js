@@ -14,6 +14,7 @@ export const userSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "OrganizationProfile",
     },
+    firstLogin: { type: Boolean, default: true }, // fixed here ✅
 
     Organization: {
       type: Schema.Types.ObjectId,
@@ -31,26 +32,17 @@ export const AdviserSchema = new Schema(
     deliveryUnit: String,
     firstLogin: { type: Boolean, default: true }, // fixed here ✅
 
-    organizationProfile: {
-      type: Schema.Types.ObjectId,
-      ref: "OrganizationProfile",
-    },
+    organizationProfile: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "OrganizationProfile",
+      },
+    ],
 
     Organization: {
       type: Schema.Types.ObjectId,
       ref: "Organizations",
     },
-  },
-  { timestamps: true }
-);
-
-export const DeanSchema = new Schema(
-  {
-    name: String,
-    email: String,
-    username: String,
-    deliveryUnit: String,
-    firstLogin: { type: Boolean, default: true }, // fixed here ✅
   },
   { timestamps: true }
 );
