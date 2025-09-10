@@ -64,7 +64,7 @@ export const UpdateUser = async (req, res) => {
 export const PostUser = async (req, res) => {
   console.log(req.body);
   try {
-    const { name, email, position, department, password, organizationId } =
+    const { name, email, position, deliveryUnit, password, organizationId } =
       req.body;
 
     // 🔑 Check if user already exists
@@ -90,7 +90,7 @@ export const PostUser = async (req, res) => {
     if (position === "student-leader" || position === "adviser") {
       newUserData.organizationProfile = organizationId;
     } else if (position === "dean" || position === "sdu-coordinator") {
-      newUserData.deliveryUnit = department;
+      newUserData.deliveryUnit = deliveryUnit;
     }
 
     const newUser = new User(newUserData);
@@ -112,7 +112,8 @@ export const PostUser = async (req, res) => {
       Thank you.
     `;
 
-    await NodeEmail(email, subject, message);
+    // TODO: UNCOMMENT
+    // await NodeEmail(email, subject, message);
 
     res.status(201).json({
       message: "User created successfully and email sent",

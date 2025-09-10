@@ -4,18 +4,15 @@ import { useNavigate } from "react-router-dom"; // If using React Router
 
 import { API_ROUTER, DOCU_API_ROUTER } from "../../../../App";
 import {
-  Briefcase,
   Building2,
   Check,
   ChevronDown,
-  Clock,
   Edit,
   Settings,
   User,
   FileText,
   Users,
   DollarSign,
-  Calendar,
   Award,
   BookOpen,
   Layers,
@@ -23,12 +20,11 @@ import {
   CheckCircle,
   XCircle,
   GraduationCap,
-  WholeWord,
   Earth,
   MoreHorizontal,
 } from "lucide-react";
 
-export function DeanAccreditationMain({ selectedOrg }) {
+export function SduCoorMainAccreditation({ selectedOrg }) {
   const [isManagePresidentProfileOpen, setManagePresidentProfileOpen] =
     useState(false);
   const [AccreditationData, setAccreditationData] = useState(null);
@@ -510,34 +506,36 @@ export function DeanAccreditationMain({ selectedOrg }) {
               AccreditationData?.Roster,
               "Organization Roster",
               <Users className="w-5 h-5 text-blue-600" />,
-              `/dean/accreditation/roster-of-members`
+              `/sdu-coordinator/accreditation/roster-of-members`
             )}
 
             {renderDocumentStatus(
               AccreditationData?.ConstitutionAndByLaws,
               "Constitution and By-Laws",
               <BookOpen className="w-5 h-5 text-green-600" />,
-              `/dean/accreditation/document`
+              `/sdu-coordinator/accreditation/document`
             )}
 
             {renderDocumentStatus(
               AccreditationData?.JointStatement,
               "Joint Statement",
               <FileText className="w-5 h-5 text-purple-600" />,
-              `/dean/accreditation/document`
+              `/sdu-coordinator/accreditation/document`
             )}
 
             {renderDocumentStatus(
               AccreditationData?.PledgeAgainstHazing,
               "Pledge Against Hazing",
               <Award className="w-5 h-5 text-red-600" />,
-              `/dean/accreditation/document`
+              `/sdu-coordinator/accreditation/document`
             )}
 
             {/* Financial Report */}
             {AccreditationData?.FinancialReport && (
               <button
-                onClick={() => navigate(`/dean/accreditation/financial-report`)}
+                onClick={() =>
+                  navigate(`/sdu-coordinator/accreditation/financial-report`)
+                }
                 className=" text-left bg-white shadow-md rounded-lg p-4 hover:shadow-md transition-shadow"
               >
                 <div className="flex flex-col flex-1 items-center justify-evenly h-full w-full">
@@ -596,7 +594,7 @@ export function DeanAccreditationMain({ selectedOrg }) {
             <button
               onClick={() => {
                 submitUpdate({
-                  status: "Revision From the Dean",
+                  status: "Revision From the SDU Coordinator",
                   revisionNotes,
                 }); // 👈 call with "Revision"
               }}
@@ -633,7 +631,7 @@ export function DeanAccreditationMain({ selectedOrg }) {
             <button
               onClick={() => {
                 submitUpdate({
-                  status: "Approved by the Dean",
+                  status: "Approved by the SDU Coordinator",
                 }); // 👈 call with "Revision" // 👈 call with "Approved"
               }}
               className="mt-6 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-sm font-medium shadow-md transition"

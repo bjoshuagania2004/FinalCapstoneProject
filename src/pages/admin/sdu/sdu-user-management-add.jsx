@@ -12,8 +12,8 @@ export function AddUserModal({ organization, onClose, onUserAdded }) {
     position: "",
     deliveryUnit: "",
     organizationId: "",
-    department: "",
   });
+
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
@@ -29,7 +29,7 @@ export function AddUserModal({ organization, onClose, onUserAdded }) {
       ...(name === "position" && {
         deliveryUnit: "",
         organizationId: "",
-        department: "",
+        deliveryUnit: "",
       }),
     }));
 
@@ -71,13 +71,10 @@ export function AddUserModal({ organization, onClose, onUserAdded }) {
       }
     }
 
-    if (formData.position === "dean") {
-      if (!formData.department.trim()) {
-        newErrors.department = "Department is required";
-      }
-    }
-
-    if (formData.position === "sdu") {
+    if (
+      formData.position === "dean" ||
+      formData.position === "sdu-coordinator"
+    ) {
       if (!formData.deliveryUnit.trim()) {
         newErrors.deliveryUnit = "Delivery Unit is required";
       }
@@ -117,20 +114,16 @@ export function AddUserModal({ organization, onClose, onUserAdded }) {
         formData.position === "adviser"
       ) {
         userData.organizationId = formData.organizationId;
-      } else if (formData.position === "dean") {
-        userData.department = formData.department.trim();
-      } else if (formData.position === "sdu") {
+      } else if (
+        formData.position === "dean" ||
+        formData.position === "sdu-coordinator"
+      ) {
         userData.deliveryUnit = formData.deliveryUnit.trim();
       }
 
-      logFormData("Sending User Data to API", userData);
+      console.log(userData);
 
       const response = await axios.post(`${API_ROUTER}/postNewUser`, userData);
-
-      logFormData("User Created Successfully", {
-        userId: response.data.user?._id,
-        response: response.data,
-      });
 
       // Call the callback to refresh the user list
       if (onUserAdded) {
@@ -197,11 +190,11 @@ export function AddUserModal({ organization, onClose, onUserAdded }) {
               Department *
             </label>
             <select
-              name="department"
-              value={formData.department}
+              name="deliveryUnit"
+              value={formData.deliveryUnit}
               onChange={handleInputChange}
               className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                errors.department ? "border-red-500" : "border-gray-300"
+                errors.deliveryUnit ? "border-red-500" : "border-gray-300"
               }`}
             >
               <option value="">-- Select Department --</option>
@@ -211,8 +204,8 @@ export function AddUserModal({ organization, onClose, onUserAdded }) {
                 </option>
               ))}
             </select>
-            {errors.department && (
-              <p className="mt-1 text-sm text-red-600">{errors.department}</p>
+            {errors.deliveryUnit && (
+              <p className="mt-1 text-sm text-red-600">{errors.deliveryUnit}</p>
             )}
           </div>
         );

@@ -16,6 +16,7 @@ import PhilippineAddressForm from "./sandbox";
 import StudentDevMainLayout from "./pages/admin/sdu/sdu-main";
 import { AdviserPage } from "./pages/admin/adviser/adviser_main";
 import { DeanPage } from "./pages/admin/dean/dean-main";
+import { SduCoordinatorPage } from "./pages/admin/sdu-coordinator/sdu-coor-main";
 const MAIN_API_ROUTER = import.meta.env.VITE_API_ROUTER;
 
 export const API_ROUTER = `${MAIN_API_ROUTER}/api`;
@@ -47,18 +48,21 @@ export default function App() {
       >
         <Route path="/dean/*" element={<DeanPage />} />
       </Route>
+
       <Route
         element={
           <ProtectedRoute
             allowedRoles={[
-              "sdu-deparmental",
-              "sdu department",
-              "SDU-DEPARTMENTAL",
+              "sdu-coordinator",
+              "sdu coordinator",
+              "Sdu coordinator",
+              "Sdu Coordinator",
+              "SDU COORDINATOR",
             ]}
           />
         }
       >
-        <Route path="/dean/*" element={<DeanPage />} />
+        <Route path="/sdu-coordinator/*" element={<SduCoordinatorPage />} />
       </Route>
 
       <Route path="/unauthorized" element={<UnauthorizedPage />} />

@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Outlet, useOutletContext } from "react-router-dom";
 import axios from "axios";
-import { Routes, Route } from "react-router-dom";
-import { API_ROUTER, DOCU_API_ROUTER } from "../../../App";
-import { useNavigate, useLocation, NavLink, useParams } from "react-router-dom";
+import { API_ROUTER } from "../../../App";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Home,
   FolderOpen,
@@ -12,18 +11,16 @@ import {
   Clock,
   BookMarked,
   ClipboardList,
-  Search,
   ChevronDown,
   LogOut,
   Users,
   Check,
   X,
-  Phone,
   FileArchive,
 } from "lucide-react";
-import { DeanComponent } from "./dean-route-components";
+import { SduCoordinatorComponent } from "./sdu-coordinator-components";
 
-export function DeanPage() {
+export function SduCoordinatorPage() {
   const { user } = useOutletContext();
   const [selectedOrg, setSelectedOrg] = useState(null);
   const [orgs, setOrgs] = useState([]);
@@ -54,10 +51,10 @@ export function DeanPage() {
   return (
     <div className="flex h-screen w-screen bg-gray-50">
       <div className="flex h-full w-1/5 justify-between bg-cnsc-primary-color overflow-hidden">
-        <DeanMainNavigation />
+        <SduCoordinatorMainNavigation />
       </div>
       <div className="w-full h-full">
-        <DeanComponent
+        <SduCoordinatorComponent
           selectedOrg={selectedOrg}
           orgs={orgs}
           onSelectOrg={setSelectedOrg}
@@ -70,24 +67,24 @@ export function DeanPage() {
   );
 }
 
-function DeanMainNavigation() {
+function SduCoordinatorMainNavigation() {
   const [activeKey, setActiveKey] = useState("home");
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
     const path = location.pathname;
-    if (path === "/dean" || path === "/dean/") {
+    if (path === "/sdu-coordinator" || path === "/sdu-coordinator/") {
       setActiveKey("home");
-    } else if (path.includes("/dean/accreditation")) {
+    } else if (path.includes("/sdu-coordinator/accreditation")) {
       setActiveKey("accreditations");
-    } else if (path.includes("/dean/accomplishment")) {
+    } else if (path.includes("/sdu-coordinator/accomplishment")) {
       setActiveKey("accomplishments");
-    } else if (path.includes("/dean/proposal")) {
+    } else if (path.includes("/sdu-coordinator/proposal")) {
       setActiveKey("proposals");
-    } else if (path.includes("/dean/post")) {
+    } else if (path.includes("/sdu-coordinator/post")) {
       setActiveKey("post");
-    } else if (path.includes("/dean/log")) {
+    } else if (path.includes("/sdu-coordinator/log")) {
       setActiveKey("logs");
     }
   }, [location.pathname]);
@@ -97,32 +94,32 @@ function DeanMainNavigation() {
       key: "home",
       icon: <Home className="w-5 h-5" />,
       label: "Reports/Dashboard",
-      path: "/dean",
+      path: "/sdu-coordinator",
     },
     {
       key: "accreditations",
       icon: <FolderOpen className="w-5 h-5" />,
       label: "Accreditations",
-      path: "/dean/accreditation",
+      path: "/sdu-coordinator/accreditation",
     },
     {
       key: "accomplishments",
       icon: <BookMarked className="w-5 h-5" />,
       label: "Accomplishments",
-      path: "/dean/accomplishment",
+      path: "/sdu-coordinator/accomplishment",
     },
     {
       key: "proposals",
       icon: <FileText className="w-5 h-5" />,
       label: "Proposals",
-      path: "/dean/proposal",
+      path: "/sdu-coordinator/proposal",
     },
 
     {
       key: "logs",
       icon: <Clock className="w-5 h-5" />,
       label: "Logs",
-      path: "/dean/log",
+      path: "/sdu-coordinator/log",
     },
   ];
 
@@ -164,7 +161,7 @@ function DeanMainNavigation() {
   );
 }
 
-export function DeanAccreditationNavigationSubRoute({ selectedOrg }) {
+export function SduCoordinatorAccreditationNavigationSubRoute({ selectedOrg }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [accreditationStatus, setAccreditationStatus] = useState(null);
   const [showApprovalPopup, setShowApprovalPopup] = useState(false);
@@ -181,7 +178,7 @@ export function DeanAccreditationNavigationSubRoute({ selectedOrg }) {
       label: "Overview",
       shortLabel: "Overview",
       icon: <Home className="w-4 h-4" />,
-      path: `/dean/accreditation/`,
+      path: `/sdu-coordinator/accreditation/`,
       description: "General information and status",
     },
     {
@@ -189,7 +186,7 @@ export function DeanAccreditationNavigationSubRoute({ selectedOrg }) {
       label: "President's Information Sheet",
       shortLabel: "President's Info",
       icon: <FileText className="w-4 h-4" />,
-      path: `/dean/accreditation/president-information`,
+      path: `/sdu-coordinator/accreditation/president-information`,
       description: "President details and information",
     },
     {
@@ -197,7 +194,7 @@ export function DeanAccreditationNavigationSubRoute({ selectedOrg }) {
       label: "Financial Report",
       shortLabel: "Financial Report",
       icon: <ClipboardList className="w-4 h-4" />,
-      path: `/dean/accreditation/financial-report`,
+      path: `/sdu-coordinator/accreditation/financial-report`,
       description: "Financial statements and reports",
     },
     {
@@ -205,7 +202,7 @@ export function DeanAccreditationNavigationSubRoute({ selectedOrg }) {
       label: "Roster of Members",
       shortLabel: "Members Roster",
       icon: <Users className="w-4 h-4" />,
-      path: `/dean/accreditation/roster-of-members`,
+      path: `/sdu-coordinator/accreditation/roster-of-members`,
       description: "Complete list of organization members",
     },
     {
@@ -213,7 +210,7 @@ export function DeanAccreditationNavigationSubRoute({ selectedOrg }) {
       label: "Proposed Action Plan",
       shortLabel: "Action Plan",
       icon: <FolderOpen className="w-4 h-4" />,
-      path: `/dean/accreditation/proposed-action-plan`,
+      path: `/sdu-coordinator/accreditation/proposed-action-plan`,
       description: "Strategic plans and proposals",
     },
     {
@@ -221,7 +218,7 @@ export function DeanAccreditationNavigationSubRoute({ selectedOrg }) {
       label: "Accreditation Documents",
       shortLabel: "Documents",
       icon: <FileArchive className="w-4 h-4" />,
-      path: `/dean/accreditation/document`,
+      path: `/sdu-coordinator/accreditation/document`,
       description: "All supporting documents",
     },
   ];

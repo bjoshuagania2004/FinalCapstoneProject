@@ -28,7 +28,9 @@ export default function Login({ navigate, onShowRegistration }) {
       } else if (role === "dean") {
         navigate("/dean");
       } else if (role === "ossd coordinator" || role === "ossd") {
-        navigate("/OSSD-Coordinator");
+        navigate("/OSSD-");
+      } else if (role === "sdu-coordinator" || role === "SDU") {
+        navigate("/sdu-coordinator");
       } else if (role === "sdu" || role === "SDU") {
         navigate("/SDU");
       } else {
