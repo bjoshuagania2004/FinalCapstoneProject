@@ -4,7 +4,6 @@ import { API_ROUTER } from "../../../../App";
 
 import {
   Plus,
-  Edit,
   X,
   Eye,
   Clock,
@@ -20,14 +19,14 @@ import {
 } from "lucide-react";
 import { DonePopUp } from "../../../../components/components";
 
-export function DeanProposedPlan({ selectedOrg }) {
+export function SduCoorProposedPlan({ selectedOrg }) {
   const [proposals, setProposals] = useState([]);
   const [selectedProposal, setSelectedProposal] = useState(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showRevisionModal, setShowRevisionModal] = useState(false);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [pendingAction, setPendingAction] = useState(null); // to store action type
+  const [pendingAction, setPendingAction] = useState(null);
   const [error, setError] = useState(null);
   const [revisionNotes, setRevisionNotes] = useState("");
   const [confirmMessage, setConfirmMessage] = useState("");
@@ -35,12 +34,12 @@ export function DeanProposedPlan({ selectedOrg }) {
 
   const [popup, setPopup] = useState({
     open: false,
-    type: "success", // "success" | "error" | "warning"
+    type: "success",
     message: "",
   });
 
   const fetchProposals = async () => {
-    setLoading(false);
+    setLoading(true); // Fixed: was set to false
     try {
       const response = await axios.get(
         `${API_ROUTER}/getAdviserProposals/${selectedOrg._id}`
@@ -70,28 +69,28 @@ export function DeanProposedPlan({ selectedOrg }) {
   const getStatusColor = (status) => {
     switch (status) {
       case "Approved":
-        return "bg-emerald-50 text-emerald-700 border-emerald-200";
+        return "bg-gray-50 text-gray-900 border-gray-300";
       case "Under Review":
-        return "bg-amber-50 text-amber-700 border-amber-200";
+        return "bg-gray-100 text-gray-700 border-gray-400";
       case "Rejected":
-        return "bg-red-50 text-red-700 border-red-200";
+        return "bg-gray-200 text-gray-600 border-gray-500";
       case "Pending":
-        return "bg-blue-50 text-blue-700 border-blue-200";
+        return "bg-gray-50 text-gray-800 border-gray-300";
       default:
-        return "bg-gray-50 text-gray-700 border-gray-900";
+        return "bg-gray-50 text-gray-700 border-gray-300";
     }
   };
 
   const getStatusIcon = (status) => {
     switch (status) {
       case "Approved":
-        return <CheckCircle size={14} className="text-emerald-600" />;
+        return <CheckCircle size={14} className="text-gray-600" />;
       case "Under Review":
-        return <Clock size={14} className="text-amber-600" />;
+        return <Clock size={14} className="text-gray-600" />;
       case "Rejected":
-        return <XCircle size={14} className="text-red-600" />;
+        return <XCircle size={14} className="text-gray-600" />;
       case "Pending":
-        return <AlertTriangle size={14} className="text-blue-600" />;
+        return <AlertTriangle size={14} className="text-gray-600" />;
       default:
         return <Clock size={14} className="text-gray-600" />;
     }
@@ -112,54 +111,18 @@ export function DeanProposedPlan({ selectedOrg }) {
     }).format(amount);
   };
 
-  const getSDGColor = (sdg) => {
-    const colors = {
-      "SDG 1": "bg-red-100 text-red-800",
-      "SDG 2": "bg-orange-100 text-orange-800",
-      "SDG 3": "bg-green-100 text-green-800",
-      "SDG 4": "bg-blue-100 text-blue-800",
-      "SDG 5": "bg-pink-100 text-pink-800",
-      "SDG 6": "bg-cyan-100 text-cyan-800",
-      "SDG 7": "bg-yellow-100 text-yellow-800",
-      "SDG 8": "bg-purple-100 text-purple-800",
-      "SDG 9": "bg-indigo-100 text-indigo-800",
-      "SDG 10": "bg-violet-100 text-violet-800",
-      "SDG 11": "bg-lime-100 text-lime-800",
-      "SDG 12": "bg-amber-100 text-amber-800",
-      "SDG 13": "bg-emerald-100 text-emerald-800",
-      "SDG 14": "bg-sky-100 text-sky-800",
-      "SDG 15": "bg-teal-100 text-teal-800",
-      "SDG 16": "bg-slate-100 text-slate-800",
-      "SDG 17": "bg-stone-100 text-stone-800",
-    };
-    return colors[sdg] || "bg-gray-100 text-gray-800";
-  };
-
-  const latestUpdate = proposals.length
-    ? new Date(
-        Math.max(...proposals.map((p) => new Date(p.updatedAt).getTime()))
-      )
-    : null;
-
-  const formattedUpdate = latestUpdate
-    ? latestUpdate.toLocaleString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    : "No updates yet";
-
   const handleView = (proposal) => {
     console.log(proposal);
-
     setSelectedProposal(proposal);
     setShowViewModal(true);
   };
 
   const handleRevision = () => {
-    const deanStatuses = ["Revision From the Dean", "Approved By the Dean"];
+    const deanStatuses = ["Revision from the Dean", "Approved by the Dean"];
+    const sduCoorStatuses = [
+      "Revision from the Sdu Coordinator",
+      "Approved by the Sdu Coordinator",
+    ];
     const adviserStatuses = [
       "Approved by the Adviser",
       "Revision from the Adviser",
@@ -171,16 +134,25 @@ export function DeanProposedPlan({ selectedOrg }) {
       (status) => status.toLowerCase().trim() === currentStatus
     );
 
+    const isSduCoorUpdated = sduCoorStatuses.some(
+      (status) => status.toLowerCase().trim() === currentStatus
+    );
+
     const isAdviserValid = adviserStatuses.some(
       (status) => status.toLowerCase().trim() === currentStatus
     );
 
-    if (isDeanUpdated || !isAdviserValid) {
+    // Show confirmation modal if already updated by any authority or not reviewed by Adviser
+    if (isDeanUpdated || isSduCoorUpdated || !isAdviserValid) {
       setPendingAction("revision");
 
       if (isDeanUpdated) {
         setConfirmMessage(
           "This proposal has already been updated by the Dean. Do you want to continue updating it again?"
+        );
+      } else if (isSduCoorUpdated) {
+        setConfirmMessage(
+          "This proposal has already been updated by the SDU Coordinator. Do you want to continue updating it again?"
         );
       } else if (!isAdviserValid) {
         setConfirmMessage(
@@ -196,7 +168,11 @@ export function DeanProposedPlan({ selectedOrg }) {
   };
 
   const handleApproval = () => {
-    const deanStatuses = ["Revision From the Dean", "Approved By the Dean"];
+    const deanStatuses = ["Revision from the Dean", "Approved by the Dean"];
+    const sduCoorStatuses = [
+      "Revision from the Sdu Coordinator",
+      "Approved by the Sdu Coordinator",
+    ];
     const adviserStatuses = [
       "Approved by the Adviser",
       "Revision from the Adviser",
@@ -208,20 +184,29 @@ export function DeanProposedPlan({ selectedOrg }) {
       (status) => status.toLowerCase().trim() === currentStatus
     );
 
+    const isSduCoorUpdated = sduCoorStatuses.some(
+      (status) => status.toLowerCase().trim() === currentStatus
+    );
+
     const isAdviserValid = adviserStatuses.some(
       (status) => status.toLowerCase().trim() === currentStatus
     );
 
-    if (isDeanUpdated || !isAdviserValid) {
-      setPendingAction("Approval");
+    // Show confirmation modal if already updated by any authority or not reviewed by Adviser
+    if (isDeanUpdated || isSduCoorUpdated || !isAdviserValid) {
+      setPendingAction("approve");
 
       if (isDeanUpdated) {
         setConfirmMessage(
           "This proposal has already been updated by the Dean. Do you want to continue updating it again?"
         );
+      } else if (isSduCoorUpdated) {
+        setConfirmMessage(
+          "This proposal has already been updated by the SDU Coordinator. Do you want to continue updating it again?"
+        );
       } else if (!isAdviserValid) {
         setConfirmMessage(
-          "This proposal has not yet been reviewed by the Dean. Do you want to proceed anyway?"
+          "This proposal has not yet been reviewed by the Adviser. Do you want to proceed anyway?"
         );
       }
 
@@ -252,20 +237,23 @@ export function DeanProposedPlan({ selectedOrg }) {
       setShowRevisionModal(false);
       setShowApprovalModal(false);
       setShowViewModal(false);
+      setRevisionNotes(""); // Reset revision notes
 
-      // ✅ Show success popup
+      // Show success popup
       setPopup({
         open: true,
         type: "success",
-        message: `Proposal successfully ${status}`,
+        message: `Proposal successfully ${
+          status.includes("Approved") ? "approved" : "sent for revision"
+        }`,
       });
 
-      // Optionally refresh proposals
+      // Refresh proposals
       fetchProposals();
     } catch (error) {
       console.log("❌ Update failed:", error);
 
-      // ❌ Show error popup
+      // Show error popup
       setPopup({
         open: true,
         type: "error",
@@ -306,13 +294,13 @@ export function DeanProposedPlan({ selectedOrg }) {
   };
 
   return (
-    <div className="bg-gray-200 flex flex-col p-4 h-full w-full">
+    <div className="bg-gray-100 flex flex-col p-4 h-full w-full">
       {/* Loading State */}
       {loading && (
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-12">
+        <div className="bg-white backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 p-12">
           <div className="flex items-center justify-center">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
-            <span className="ml-4 text-slate-600 font-medium">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-600"></div>
+            <span className="ml-4 text-gray-600 font-medium">
               Loading proposals...
             </span>
           </div>
@@ -321,78 +309,72 @@ export function DeanProposedPlan({ selectedOrg }) {
 
       {/* Error State */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-2xl p-8">
+        <div className="bg-gray-50 border border-gray-300 rounded-2xl p-8">
           <div className="text-center">
-            <XCircle size={48} className="mx-auto text-red-400 mb-4" />
-            <p className="text-red-600 font-medium">{error}</p>
+            <XCircle size={48} className="mx-auto text-gray-400 mb-4" />
+            <p className="text-gray-600 font-medium">{error}</p>
           </div>
         </div>
       )}
 
       {/* Empty State */}
       {!loading && !error && proposals.length === 0 && (
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-12">
+        <div className="bg-white backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 p-12">
           <div className="text-center">
-            <div className="bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full p-6 w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-              <Plus size={48} className="text-blue-600" />
+            <div className="bg-gray-100 rounded-full p-6 w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+              <Plus size={48} className="text-gray-600" />
             </div>
-            <h3 className="text-xl font-semibold text-slate-800 mb-3">
+            <h3 className="text-xl font-semibold text-gray-800 mb-3">
               No Proposals Found
             </h3>
-            <p className="text-slate-600 mb-8 max-w-md mx-auto">
+            <p className="text-gray-600 mb-8 max-w-md mx-auto">
               There are currently no proposed action plans for this
               organization. Notify Organization
             </p>
-            <button
-              onClick={() => setShowManageModal(true)}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 rounded-xl flex items-center gap-3 transition-all duration-200 mx-auto shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-            >
-              <Plus size={20} />
-            </button>
           </div>
         </div>
       )}
 
       {/* Enhanced Table */}
       {!loading && !error && proposals.length > 0 && (
-        <div className=" backdrop-blur-sm rounded-2xl shadow-xl border-white/20 overflow-hidden flex flex-col h-full">
-          <div className="bg-gray-50 p-4 ">
-            <h3 className="text-2xl font-bold text-slate-800 mb-4">
+        <div className="backdrop-blur-sm rounded-2xl shadow-xl border-gray-200 overflow-hidden flex flex-col h-full">
+          <div className="bg-gray-50 p-4">
+            <h3 className="text-2xl font-bold text-gray-800 mb-4">
               Proposals Analysis
             </h3>
-            <div className="flex gap-4 ">
-              <div className="flex flex-col gap-2 ">
+            <div className="flex gap-4">
+              <div className="flex flex-col gap-2">
                 {/* Total Proposals */}
-                <div className="bg-blue-50 p-4 rounded-xl border border-blue-200">
-                  <h4 className="text-sm font-medium text-blue-800">
+                <div className="bg-white p-4 rounded-xl border border-gray-200">
+                  <h4 className="text-sm font-medium text-gray-700">
                     Total Proposals
                   </h4>
-                  <p className="text-3xl font-bold text-blue-900">
+                  <p className="text-3xl font-bold text-gray-900">
                     {proposals.length}
                   </p>
                 </div>
 
                 {/* Average Budget */}
-                <div className="bg-green-50 p-4 rounded-xl border border-green-200">
-                  <h4 className="text-sm font-medium text-green-800">
+                <div className="bg-white p-4 rounded-xl border border-gray-200">
+                  <h4 className="text-sm font-medium text-gray-700">
                     Estimated Budget
                   </h4>
-                  <p className="text-3xl font-bold text-green-900">
+                  <p className="text-3xl font-bold text-gray-900">
                     {proposals.length > 0
-                      ? "$" +
+                      ? "₱" +
                         Math.round(
                           proposals.reduce(
                             (sum, p) => sum + (p.budgetaryRequirements || 0),
                             0
                           ) / proposals.length
-                        )
-                      : "$0"}
+                        ).toLocaleString()
+                      : "₱0"}
                   </p>
                 </div>
 
                 {/* Next Upcoming Proposal */}
-                <div className="bg-purple-50 p-4 rounded-xl border border-purple-200">
-                  <h4 className="text-sm font-medium text-purple-800">
+                <div className="bg-white p-4 rounded-xl border border-gray-200">
+                  <h4 className="text-sm font-medium text-gray-700">
                     Next Proposal
                   </h4>
                   {proposals.length > 0 ? (
@@ -404,20 +386,20 @@ export function DeanProposedPlan({ selectedOrg }) {
                             new Date(a.proposedDate) - new Date(b.proposedDate)
                         )[0];
                       return nextProposal ? (
-                        <p className="font-semibold text-purple-900">
+                        <p className="font-semibold text-gray-900">
                           {nextProposal.activityTitle} -{" "}
                           {new Date(
                             nextProposal.proposedDate
                           ).toLocaleDateString()}
                         </p>
                       ) : (
-                        <p className="font-semibold text-purple-900">
+                        <p className="font-semibold text-gray-900">
                           No upcoming proposals
                         </p>
                       );
                     })()
                   ) : (
-                    <p className="font-semibold text-purple-900">
+                    <p className="font-semibold text-gray-900">
                       No proposals yet
                     </p>
                   )}
@@ -425,8 +407,8 @@ export function DeanProposedPlan({ selectedOrg }) {
               </div>
 
               {/* SDG Frequency */}
-              <div className="flex-1 h-full bg-white p-6 rounded-2xl shadow-xl">
-                <h3 className="text-2xl font-bold text-slate-800 mb-4">
+              <div className="flex-1 h-full bg-white p-6 rounded-2xl shadow-xl border border-gray-200">
+                <h3 className="text-2xl font-bold text-gray-800 mb-4">
                   Proposals SDG Analysis
                 </h3>
 
@@ -446,18 +428,18 @@ export function DeanProposedPlan({ selectedOrg }) {
                         .sort((a, b) => b[1] - a[1])
                         .map(([sdg, count]) => (
                           <div key={sdg} className="flex items-center gap-4">
-                            <span className="w-24 text-sm font-medium text-slate-700">
+                            <span className="w-24 text-sm font-medium text-gray-700">
                               {sdg}
                             </span>
-                            <div className="flex-1 h-4 bg-slate-200 rounded-full overflow-hidden">
+                            <div className="flex-1 h-4 bg-gray-200 rounded-full overflow-hidden">
                               <div
-                                className="h-4 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full"
+                                className="h-4 bg-gray-600 rounded-full"
                                 style={{
                                   width: `${(count / maxCount) * 100}%`,
                                 }}
                               ></div>
                             </div>
-                            <span className="w-8 text-sm font-medium text-slate-700 text-right">
+                            <span className="w-8 text-sm font-medium text-gray-700 text-right">
                               {count}
                             </span>
                           </div>
@@ -469,35 +451,35 @@ export function DeanProposedPlan({ selectedOrg }) {
             </div>
           </div>
 
-          <div className="overflow-x-auto h-full ">
+          <div className="overflow-x-auto h-full">
             <table className="w-full">
-              <thead className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-200">
+              <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-8 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                  <th className="px-8 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     <div className="flex items-center gap-2">
                       <Target size={14} />
                       Activity Details
                     </div>
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     <div className="flex items-center gap-2">
                       <AlertTriangle size={14} />
                       Status
                     </div>
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     <div className="flex items-center gap-2">
                       <Calendar size={14} />
                       Date
                     </div>
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     <div className="flex items-center gap-2">
                       <MapPin size={14} />
                       Venue
                     </div>
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     <div className="flex items-center gap-2">
                       <DollarSign size={14} />
                       Budget
@@ -505,11 +487,11 @@ export function DeanProposedPlan({ selectedOrg }) {
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-slate-100">
-                {proposals.map((proposal, index) => (
+              <tbody className="bg-white divide-y divide-gray-100">
+                {proposals.map((proposal) => (
                   <tr
                     key={proposal._id}
-                    className="hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-indigo-50/50 cursor-pointer transition-all duration-200 group"
+                    className="hover:bg-gray-50 cursor-pointer transition-all duration-200 group"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleView(proposal);
@@ -517,14 +499,14 @@ export function DeanProposedPlan({ selectedOrg }) {
                   >
                     <td className="px-8 py-6">
                       <div className="flex items-start gap-4">
-                        <div className="bg-gradient-to-br from-blue-100 to-indigo-100 rounded-lg p-2 group-hover:from-blue-200 group-hover:to-indigo-200 transition-colors">
-                          <FileText size={20} className="text-blue-600" />
+                        <div className="bg-gray-100 rounded-lg p-2 group-hover:bg-gray-200 transition-colors">
+                          <FileText size={20} className="text-gray-600" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <div className="text-sm font-semibold text-slate-900 mb-1">
+                          <div className="text-sm font-semibold text-gray-900 mb-1">
                             {proposal.activityTitle}
                           </div>
-                          <div className="text-sm text-slate-500 line-clamp-2 max-w-xs">
+                          <div className="text-sm text-gray-500 line-clamp-2 max-w-xs">
                             {proposal.briefDetails}
                           </div>
                         </div>
@@ -541,18 +523,18 @@ export function DeanProposedPlan({ selectedOrg }) {
                       </span>
                     </td>
                     <td className="px-6 py-6">
-                      <div className="text-sm font-medium text-slate-900">
+                      <div className="text-sm font-medium text-gray-900">
                         {formatDate(proposal.proposedDate)}
                       </div>
                     </td>
                     <td className="px-6 py-6">
-                      <div className="flex items-center gap-2 text-sm text-slate-700">
-                        <MapPin size={14} className="text-slate-400" />
+                      <div className="flex items-center gap-2 text-sm text-gray-700">
+                        <MapPin size={14} className="text-gray-400" />
                         {proposal.venue}
                       </div>
                     </td>
                     <td className="px-6 py-6">
-                      <div className="text-sm font-semibold text-slate-900">
+                      <div className="text-sm font-semibold text-gray-900">
                         {formatCurrency(proposal.budgetaryRequirements)}
                       </div>
                     </td>
@@ -569,20 +551,18 @@ export function DeanProposedPlan({ selectedOrg }) {
         <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6 rounded-t-2xl">
+            <div className="bg-gray-800 text-white p-6 rounded-t-2xl">
               <div className="flex justify-between items-start">
                 <div>
                   <h3 className="text-2xl font-bold mb-2">
                     {selectedProposal.activityTitle}
                   </h3>
                   <div className="flex items-center gap-3">
-                    <span
-                      className={`inline-flex items-center gap-2 px-3 py-1 text-xs font-medium rounded-full bg-white/20 text-white`}
-                    >
+                    <span className="inline-flex items-center gap-2 px-3 py-1 text-xs font-medium rounded-full bg-white/20 text-white">
                       {getStatusIcon(selectedProposal.overallStatus)}
                       {selectedProposal.overallStatus}
                     </span>
-                    <span className="text-blue-100 text-sm">
+                    <span className="text-gray-200 text-sm">
                       {formatDate(selectedProposal.proposedDate)}
                     </span>
                   </div>
@@ -600,38 +580,38 @@ export function DeanProposedPlan({ selectedOrg }) {
             <div className="p-6 space-y-6">
               {/* Quick Info Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl border border-blue-200">
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
                   <div className="flex items-center gap-3 mb-2">
-                    <MapPin size={20} className="text-blue-600" />
-                    <span className="text-sm font-medium text-blue-800">
+                    <MapPin size={20} className="text-gray-600" />
+                    <span className="text-sm font-medium text-gray-800">
                       Venue
                     </span>
                   </div>
-                  <p className="font-semibold text-blue-900">
+                  <p className="font-semibold text-gray-900">
                     {selectedProposal.venue}
                   </p>
                 </div>
 
-                <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl border border-green-200">
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
                   <div className="flex items-center gap-3 mb-2">
-                    <DollarSign size={20} className="text-green-600" />
-                    <span className="text-sm font-medium text-green-800">
+                    <DollarSign size={20} className="text-gray-600" />
+                    <span className="text-sm font-medium text-gray-800">
                       Budget Required
                     </span>
                   </div>
-                  <p className="font-semibold text-green-900">
+                  <p className="font-semibold text-gray-900">
                     {formatCurrency(selectedProposal.budgetaryRequirements)}
                   </p>
                 </div>
 
-                <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl border border-purple-200">
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
                   <div className="flex items-center gap-3 mb-2">
-                    <Calendar size={20} className="text-purple-600" />
-                    <span className="text-sm font-medium text-purple-800">
+                    <Calendar size={20} className="text-gray-600" />
+                    <span className="text-sm font-medium text-gray-800">
                       Proposed Date
                     </span>
                   </div>
-                  <p className="font-semibold text-purple-900">
+                  <p className="font-semibold text-gray-900">
                     {formatDate(selectedProposal.proposedDate)}
                   </p>
                 </div>
@@ -640,10 +620,10 @@ export function DeanProposedPlan({ selectedOrg }) {
               {/* SDG Alignment */}
               {selectedProposal.alignedSDG &&
                 selectedProposal.alignedSDG.length > 0 && (
-                  <div className="bg-white p-4 rounded-lg border border-slate-200">
+                  <div className="bg-white p-4 rounded-lg border border-gray-200">
                     <div className="flex items-center gap-2 mb-3">
-                      <Target size={18} className="text-slate-600" />
-                      <h4 className="text-base font-semibold text-slate-800">
+                      <Target size={18} className="text-gray-600" />
+                      <h4 className="text-base font-semibold text-gray-800">
                         Aligned Sustainable Development Goals
                       </h4>
                     </div>
@@ -651,12 +631,12 @@ export function DeanProposedPlan({ selectedOrg }) {
                       {selectedProposal.alignedSDG.map((sdg, idx) => (
                         <div
                           key={idx}
-                          className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-lg px-4 py-4"
+                          className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-lg px-4 py-4"
                         >
-                          <span className="text-lg font-semibold text-slate-800 whitespace-nowrap">
+                          <span className="text-lg font-semibold text-gray-800 whitespace-nowrap">
                             {sdg} :
                           </span>
-                          <p className="text-slate-700 text-sm leading-snug">
+                          <p className="text-gray-700 text-sm leading-snug">
                             {SDG_DESCRIPTIONS[sdg] ||
                               "No description available."}
                           </p>
@@ -669,24 +649,24 @@ export function DeanProposedPlan({ selectedOrg }) {
               {/* Detailed Information */}
               <div className="space-y-6">
                 <div>
-                  <label className="flex items-center gap-2 text-lg font-semibold text-slate-800 mb-3">
+                  <label className="flex items-center gap-2 text-lg font-semibold text-gray-800 mb-3">
                     <Target size={18} />
                     Aligned Organizational Objectives
                   </label>
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                    <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                    <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
                       {selectedProposal.AlignedObjective}
                     </p>
                   </div>
                 </div>
 
                 <div>
-                  <label className="flex items-center gap-2 text-lg font-semibold text-slate-800 mb-3">
+                  <label className="flex items-center gap-2 text-lg font-semibold text-gray-800 mb-3">
                     <FileText size={18} />
                     Brief Details
                   </label>
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                    <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                    <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
                       {selectedProposal.briefDetails}
                     </p>
                   </div>
@@ -695,7 +675,7 @@ export function DeanProposedPlan({ selectedOrg }) {
                 {selectedProposal.collaboratingEntities &&
                   selectedProposal.collaboratingEntities.length > 0 && (
                     <div>
-                      <label className="flex items-center gap-2 text-lg font-semibold text-slate-800 mb-3">
+                      <label className="flex items-center gap-2 text-lg font-semibold text-gray-800 mb-3">
                         <Users size={18} />
                         Collaborating Organizations
                       </label>
@@ -704,15 +684,15 @@ export function DeanProposedPlan({ selectedOrg }) {
                           (entity, idx) => (
                             <div
                               key={idx}
-                              className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm"
+                              className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm"
                             >
-                              <p className="font-semibold text-slate-900 mb-1">
+                              <p className="font-semibold text-gray-900 mb-1">
                                 {entity.orgName} ({entity.orgAcronym})
                               </p>
-                              <p className="text-sm text-slate-600 mb-1">
+                              <p className="text-sm text-gray-600 mb-1">
                                 {entity.orgDepartment}
                               </p>
-                              <span className="inline-flex px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                              <span className="inline-flex px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">
                                 Class: {entity.orgClass}
                               </span>
                             </div>
@@ -724,17 +704,17 @@ export function DeanProposedPlan({ selectedOrg }) {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-slate-200">
+              <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-200">
                 <button
                   onClick={handleRevision}
-                  className="flex-1 bg-amber-500 text-white px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
+                  className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
                 >
                   <AlertTriangle size={18} />
                   Notify Revision
                 </button>
                 <button
                   onClick={handleApproval}
-                  className="flex-1 bg-emerald-500 text-white px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
+                  className="flex-1 bg-gray-800 hover:bg-gray-900 text-white px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
                 >
                   <CheckCircle size={18} />
                   Approve Proposal
@@ -749,7 +729,7 @@ export function DeanProposedPlan({ selectedOrg }) {
       {showRevisionModal && (
         <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-60 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl">
-            <div className="bg-amber-500 p-4 text-white  rounded-t-2xl">
+            <div className="bg-gray-600 p-4 text-white rounded-t-2xl">
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
                   <AlertTriangle size={24} />
@@ -766,7 +746,7 @@ export function DeanProposedPlan({ selectedOrg }) {
 
             <div className="p-6 space-y-6">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-3">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
                   Revision Comments <span className="text-red-500">*</span>
                 </label>
                 <textarea
@@ -774,7 +754,7 @@ export function DeanProposedPlan({ selectedOrg }) {
                   onChange={(e) => setRevisionNotes(e.target.value)}
                   rows={5}
                   placeholder="Please provide specific feedback and suggestions for improvement..."
-                  className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent resize-none"
+                  className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-transparent resize-none"
                 />
               </div>
 
@@ -782,16 +762,17 @@ export function DeanProposedPlan({ selectedOrg }) {
                 <button
                   onClick={() =>
                     submitUpdate({
-                      status: "Revision from the Dean",
+                      status: "Revision from the Sdu Coordinator",
                     })
                   }
-                  className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 disabled:from-gray-400 disabled:to-gray-400 text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 disabled:cursor-not-allowed"
+                  disabled={!revisionNotes.trim()}
+                  className="flex-1 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-medium transition-all duration-200"
                 >
                   Send Revision Request
                 </button>
                 <button
                   onClick={() => setShowRevisionModal(false)}
-                  className="px-6 py-3 text-slate-600 border-2 border-slate-300 hover:border-slate-400 rounded-xl hover:bg-slate-50 transition-colors font-medium"
+                  className="px-6 py-3 text-gray-600 border-2 border-gray-300 hover:border-gray-400 rounded-xl hover:bg-gray-50 transition-colors font-medium"
                 >
                   Cancel
                 </button>
@@ -805,7 +786,7 @@ export function DeanProposedPlan({ selectedOrg }) {
       {showApprovalModal && (
         <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-60 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl">
-            <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white p-6 rounded-t-2xl">
+            <div className="bg-gray-800 text-white p-6 rounded-t-2xl">
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
                   <CheckCircle size={24} />
@@ -821,14 +802,14 @@ export function DeanProposedPlan({ selectedOrg }) {
             </div>
 
             <div className="p-6 space-y-6">
-              <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+              <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
                 <div className="flex items-start gap-3">
-                  <CheckCircle size={20} className="text-green-600 mt-0.5" />
+                  <CheckCircle size={20} className="text-gray-600 mt-0.5" />
                   <div>
-                    <h4 className="font-medium text-green-900 mb-2">
+                    <h4 className="font-medium text-gray-900 mb-2">
                       Confirm Proposal Approval
                     </h4>
-                    <p className="text-green-700 text-sm leading-relaxed">
+                    <p className="text-gray-700 text-sm leading-relaxed">
                       You are about to approve "
                       {selectedProposal?.activityTitle}". This action will
                       change the proposal status to "Approved" and notify all
@@ -838,11 +819,11 @@ export function DeanProposedPlan({ selectedOrg }) {
                 </div>
               </div>
 
-              <div className="bg-slate-50 rounded-xl p-4">
-                <h5 className="font-medium text-slate-800 mb-3">
+              <div className="bg-gray-50 rounded-xl p-4">
+                <h5 className="font-medium text-gray-800 mb-3">
                   Proposal Summary:
                 </h5>
-                <div className="space-y-2 text-sm text-slate-600">
+                <div className="space-y-2 text-sm text-gray-600">
                   <div className="flex justify-between">
                     <span>Budget:</span>
                     <span className="font-medium">
@@ -867,16 +848,16 @@ export function DeanProposedPlan({ selectedOrg }) {
               <div className="flex gap-3 pt-4">
                 <button
                   onClick={() =>
-                    submitUpdate({ status: "Approved by the Dean" })
+                    submitUpdate({ status: "Approved by the Sdu Coordinator" })
                   }
-                  className="flex-1 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2"
+                  className="flex-1 bg-gray-800 hover:bg-gray-900 text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2"
                 >
                   <CheckCircle size={18} />
                   Confirm Approval
                 </button>
                 <button
                   onClick={() => setShowApprovalModal(false)}
-                  className="px-6 py-3 text-slate-600 border-2 border-slate-300 hover:border-slate-400 rounded-xl hover:bg-slate-50 transition-colors font-medium"
+                  className="px-6 py-3 text-gray-600 border-2 border-gray-300 hover:border-gray-400 rounded-xl hover:bg-gray-50 transition-colors font-medium"
                 >
                   Cancel
                 </button>
@@ -885,6 +866,8 @@ export function DeanProposedPlan({ selectedOrg }) {
           </div>
         </div>
       )}
+
+      {/* Success/Error Popup */}
       {popup.open && (
         <DonePopUp
           type={popup.type}
@@ -892,39 +875,55 @@ export function DeanProposedPlan({ selectedOrg }) {
           onClose={() => setPopup({ ...popup, open: false })}
         />
       )}
+
+      {/* Confirmation Modal */}
       {confirmUpdateModal && (
-        <div className="absolute bg-black/10 backdrop-blur-xs inset-0 flex justify-center items-center z-100">
-          <div className="h-fit bg-white w-1/3 flex flex-col px-6 py-6 rounded-2xl shadow-xl relative">
-            <button
-              onClick={() => setConfirmUpdateModal(false)}
-              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
-            >
-              ✕
-            </button>
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex justify-center items-center z-50">
+          <div className="bg-white w-full max-w-md mx-4 rounded-2xl shadow-xl">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <h1 className="text-lg font-semibold text-gray-900">
+                  Confirmation
+                </h1>
+                <button
+                  onClick={() => {
+                    setConfirmUpdateModal(false);
+                    setPendingAction(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 p-1"
+                >
+                  <X size={20} />
+                </button>
+              </div>
 
-            <h1 className="text-lg font-semibold mb-4">Confirmation</h1>
-            <p className="text-sm text-gray-700 mb-4">{confirmMessage}</p>
+              <p className="text-sm text-gray-700 mb-6">{confirmMessage}</p>
 
-            <div className="flex justify-end gap-3 mt-6">
-              <button
-                onClick={() => setConfirmUpdateModal(false)}
-                className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  // Trigger the correct modal based on pending action
-                  if (pendingAction === "revision") setShowRevisionModal(true);
-                  else if (pendingAction === "Approval")
-                    setShowApprovalModal(true);
-
-                  setConfirmUpdateModal(false);
-                }}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-sm font-medium shadow-md transition"
-              >
-                Continue
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setConfirmUpdateModal(false);
+                    setPendingAction(null);
+                  }}
+                  className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setConfirmUpdateModal(false);
+                    // Trigger the correct modal based on pending action
+                    if (pendingAction === "revision") {
+                      setShowRevisionModal(true);
+                    } else if (pendingAction === "approve") {
+                      setShowApprovalModal(true);
+                    }
+                    setPendingAction(null);
+                  }}
+                  className="flex-1 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                >
+                  Continue
+                </button>
+              </div>
             </div>
           </div>
         </div>

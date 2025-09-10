@@ -19,6 +19,8 @@ import {
   Save,
   User,
 } from "lucide-react";
+import { AddUserModal } from "./sdu-user-management-add";
+import { EditUserModal } from "./sdu-user-management-edit";
 
 export function SduUserManagement() {
   const [users, setUsers] = useState([]);
@@ -26,8 +28,6 @@ export function SduUserManagement() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPosition, setSelectedPosition] = useState("all");
-  const [isModalOpen, setIsModalOpen] = useState(false); // controls open/close
-  const [isEdit, setIsEdit] = useState(false); // determines add vs edit
   const [addUserModal, setAddUserModal] = useState(false);
   const [editUserModal, setEditUserModal] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
@@ -39,9 +39,6 @@ export function SduUserManagement() {
     organizationId: "",
     password: "",
   });
-  const [formLoading, setFormLoading] = useState(false);
-
-  const positions = ["dean", "adviser", "sdu", "student-leader"];
 
   const getAlluser = async () => {
     try {
@@ -71,79 +68,6 @@ export function SduUserManagement() {
     console.log(`[${new Date().toISOString()}] ${action}:`, data);
   }, []);
 
-  const handleAddUser = async (e) => {
-    e.preventDefault();
-    setFormLoading(true);
-
-    try {
-      logFormData("Adding User", formData);
-
-      const userData = {
-        ...formData,
-        // Only include organizationId if position is student-leader or adviser
-        ...(["student-leader", "adviser"].includes(formData.position) && {
-          organizationId: formData.organizationId,
-        }),
-      };
-
-      const res = await axios.post(`${API_ROUTER}/createUser`, userData);
-
-      if (res.data.success) {
-        setUsers((prev) => [...prev, res.data.user]);
-        logFormData("User Added Successfully", res.data.user);
-        resetForm();
-        setAddUserModal(false);
-        alert("User added successfully!");
-      }
-    } catch (error) {
-      console.error(error);
-      logFormData("Add User Error", error.response?.data || error.message);
-      alert(error.response?.data?.message || "Error adding user");
-    } finally {
-      setFormLoading(false);
-    }
-  };
-
-  const handleEditUser = async (e) => {
-    e.preventDefault();
-    setFormLoading(true);
-
-    try {
-      logFormData("Editing User", { userId: currentUser._id, formData });
-
-      const userData = {
-        ...formData,
-        ...(["student-leader", "adviser"].includes(formData.position) && {
-          organizationId: formData.organizationId,
-        }),
-      };
-
-      const res = await axios.put(
-        `${API_ROUTER}/updateUser/${currentUser._id}`,
-        userData
-      );
-
-      if (res.data.success) {
-        setUsers((prev) =>
-          prev.map((user) =>
-            user._id === currentUser._id ? res.data.user : user
-          )
-        );
-        logFormData("User Updated Successfully", res.data.user);
-        resetForm();
-        setEditUserModal(false);
-        setCurrentUser(null);
-        alert("User updated successfully!");
-      }
-    } catch (error) {
-      console.error(error);
-      logFormData("Edit User Error", error.response?.data || error.message);
-      alert(error.response?.data?.message || "Error updating user");
-    } finally {
-      setFormLoading(false);
-    }
-  };
-
   const handleDeleteUser = async (userId) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
 
@@ -160,61 +84,16 @@ export function SduUserManagement() {
       console.error(error);
       logFormData("Delete User Error", error.response?.data || error.message);
       alert(error.response?.data?.message || "Error deleting user");
+    } finally {
+      getAlluser();
     }
   };
 
   const openEditModal = (user) => {
     setCurrentUser(user);
-    setFormData({
-      name: user.name || "",
-      email: user.email,
-      position: user.position,
-      deliveryUnit: user.deliveryUnit || "",
-      organizationId: user.organizationId || "",
-      password: "", // Don't pre-fill password
-    });
     setEditUserModal(true);
     logFormData("Opening Edit Modal", user);
   };
-
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      email: "",
-      position: "",
-      deliveryUnit: "",
-      organizationId: "",
-      password: "",
-    });
-  };
-
-  const handleCloseModal = () => {
-    resetForm();
-    setAddUserModal(false);
-    setEditUserModal(false);
-    setCurrentUser(null);
-    logFormData("Modal Closed", "User cancelled form");
-  };
-
-  const handleFormInputChange = useCallback(
-    (field, value) => {
-      setFormData((prev) => {
-        const newData = { ...prev, [field]: value };
-
-        // Reset organizationId when position changes and it's not needed
-        if (
-          field === "position" &&
-          !["student-leader", "adviser"].includes(value)
-        ) {
-          newData.organizationId = "";
-        }
-
-        logFormData(`Form Input Changed - ${field}`, { [field]: value });
-        return newData;
-      });
-    },
-    [logFormData]
-  );
 
   useEffect(() => {
     getAlluser();
@@ -286,268 +165,6 @@ export function SduUserManagement() {
     return colors[position.toLowerCase()] || "bg-gray-100 text-gray-800";
   };
 
-  // ---------------- Add User Modal ----------------
-  function AddUserModal({
-    formData,
-    formLoading,
-    positions,
-    organization,
-    handleCloseModal,
-    handleFormInputChange,
-    handleAddUser,
-  }) {
-    return (
-      <div className="fixed inset-0 flex bg-black/50 backdrop-blur-sm justify-center items-center z-50">
-        <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-              <Plus className="w-5 h-5" />
-              Add New User
-            </h2>
-            <button
-              onClick={handleCloseModal}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          <form onSubmit={handleAddUser} className="p-6 space-y-4">
-            {/* Full Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Full Name
-              </label>
-              <div className="relative">
-                <User className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) =>
-                    handleFormInputChange("name", e.target.value)
-                  }
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter full name"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Email */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email Address
-              </label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) =>
-                    handleFormInputChange("email", e.target.value)
-                  }
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter email address"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Position */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Position
-              </label>
-              <select
-                value={formData.position}
-                onChange={(e) =>
-                  handleFormInputChange("position", e.target.value)
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              >
-                <option value="">Select Position</option>
-                {positions.map((pos) => (
-                  <option key={pos} value={pos} className="capitalize">
-                    {pos === "sdu" ? "SDU" : pos.replace("-", " ")}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Organization dropdown */}
-            {["student-leader", "adviser"].includes(formData.position) && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {formData.position === "adviser"
-                    ? "Department"
-                    : "Organization"}
-                </label>
-                <select
-                  value={formData.organizationId}
-                  onChange={(e) =>
-                    handleFormInputChange("organizationId", e.target.value)
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                >
-                  <option value="">
-                    Select{" "}
-                    {formData.position === "adviser"
-                      ? "Department"
-                      : "Organization"}
-                  </option>
-                  {organization.map((org) => (
-                    <option key={org._id} value={org._id}>
-                      {org.orgName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {/* Delivery Unit */}
-            {formData.position !== "sdu" && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Delivery Unit
-                </label>
-                <div className="relative">
-                  <Building className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-                  <input
-                    type="text"
-                    value={formData.deliveryUnit}
-                    onChange={(e) =>
-                      handleFormInputChange("deliveryUnit", e.target.value)
-                    }
-                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Enter delivery unit"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Password */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Password
-              </label>
-              <input
-                type="password"
-                value={formData.password}
-                onChange={(e) =>
-                  handleFormInputChange("password", e.target.value)
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Enter password"
-                required
-              />
-            </div>
-
-            {/* Buttons */}
-            <div className="flex space-x-3 pt-4">
-              <button
-                type="submit"
-                disabled={formLoading}
-                className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition-colors flex items-center justify-center gap-2"
-              >
-                {formLoading ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4" />
-                    Create User
-                  </>
-                )}
-              </button>
-              <button
-                type="button"
-                onClick={handleCloseModal}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    );
-  }
-
-  // ---------------- Edit User Modal ----------------
-  function EditUserModal({
-    formData,
-    formLoading,
-    positions,
-    organization,
-    handleCloseModal,
-    handleFormInputChange,
-    handleEditUser,
-  }) {
-    return (
-      <div className="fixed inset-0 flex bg-black/50 backdrop-blur-sm justify-center items-center z-50">
-        <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-              <Edit className="w-5 h-5" />
-              Edit User
-            </h2>
-            <button
-              onClick={handleCloseModal}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          <form onSubmit={handleEditUser} className="p-6 space-y-4">
-            {/* Same fields as AddUserModal except password */}
-            {/* Password for edit */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                New Password (leave blank to keep current)
-              </label>
-              <input
-                type="password"
-                value={formData.password}
-                onChange={(e) =>
-                  handleFormInputChange("password", e.target.value)
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Enter new password"
-              />
-            </div>
-
-            {/* Buttons */}
-            <div className="flex space-x-3 pt-4">
-              <button
-                type="submit"
-                disabled={formLoading}
-                className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition-colors flex items-center justify-center gap-2"
-              >
-                {formLoading ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4" />
-                    Update User
-                  </>
-                )}
-              </button>
-              <button
-                type="button"
-                onClick={handleCloseModal}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    );
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -560,22 +177,18 @@ export function SduUserManagement() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <Users className="w-8 h-8 text-blue-600" />
-            SDU User Management
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Manage and analyze your organization's users
-          </p>
-        </div>
-
+    <div className="p-8 bg-gray-200">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+          <Users className="w-8 h-8 text-cnsc-primary-color" />
+          SDU User Management
+        </h1>
+      </div>
+      <div className="grid  grid-cols-3 w-full gap-4 mb-4">
         {/* Analytics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+        <div className="grid grid-cols-2 h-full gap-4">
+          <div className="bg-white shadow-md rounded-xl  p-6 border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Users</p>
@@ -589,7 +202,7 @@ export function SduUserManagement() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+          <div className="bg-white shadow-md rounded-xl  p-6 border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">
@@ -606,7 +219,7 @@ export function SduUserManagement() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+          <div className="bg-white shadow-md rounded-xl  p-6 border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Positions</p>
@@ -621,7 +234,7 @@ export function SduUserManagement() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+          <div className="bg-white shadow-md rounded-xl  p-6 border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">
@@ -640,7 +253,7 @@ export function SduUserManagement() {
         </div>
 
         {/* Position Distribution Chart */}
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 mb-8">
+        <div className="h-full w-full col-span-2 bg-white shadow-md rounded-xl  p-6 border border-gray-200 mb-8">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Position Distribution
           </h3>
@@ -672,170 +285,159 @@ export function SduUserManagement() {
             ))}
           </div>
         </div>
-
-        {/* Filters and Search */}
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 mb-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Search users by name or email..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-            <div className="sm:w-48">
-              <div className="relative">
-                <Filter className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-                <select
-                  value={selectedPosition}
-                  onChange={(e) => setSelectedPosition(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
-                >
-                  <option value="all">All Positions</option>
-                  {Object.keys(analytics.positions).map((position) => (
-                    <option
-                      key={position}
-                      value={position}
-                      className="capitalize"
-                    >
-                      {position === "sdu" ? "SDU" : position}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <button
-              onClick={() => setAddUserModal(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Add User
-            </button>
-          </div>
-        </div>
-
-        {/* Users Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Users ({filteredUsers.length})
-            </h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    User
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Position
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Created Date
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredUsers.map((user) => (
-                  <tr key={user._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                          <span className="text-blue-600 font-medium text-sm">
-                            {(user.name || user.email).charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
-                            {user.name || "No Name"}
-                          </div>
-                          <div className="text-sm text-gray-500 flex items-center gap-1">
-                            <Mail className="w-3 h-3" />
-                            {user.email}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full capitalize ${getPositionColor(
-                          user.position
-                        )}`}
-                      >
-                        {user.position.toLowerCase() === "sdu"
-                          ? "SDU"
-                          : user.position}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 flex items-center gap-1">
-                      <Calendar className="w-3 h-3" />
-                      {formatDate(user.createdAt)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => openEditModal(user)}
-                          className="text-blue-600 hover:text-blue-900 p-1 rounded"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteUser(user._id)}
-                          className="text-red-600 hover:text-red-900 p-1 rounded"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {filteredUsers.length === 0 && (
-          <div className="text-center py-12">
-            <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">
-              No users found matching your criteria
-            </p>
-          </div>
-        )}
-
-        {addUserModal && !isEdit && (
-          <AddUserModal
-            formData={formData}
-            formLoading={formLoading}
-            positions={positions}
-            organization={organization}
-            handleCloseModal={handleCloseModal}
-            handleFormInputChange={handleFormInputChange}
-            handleAddUser={handleAddUser}
-          />
-        )}
-
-        {isModalOpen && isEdit && (
-          <EditUserModal
-            formData={formData}
-            formLoading={formLoading}
-            positions={positions}
-            organization={organization}
-            handleCloseModal={handleCloseModal}
-            handleFormInputChange={handleFormInputChange}
-            handleEditUser={handleEditUser}
-          />
-        )}
       </div>
+
+      {/* Filters and Search */}
+      <div className="bg-white shadow-md rounded-xl  p-6 border border-gray-200 mb-6">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search users by name or email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+          <div className="sm:w-48">
+            <div className="relative">
+              <Filter className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+              <select
+                value={selectedPosition}
+                onChange={(e) => setSelectedPosition(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
+              >
+                <option value="all">All Positions</option>
+                {Object.keys(analytics.positions).map((position) => (
+                  <option
+                    key={position}
+                    value={position}
+                    className="capitalize"
+                  >
+                    {position === "sdu" ? "SDU" : position}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <button
+            onClick={() => setAddUserModal(true)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Add User
+          </button>
+        </div>
+      </div>
+
+      {/* Users Table */}
+      <div className="bg-white shadow-md rounded-xl  border border-gray-200 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900">
+            Users ({filteredUsers.length})
+          </h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  User
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Position
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Created Date
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white shadow-md divide-y -200">
+              {filteredUsers.map((user) => (
+                <tr key={user._id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                        <span className="text-blue-600 font-medium text-sm">
+                          {(user.name || user.email).charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="ml-4">
+                        <div className="text-sm font-medium text-gray-900">
+                          {user.name || "No Name"}
+                        </div>
+                        <div className="text-sm text-gray-500 flex items-center gap-1">
+                          <Mail className="w-3 h-3" />
+                          {user.email}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full capitalize ${getPositionColor(
+                        user.position
+                      )}`}
+                    >
+                      {user.position.toLowerCase() === "sdu"
+                        ? "SDU"
+                        : user.position}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    {formatDate(user.createdAt)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => openEditModal(user)}
+                        className="text-blue-600 hover:text-blue-900 p-1 rounded"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteUser(user._id)}
+                        className="text-red-600 hover:text-red-900 p-1 rounded"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {filteredUsers.length === 0 && (
+        <div className="text-center py-12">
+          <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-500">No users found matching your criteria</p>
+        </div>
+      )}
+      {addUserModal && (
+        <AddUserModal
+          organization={organization}
+          onClose={() => setAddUserModal(false)}
+          onUserAdded={() => getAlluser()}
+        />
+      )}
+      {editUserModal && (
+        <EditUserModal
+          user={currentUser}
+          organization={organization}
+          onClose={() => setEditUserModal(false)}
+          onUserAdded={() => getAlluser()}
+        />
+      )}
     </div>
   );
 }

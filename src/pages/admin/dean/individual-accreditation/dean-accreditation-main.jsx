@@ -27,7 +27,6 @@ import {
   Earth,
   MoreHorizontal,
 } from "lucide-react";
-import { DonePopUp } from "../../../../components/components";
 
 export function DeanAccreditationMain({ selectedOrg }) {
   const [isManagePresidentProfileOpen, setManagePresidentProfileOpen] =

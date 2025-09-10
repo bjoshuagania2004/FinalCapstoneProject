@@ -84,7 +84,7 @@ export function AddProposal({ proposals = [], onClose, onAddLog }) {
         </div>
 
         {/* Content - Scrollable */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto">
           {/* Activity Selection */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-3">

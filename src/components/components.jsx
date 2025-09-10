@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import {
   CheckCircle,
   XCircle,
+  Hammer,
   AlertTriangle,
   ChevronDown,
   Search,
@@ -232,4 +233,18 @@ export function DonePopUp({
 }
 export function checkStatus({ position, status }) {
   const Position = ["adviser", "student-leader", "dean", "ossd", "sdu"];
+}
+
+export function UnderDevelopment() {
+  return (
+    <div className="flex flex-col items-center justify-center h-screen bg-gray-50 text-center px-6">
+      <Hammer className="w-16 h-16 text-amber-500 mb-6 animate-bounce" />
+      <h1 className="text-4xl font-bold text-amber-500 mb-4">
+        Under Development
+      </h1>
+      <p className="text-gray-600 text-lg">
+        This page is currently under development. Please check back later.
+      </p>
+    </div>
+  );
 }

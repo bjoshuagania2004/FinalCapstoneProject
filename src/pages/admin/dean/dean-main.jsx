@@ -118,12 +118,7 @@ function DeanMainNavigation() {
       label: "Proposals",
       path: "/dean/proposal",
     },
-    {
-      key: "post",
-      icon: <PenSquare className="w-5 h-5" />,
-      label: "Posts",
-      path: "/dean/post",
-    },
+
     {
       key: "logs",
       icon: <Clock className="w-5 h-5" />,

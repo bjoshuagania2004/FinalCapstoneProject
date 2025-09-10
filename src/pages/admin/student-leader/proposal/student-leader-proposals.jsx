@@ -1,15 +1,7 @@
 import axios from "axios";
 import { API_ROUTER, DOCU_API_ROUTER } from "../../../../App";
 import { useEffect, useState } from "react";
-import {
-  Plus,
-  Calendar,
-  MapPin,
-  DollarSign,
-  FileText,
-  X,
-  Clock,
-} from "lucide-react";
+import { Plus } from "lucide-react";
 
 import { AddProposal } from "./student-leader-add-proposal";
 import {
@@ -22,18 +14,18 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
-  LineChart,
-  Line,
   ResponsiveContainer,
   Area,
   AreaChart,
+  Legend,
+  LabelList,
 } from "recharts";
 
 export function StudentLeaderProposal({ orgData }) {
   const [proposals, setProposals] = useState([]);
   const [proposalsConduct, setProposalsConduct] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [typeOfProposalModal, setTypeOfProposalModal] = useState(true);
   const [selectedProposal, setSelectedProposal] = useState(null);
 
   const fetchApprovedProposedActionPlanData = async () => {
@@ -176,17 +168,6 @@ export function StudentLeaderProposal({ orgData }) {
     return acc;
   }, []);
 
-  const COLORS = [
-    "#3b82f6",
-    "#10b981",
-    "#f59e0b",
-    "#ef4444",
-    "#8b5cf6",
-    "#06b6d4",
-    "#84cc16",
-    "#f97316",
-  ];
-
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
@@ -208,23 +189,17 @@ export function StudentLeaderProposal({ orgData }) {
   };
 
   return (
-    <div className="flex flex-col h-full w-full overflow-auto bg-gradient-to-br from-amber-50 via-white to-amber-50 min-h-screen">
+    <div className="flex  flex-col h-full w-full overflow-auto bg-gray-200">
       {/* Enhanced Header with maroon gradient */}
-      <div className="relative p-6 border-b border-amber-200 bg-gradient-to-r from-gray-700 via-gray-600 to-gray-800 text-white shadow-xl">
+      <div className="relative p-4 bg-slate-200">
         <div className="relative flex justify-between items-center">
-          <div>
-            <h1 className="text-4xl font-bold mb-2 text-white drop-shadow-lg">
-              Student Leader Proposals
-            </h1>
-            <p className="text-amber-100 text-lg">
-              Manage and track student organization proposals
-            </p>
-          </div>
+          <h1 className="text-2xl font-bold  drop-shadow-lg">
+            Student Leader Proposals
+          </h1>
           <button
             onClick={() => setShowAddForm(true)}
-            className="group relative bg-amber-500 hover:bg-amber-600 text-[#800000] px-6 py-3 rounded-xl flex items-center gap-3 transition-all duration-300 hover:scale-105 hover:shadow-2xl border border-amber-400 hover:border-amber-300"
+            className="group relative bg-amber-500   px-6 py-2 rounded-xl flex items-center gap-3 transition-all duration-300 hover:scale-105 hover:shadow-2xl border border-amber-400 hover:border-amber-300"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-amber-400/20 to-amber-300/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <Plus
               size={22}
               className="group-hover:rotate-90 transition-transform duration-300"
@@ -233,137 +208,137 @@ export function StudentLeaderProposal({ orgData }) {
           </button>
         </div>
       </div>
-
-      {/* Enhanced Statistics Cards */}
-      <div className="p-6 grid grid-cols-1 md:grid-cols-4 gap-4 mb-2">
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-blue-100 text-sm font-medium">
-                Total Proposals
-              </p>
-              <p className="text-3xl font-bold">{proposalsConduct.length}</p>
+      <div className="flex gap-4 p-4">
+        {/* Enhanced Statistics Cards */}
+        <div className="flex flex-col gap-4 bg-slate-100 p-4 rounded-xl shadow-md">
+          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-blue-100 text-sm font-medium">
+                  Total Proposals
+                </p>
+                <p className="text-3xl font-bold">{proposalsConduct.length}</p>
+              </div>
+              <div className="bg-white/20 rounded-xl p-3">
+                <svg
+                  className="w-8 h-8"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+              </div>
             </div>
-            <div className="bg-white/20 rounded-xl p-3">
-              <svg
-                className="w-8 h-8"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
+          </div>
+
+          <div className="bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-emerald-100 text-sm font-medium">Approved</p>
+                <p className="text-3xl font-bold">
+                  {
+                    proposalsConduct.filter(
+                      (p) => p.overallStatus === "Approved For Conduct"
+                    ).length
+                  }
+                </p>
+              </div>
+              <div className="bg-white/20 rounded-xl p-3">
+                <svg
+                  className="w-8 h-8"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-amber-100 text-sm font-medium">Pending</p>
+                <p className="text-3xl font-bold">
+                  {
+                    proposalsConduct.filter(
+                      (p) => p.overallStatus === "Pending"
+                    ).length
+                  }
+                </p>
+              </div>
+              <div className="bg-white/20 rounded-xl p-3">
+                <svg
+                  className="w-8 h-8"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-purple-100 text-sm font-medium">
+                  Total Budget
+                </p>
+                <p className="text-2xl font-bold">
+                  {formatCurrency(
+                    proposalsConduct.reduce(
+                      (sum, p) =>
+                        sum +
+                        (p.ProposedIndividualActionPlan
+                          ?.budgetaryRequirements || 0),
+                      0
+                    )
+                  )}
+                </p>
+              </div>
+              <div className="bg-white/20 rounded-xl p-3">
+                <svg
+                  className="w-8 h-8"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+                  />
+                </svg>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-emerald-100 text-sm font-medium">Approved</p>
-              <p className="text-3xl font-bold">
-                {
-                  proposalsConduct.filter(
-                    (p) => p.overallStatus === "Approved For Conduct"
-                  ).length
-                }
-              </p>
-            </div>
-            <div className="bg-white/20 rounded-xl p-3">
-              <svg
-                className="w-8 h-8"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-amber-100 text-sm font-medium">Pending</p>
-              <p className="text-3xl font-bold">
-                {
-                  proposalsConduct.filter((p) => p.overallStatus === "Pending")
-                    .length
-                }
-              </p>
-            </div>
-            <div className="bg-white/20 rounded-xl p-3">
-              <svg
-                className="w-8 h-8"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-purple-100 text-sm font-medium">
-                Total Budget
-              </p>
-              <p className="text-2xl font-bold">
-                {formatCurrency(
-                  proposalsConduct.reduce(
-                    (sum, p) =>
-                      sum +
-                      (p.ProposedIndividualActionPlan?.budgetaryRequirements ||
-                        0),
-                    0
-                  )
-                )}
-              </p>
-            </div>
-            <div className="bg-white/20 rounded-xl p-3">
-              <svg
-                className="w-8 h-8"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Charts Section */}
-      {proposalsConduct.length > 0 && (
-        <div className="px-6 mb-6 ">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Charts Section */}
+        {proposalsConduct.length > 0 && (
+          <div className="flex gap-4 w-full">
             {/* Status Distribution Chart */}
-            <div className="bg-white rounded-2xl shadow-xl border border-gray-200/50 p-6">
+            <div className="flex-1 bg-white rounded-lg shadow-md p-4">
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h3 className="text-xl font-bold text-gray-800">
@@ -373,21 +348,6 @@ export function StudentLeaderProposal({ orgData }) {
                     Overview of proposal statuses
                   </p>
                 </div>
-                <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl p-3">
-                  <svg
-                    className="w-6 h-6 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                    />
-                  </svg>
-                </div>
               </div>
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
@@ -395,25 +355,33 @@ export function StudentLeaderProposal({ orgData }) {
                     data={statusData}
                     cx="50%"
                     cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) =>
-                      `${name}: ${(percent * 100).toFixed(0)}%`
-                    }
                     outerRadius={100}
                     fill="#8884d8"
                     dataKey="value"
-                  >
-                    {statusData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
+                  />
                   <Tooltip />
+                  <Legend
+                    layout="horizontal"
+                    verticalAlign="bottom"
+                    align="center"
+                    formatter={(value, entry, index) => {
+                      const total = statusData.reduce(
+                        (sum, item) => sum + item.value,
+                        0
+                      );
+                      const current =
+                        statusData.find((d) => d.name === value)?.value || 0;
+                      const percent = ((current / total) * 100).toFixed(0);
+                      return `${value}: ${percent}%`;
+                    }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>
 
             {/* Budget by Status Chart */}
-            <div className="bg-white rounded-2xl shadow-xl border border-gray-200/50 p-6">
+            {/* Budget by Status Chart */}
+            <div className="flex-1 bg-white rounded-2xl shadow-xl border border-gray-200/50 p-6">
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h3 className="text-xl font-bold text-gray-800">
@@ -423,22 +391,8 @@ export function StudentLeaderProposal({ orgData }) {
                     Budget allocation across statuses
                   </p>
                 </div>
-                <div className="bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl p-3">
-                  <svg
-                    className="w-6 h-6 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
-                    />
-                  </svg>
-                </div>
               </div>
+
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={budgetByStatus}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -448,21 +402,45 @@ export function StudentLeaderProposal({ orgData }) {
                     stroke="#64748b"
                   />
                   <YAxis
-                    tickFormatter={(value) =>
-                      `₱${(value / 1000000).toFixed(1)}M`
-                    }
+                    domain={[
+                      0,
+                      Math.max(...budgetByStatus.map((d) => d.budget)),
+                    ]}
+                    tickFormatter={(value) => {
+                      if (value >= 1_000_000_000)
+                        return `₱${(value / 1_000_000_000).toFixed(1)}B`;
+                      if (value >= 1_000_000)
+                        return `₱${(value / 1_000_000).toFixed(1)}M`;
+                      if (value >= 1_000)
+                        return `₱${(value / 1_000).toFixed(1)}K`;
+                      return `₱${value}`;
+                    }}
                     tick={{ fontSize: 12 }}
                     stroke="#64748b"
                   />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="budget" fill="#10b981" radius={[8, 8, 0, 0]} />
+
+                  <Bar dataKey="budget" fill="#10b981" radius={[8, 8, 0, 0]}>
+                    <LabelList
+                      dataKey="budget"
+                      position="top"
+                      formatter={(value) => {
+                        const total = budgetByStatus.reduce(
+                          (sum, entry) => sum + entry.budget,
+                          0
+                        );
+                        const percent = ((value / total) * 100).toFixed(1);
+                        return `${percent}%`;
+                      }}
+                      style={{ fontSize: 12, fill: "#334155" }}
+                    />
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
 
             {/* Monthly Trends Chart */}
             {monthlyData.length > 1 && (
-              <div className="bg-white rounded-2xl shadow-xl border border-gray-200/50 p-6">
+              <div className="bg-white flex-1 rounded-2xl shadow-xl border border-gray-200/50 p-6">
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <h3 className="text-xl font-bold text-gray-800">
@@ -533,7 +511,7 @@ export function StudentLeaderProposal({ orgData }) {
 
             {/* SDG Distribution Chart */}
             {sdgData.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-xl border border-gray-200/50 p-6">
+              <div className="bg-white flex-1 rounded-2xl shadow-xl border border-gray-200/50 p-6">
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <h3 className="text-xl font-bold text-gray-800">
@@ -581,26 +559,21 @@ export function StudentLeaderProposal({ orgData }) {
               </div>
             )}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Enhanced Table Container */}
-      <div className="flex-1 px-6 pb-6">
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-200/50 overflow-hidden">
+      <div className="flex-1 flex flex-col px-4">
+        <div className="bg-white rounded-xl shadow-md overflow-hidden">
           {/* Table Header */}
           <div className="bg-gradient-to-r from-gray-50 to-slate-50 px-6 py-4 border-b border-gray-200/70">
-            <h3 className="text-lg font-semibold text-gray-800">
-              Proposals Overview
-            </h3>
-            <p className="text-sm text-gray-600 mt-1">
-              Click on any proposal to view details
-            </p>
+            <h3 className="text-lg font-semibold text-gray-800">Proposals</h3>
           </div>
 
           {/* Enhanced Table */}
-          <div className="overflow-x-auto">
-            <table className="min-w-full">
-              <thead className="bg-gradient-to-r from-slate-100 to-gray-100">
+          <div className="flex  flex-col overflow-hidden">
+            <table className="">
+              <thead className="">
                 <tr>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
                     Title
@@ -622,7 +595,7 @@ export function StudentLeaderProposal({ orgData }) {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200/70">
+              <tbody className="divide-y divide-gray-200/70 overflow-auto">
                 {proposalsConduct.length === 0 ? (
                   <tr>
                     <td colSpan="6" className="px-6 py-16 text-center">

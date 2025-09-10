@@ -22,15 +22,17 @@ import {
 import axios from "axios";
 import { DonePopUp } from "../../../../components/components";
 
-export function DeanAccreditationDocument({ selectedOrg }) {
+export function SduCoorAccreditationDocument({ selectedOrg }) {
   const [accreditationDocumentData, setAccreditationDocumentData] =
     useState(null);
   const [showDetailsPopup, setShowDetailsPopup] = useState(false);
   const [selectedDocumentDetails, setSelectedDocumentDetails] = useState(null);
   const [revisionModal, setRevisionModal] = useState(false);
-  const [message, setMessage] = useState(false);
+  const [message, setMessage] = useState("");
+  const [confirmUpdateModal, setConfirmUpdateModal] = useState(false);
   const [popup, setPopup] = useState(null);
-
+  const [confirmMessage, setConfirmMessage] = useState("");
+  const [pendingAction, setPendingAction] = useState(null);
   const [approvalModal, setApprovalModal] = useState(false);
   useEffect(() => {
     const fetchAccreditationInfo = async () => {
@@ -65,7 +67,9 @@ export function DeanAccreditationDocument({ selectedOrg }) {
     }
   };
 
+  // ✅ Corrected handleApproval
   const handleApproval = async ({ status, revisionNotes }) => {
+    // ✅ Safe to update immediately
     try {
       const response = await axios.post(
         `${API_ROUTER}/UpdateDocument/${selectedDocumentDetails._id}`,
@@ -99,6 +103,62 @@ export function DeanAccreditationDocument({ selectedOrg }) {
       default:
         return <AlertCircle className="w-3 h-3" />;
     }
+  };
+
+  // Add this inside CurrentPresidentCard component
+  // Replace the existing handleDropdownAction function with this corrected version:
+  const handleDropdownAction = (id) => {
+    const deanStatuses = ["Revision from the Dean", "Approved by the Dean"];
+    const sduCoorStatuses = [
+      "Revision from the Sdu Coordinator",
+      "Approved by the Sdu Coordinator",
+    ];
+    const adviserStatuses = [
+      "Approved by the Adviser",
+      "Revision from the Adviser",
+    ];
+
+    // ✅ Fixed: Use selectedDocumentDetails instead of currentPresident
+    const currentStatus = selectedDocumentDetails?.status?.toLowerCase().trim();
+    console.log(currentStatus);
+    const isDeanUpdated = deanStatuses.some(
+      (status) => status.toLowerCase().trim() === currentStatus
+    );
+    const isSduCoorUpdated = sduCoorStatuses.some(
+      (status) => status.toLowerCase().trim() === currentStatus
+    );
+
+    console.log(isDeanUpdated);
+    const isAdviserValid = adviserStatuses.some(
+      (status) => status.toLowerCase().trim() === currentStatus
+    );
+
+    console.log(id);
+    // Show confirmation modal if already updated by any authority or not reviewed by Adviser
+    if (isDeanUpdated || isSduCoorUpdated || !isAdviserValid) {
+      setPendingAction(id);
+
+      if (isDeanUpdated) {
+        setConfirmMessage(
+          "This document has already been updated by the Dean. Do you want to continue updating it again?"
+        );
+      } else if (isSduCoorUpdated) {
+        setConfirmMessage(
+          "This document has already been updated by the SDU Coordinator. Do you want to continue updating it again?"
+        );
+      } else if (!isAdviserValid) {
+        setConfirmMessage(
+          "This document has not yet been reviewed by the Adviser. Do you want to proceed anyway?"
+        );
+      }
+
+      setConfirmUpdateModal(true);
+      return;
+    }
+
+    // Otherwise, open modal normally
+    if (id === "revision") setRevisionModal(true);
+    else if (id === "approve") setApprovalModal(true); // ✅ lowercase
   };
 
   const openDocumentDetails = (doc, label, docKey) => {
@@ -389,7 +449,7 @@ export function DeanAccreditationDocument({ selectedOrg }) {
                   <div className="flex gap-4 ">
                     <button
                       onClick={() => {
-                        setApprovalModal(true);
+                        handleDropdownAction("approve");
                       }}
                       className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center justify-center gap-2"
                     >
@@ -397,9 +457,7 @@ export function DeanAccreditationDocument({ selectedOrg }) {
                       Approve Document
                     </button>
                     <button
-                      onClick={() => {
-                        setRevisionModal(true);
-                      }}
+                      onClick={() => handleDropdownAction("revision")}
                       className="w-full bg-amber-500 text-white px-4 py-2 rounded-lg hover:bg-amber-700 transition-colors font-medium flex items-center justify-center gap-2"
                     >
                       <Pen className="w-4 h-4" />
@@ -426,8 +484,8 @@ export function DeanAccreditationDocument({ selectedOrg }) {
 
       {/* Revision Modal */}
       {revisionModal && (
-        <div className="absolute bg-black/10 backdrop-blur-xs inset-0 flex justify-center items-center z-100">
-          <div className="h-fit bg-white w-1/3 flex flex-col px-6 py-6 rounded-2xl shadow-xl relative">
+        <div className="absolute bg-black/10 backdrop-blur-xs inset-0 flex justify-center items-center z-101">
+          <div className="h-fit bg-white w-1/6 flex flex-col px-6 py-6 rounded-2xl shadow-xl relative">
             {/* Close Button */}
             <button
               onClick={() => setRevisionModal(false)}
@@ -455,7 +513,7 @@ export function DeanAccreditationDocument({ selectedOrg }) {
             <button
               onClick={() => {
                 handleApproval({
-                  status: "Revision From the Dean",
+                  status: "Revision From the Sdu Coordinator",
                   revisionNotes: message,
                 }); // 👈 call with "Revision"
                 setRevisionModal(false);
@@ -470,7 +528,7 @@ export function DeanAccreditationDocument({ selectedOrg }) {
 
       {/* Approval Modal */}
       {approvalModal && (
-        <div className="absolute bg-black/10 backdrop-blur-xs inset-0 flex justify-center items-center z-100">
+        <div className="absolute bg-black/10 backdrop-blur-xs inset-0 flex justify-center items-center z-101">
           <div className="h-fit bg-white w-1/4 flex flex-col px-6 py-6 rounded-2xl shadow-xl relative">
             {/* Close Button */}
             <button
@@ -493,7 +551,7 @@ export function DeanAccreditationDocument({ selectedOrg }) {
             <button
               onClick={() => {
                 handleApproval({
-                  status: "Approved by the Dean",
+                  status: "Approved by the Sdu Coordinator",
                 }); // 👈 call with "Revision" // 👈 call with "Approved"
                 setApprovalModal(false);
               }}
@@ -510,6 +568,43 @@ export function DeanAccreditationDocument({ selectedOrg }) {
           message={popup.message}
           onClose={() => setPopup(null)}
         />
+      )}
+
+      {confirmUpdateModal && (
+        <div className="absolute bg-black/10 backdrop-blur-xs inset-0 flex justify-center items-center z-100">
+          <div className="h-fit bg-white w-1/3 flex flex-col px-6 py-6 rounded-2xl shadow-xl relative">
+            <button
+              onClick={() => setConfirmUpdateModal(false)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+            >
+              ✕
+            </button>
+
+            <h1 className="text-lg font-semibold mb-4">Confirmation</h1>
+            <p className="text-sm text-gray-700 mb-4">{confirmMessage}</p>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setConfirmUpdateModal(false)}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  // Trigger the correct modal based on pending action
+                  if (pendingAction === "revision") setRevisionModal(true);
+                  else if (pendingAction === "approve") setApprovalModal(true); // ✅ lowercase
+
+                  setConfirmUpdateModal(false);
+                }}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-sm font-medium shadow-md transition"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -179,19 +179,16 @@ export function DeanPresident({ selectedOrg }) {
             <h1 className="text-center font-bold text-xl">FORMER PRESIDENT</h1>
             <div className="w-full grid grid-cols-4 gap-4">
               {remainingPresidents.map((president) => (
-                <div className="">
-                  <PresidentCard
-                    president={president}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                    showActions={false} // never show "current" actions
-                  />
-                </div>
+                <PresidentCard
+                  president={president}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  showActions={false} // never show "current" actions
+                />
               ))}
             </div>
           </div>
         )}
-        {/* Previous Presidents (filtered list, excludes current) */}
       </div>
     </div>
   );
@@ -220,10 +217,6 @@ const CurrentPresidentCard = ({ currentPresident, selectedOrg }) => {
     classSchedule,
   } = president;
 
-  const validAdviserStatuses = [
-    "Approved by the Adviser",
-    "Revision from the Adviser",
-  ];
   const [confirmUpdateModal, setConfirmUpdateModal] = useState(false);
   const [pendingAction, setPendingAction] = useState(null); // to store action type
   const [confirmMessage, setConfirmMessage] = useState("");
@@ -314,7 +307,7 @@ const CurrentPresidentCard = ({ currentPresident, selectedOrg }) => {
 
     setShowDropdown(false);
   };
-
+  console.log(selectedOrg);
   return (
     <div className="bg-white shadow-xl relative">
       {/* Header Section */}
@@ -377,17 +370,25 @@ const CurrentPresidentCard = ({ currentPresident, selectedOrg }) => {
 
           {/* Revision Modal */}
           {showRevisionModal && (
-            <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-20">
-              <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
+            <div className="fixed inset-0 flex items-center backdrop-blur-sm justify-center bg-black/25 z-20">
+              <div className="bg-white p-6 relative rounded-xl shadow-lg w-full max-w-lg">
                 <h2 className="text-xl font-bold mb-2">Send for Revision</h2>
+                <h3 className="text-lg  mb-4">
+                  Revision Notice for: {selectedOrg.orgName}
+                </h3>
+                <X
+                  size={32}
+                  className="absolute top-4 right-4 text-red-500"
+                  onClick={() => setShowRevisionModal(false)}
+                />
                 <textarea
                   value={revisionNotes}
                   onChange={(e) => setRevisionNotes(e.target.value)}
                   placeholder="Enter revision notes..."
-                  className="w-full p-2 border rounded-lg mb-4"
+                  className="w-full p-2 border rounded-lg mb-2 h-32"
                 />
 
-                <div className="flex justify-end gap-3">
+                <div className="flex justify-end gap-2">
                   <button
                     onClick={() => setShowRevisionModal(false)}
                     className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300"
@@ -409,10 +410,10 @@ const CurrentPresidentCard = ({ currentPresident, selectedOrg }) => {
 
           {/* Approve Modal */}
           {showApproveModal && (
-            <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-20">
+            <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-20">
               <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
                 <h2 className="text-xl font-bold mb-2">Approve Proposal</h2>
-                <p className="text-gray-600 mb-4">
+                <p className="text-lg  text-gray-600 mb-4">
                   Are you sure you want to approve this President Profile?
                 </p>
 
@@ -578,7 +579,7 @@ const CurrentPresidentCard = ({ currentPresident, selectedOrg }) => {
       )}
       {confirmUpdateModal && (
         <div className="fixed bg-black/10 backdrop-blur-xs inset-0  flex justify-center items-center">
-          <div className="h-fit bg-white w-1/3 flex flex-col px-6 py-6 rounded-2xl shadow-xl relative">
+          <div className="h-fit bg-white w-1/5 flex flex-col px-6 py-6 rounded-2xl shadow-xl relative">
             <button
               onClick={() => setConfirmUpdateModal(false)}
               className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
@@ -586,8 +587,8 @@ const CurrentPresidentCard = ({ currentPresident, selectedOrg }) => {
               ✕
             </button>
 
-            <h1 className="text-lg font-semibold mb-4">Confirmation</h1>
-            <p className="text-sm text-gray-700 mb-4">{confirmMessage}</p>
+            <h1 className="text-xl font-semibold mb-4">Confirmation</h1>
+            <p className=" text-gray-700 mb-4">{confirmMessage}</p>
 
             <div className="flex justify-end gap-3 mt-6">
               <button

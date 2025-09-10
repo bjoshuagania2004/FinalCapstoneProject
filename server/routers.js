@@ -19,6 +19,9 @@ router.post(
   "/updateOrganizationProfileStatus",
   Controller.PostStatusUpdateOrganization
 );
+router.post("/postNewUser", Controller.PostUser);
+router.post("/UpdateUser/:id", Controller.UpdateUser);
+router.delete("/deleteUser/:id", Controller.DeleteUser);
 
 /* ********** STUDENT DEVELOPMENT ORGANIZATION ********** */
 router.get("/getAllOrganizationProfile", Controller.GetAllOrganizationProfile);
