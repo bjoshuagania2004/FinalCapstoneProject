@@ -1,6 +1,5 @@
 import { Routes, Route } from "react-router-dom";
 import { DOCU_API_ROUTER } from "../../../App";
-import { X } from "lucide-react";
 import { DeanAccreditationNavigationSubRoute } from "./dean-main";
 import { DeanAccreditationMain } from "./individual-accreditation/dean-accreditation-main";
 import { DeanPresident } from "./individual-accreditation/dean-accreditation-president";
@@ -8,6 +7,7 @@ import { DeanRosterData } from "./individual-accreditation/dean-accreditation-ro
 import { DeanFinancialReport } from "./individual-accreditation/dean-accreditation-financial-report";
 import { DeanProposedPlan } from "./individual-accreditation/dean-accreditation-proposed-plan";
 import { DeanAccreditationDocument } from "./individual-accreditation/dean-accreditation-documents";
+import { X, School2 } from "lucide-react";
 
 export function DeanComponent({
   selectedOrg,

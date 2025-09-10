@@ -572,7 +572,7 @@ export default function AddStudentPresident({
   };
   // Step Indicator Component
   const StepIndicator = () => (
-    <div className="flex items-center justify-center mb-8">
+    <div className="flex items-center justify-center mb-10">
       <div className="flex items-center space-x-4">
         {steps.map((stepItem, index) => (
           <div key={stepItem.id} className="flex items-center">
@@ -616,7 +616,7 @@ export default function AddStudentPresident({
             </div>
             {index < steps.length - 1 && (
               <div
-                className={`w-12 h-1 mx-4 transition-all duration-200 ${
+                className={`w-12 h-1 mx-2 transition-all duration-200 ${
                   step > stepItem.id ? "bg-green-500" : "bg-gray-300"
                 }`}
               />
@@ -634,8 +634,74 @@ export default function AddStudentPresident({
         President Profile Form
       </h2>
 
-      {/* Step Indicator */}
-      <StepIndicator />
+      {/* Step Indicator - Centered */}
+      <div className="relative flex items-center justify-between w-full max-w-2xl mx-auto mb-8">
+        {/* Background Line (behind all circles) */}
+        <div className="absolute top-7 left-11 right-11  h-1 bg-gray-300 transform -translate-y-1/2 z-0" />
+
+        {steps.map((stepItem, index) => {
+          const isActive = step === stepItem.id;
+          const isCompleted = step > stepItem.id;
+
+          return (
+            <div
+              key={stepItem.id}
+              className="relative flex flex-col items-center z-10 flex-1"
+            >
+              {/* Circle with number */}
+              <div
+                className={`flex items-center justify-center w-12 h-12 rounded-full border-2 text-lg font-bold
+                ${
+                  isActive
+                    ? "bg-blue-600 border-blue-600 text-white"
+                    : isCompleted
+                    ? "bg-green-500 border-green-500 text-white"
+                    : "bg-gray-300 border-gray-300 text-gray-700"
+                }
+              `}
+              >
+                {isCompleted ? (
+                  // Check icon for completed steps
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-6 h-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                ) : (
+                  stepItem.id
+                )}
+              </div>
+
+              {/* Step Title */}
+              <span
+                className={`mt-2 text-sm font-medium text-center ${
+                  isActive ? "text-blue-600" : "text-gray-600"
+                }`}
+              >
+                {stepItem.title}
+              </span>
+            </div>
+          );
+        })}
+
+        {/* Progress Line Overlay */}
+        <div
+          className={`absolute top-7 left-11 right h-1 transform -translate-y-1/2 z-0 transition-all duration-300 
+    ${step > 1 ? "bg-green-500" : "bg-blue-600"}`}
+          style={{
+            width: `${((step - 1) / (steps.length - 1)) * 100}%`,
+          }}
+        />
+      </div>
 
       {/* Scrollable Form Wrapper */}
       <div className="max-h-[70vh] overflow-y-auto pr-2">
@@ -653,7 +719,7 @@ export default function AddStudentPresident({
           onSubmit={handleFinalSubmit}
           className="flex flex-col gap-6 w-full"
         >
-          {/* Step 1: Personal Info */}
+          {/* Step 1 */}
           {step === 1 && (
             <PresidentPersonalInfo
               formData={formData}
@@ -665,7 +731,7 @@ export default function AddStudentPresident({
             />
           )}
 
-          {/* Step 2: Guardian Info */}
+          {/* Step 2 */}
           {step === 2 && (
             <PresidentGuardianInfo
               formData={formData}
@@ -675,7 +741,7 @@ export default function AddStudentPresident({
             />
           )}
 
-          {/* Step 3: Address Section */}
+          {/* Step 3 */}
           {step === 3 && (
             <>
               <PhilippineAddressForm
@@ -691,7 +757,7 @@ export default function AddStudentPresident({
             </>
           )}
 
-          {/* Step 4: Talent Info */}
+          {/* Step 4 */}
           {step === 4 && (
             <PresidentTalentInfo
               talentSkills={talentSkills}
@@ -707,7 +773,7 @@ export default function AddStudentPresident({
             />
           )}
 
-          {/* Step 5: Class Sched Info */}
+          {/* Step 5 */}
           {step === 5 && (
             <PresidentClassSchedInfo
               validationErrors={validationErrors}
@@ -765,7 +831,7 @@ export default function AddStudentPresident({
         </form>
       </div>
 
-      {/* Close Button - stays fixed in corner */}
+      {/* Close Button */}
       <X
         size={32}
         className="text-red-500 absolute top-4 right-4 cursor-pointer hover:text-red-600 transition-colors"
