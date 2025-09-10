@@ -563,17 +563,17 @@ export function StudentLeaderProposal({ orgData }) {
       </div>
 
       {/* Enhanced Table Container */}
-      <div className="flex-1 flex flex-col ">
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+      <div className="flex-1 flex flex-col px-4">
+        <div className="bg-white rounded-xl shadow-md overflow-hidden">
           {/* Table Header */}
           <div className="bg-gradient-to-r from-gray-50 to-slate-50 px-6 py-4 border-b border-gray-200/70">
             <h3 className="text-lg font-semibold text-gray-800">Proposals</h3>
           </div>
 
           {/* Enhanced Table */}
-          <div className="flex  flex-col overflow-y-auto">
+          <div className="flex  flex-col overflow-hidden">
             <table className="">
-              <thead className="bg-gradient-to-r from-slate-100 to-gray-100">
+              <thead className="">
                 <tr>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
                     Title
@@ -595,7 +595,7 @@ export function StudentLeaderProposal({ orgData }) {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200/70">
+              <tbody className="divide-y divide-gray-200/70 overflow-auto">
                 {proposalsConduct.length === 0 ? (
                   <tr>
                     <td colSpan="6" className="px-6 py-16 text-center">
