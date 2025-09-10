@@ -570,10 +570,9 @@ export default function AddStudentPresident({
       nextStep();
     }
   };
-
   // Step Indicator Component
   const StepIndicator = () => (
-    <div className="flex items-center  justify-center mb-8">
+    <div className="flex items-center justify-center mb-8">
       <div className="flex items-center space-x-4">
         {steps.map((stepItem, index) => (
           <div key={stepItem.id} className="flex items-center">
@@ -629,7 +628,8 @@ export default function AddStudentPresident({
   );
 
   return (
-    <div className="max-w-3/4 relative min-w-1/4 min-h-1/4 flex flex-col items-center max-h-9/10 overflow-auto mx-auto p-6 space-y-6 bg-white shadow-lg rounded-lg">
+    <div className="relative max-w-3xl w-full mx-auto p-6 bg-white shadow-lg rounded-lg">
+      {/* Title */}
       <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
         President Profile Form
       </h2>
@@ -637,129 +637,135 @@ export default function AddStudentPresident({
       {/* Step Indicator */}
       <StepIndicator />
 
-      {/* Current Step Title */}
-      <div className="text-center mb-4">
-        <h3 className="text-xl font-semibold text-gray-700">
-          Step {step}: {steps[step - 1].title}
-        </h3>
-        <p className="text-gray-500 text-sm mt-1">
-          {steps[step - 1].description}
-        </p>
+      {/* Scrollable Form Wrapper */}
+      <div className="max-h-[70vh] overflow-y-auto pr-2">
+        {/* Current Step Title */}
+        <div className="text-center mb-4">
+          <h3 className="text-xl font-semibold text-gray-700">
+            Step {step}: {steps[step - 1].title}
+          </h3>
+          <p className="text-gray-500 text-sm mt-1">
+            {steps[step - 1].description}
+          </p>
+        </div>
+
+        <form
+          onSubmit={handleFinalSubmit}
+          className="flex flex-col gap-6 w-full"
+        >
+          {/* Step 1: Personal Info */}
+          {step === 1 && (
+            <PresidentPersonalInfo
+              formData={formData}
+              getFieldErrorClass={getFieldErrorClass}
+              handleInputChange={handleInputChange}
+              renderFieldError={renderFieldError}
+              loading={loading}
+              countries={countries}
+            />
+          )}
+
+          {/* Step 2: Guardian Info */}
+          {step === 2 && (
+            <PresidentGuardianInfo
+              formData={formData}
+              handleInputChange={handleInputChange}
+              getFieldErrorClass={getFieldErrorClass}
+              renderFieldError={renderFieldError}
+            />
+          )}
+
+          {/* Step 3: Address Section */}
+          {step === 3 && (
+            <>
+              <PhilippineAddressForm
+                ref={formRef}
+                initialData={formData.address}
+                onChange={(data) => setAddressFormData(data)}
+              />
+              {validationErrors.address && (
+                <div className="text-red-500 text-sm">
+                  {validationErrors.address}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Step 4: Talent Info */}
+          {step === 4 && (
+            <PresidentTalentInfo
+              talentSkills={talentSkills}
+              skillLevels={skillLevels}
+              handleSkillChange={handleSkillChange}
+              removeSkill={removeSkill}
+              formData={formData}
+              getFieldErrorClass={getFieldErrorClass}
+              handleInputChange={handleInputChange}
+              renderFieldError={renderFieldError}
+              loading={loading}
+              countries={countries}
+            />
+          )}
+
+          {/* Step 5: Class Sched Info */}
+          {step === 5 && (
+            <PresidentClassSchedInfo
+              validationErrors={validationErrors}
+              classSchedules={classSchedules}
+              handleClassChange={handleClassChange}
+              removeClassSchedule={removeClassSchedule}
+              renderFieldError={renderFieldError}
+              formData={formData}
+              getFieldErrorClass={getFieldErrorClass}
+              handleInputChange={handleInputChange}
+              loading={loading}
+              countries={countries}
+            />
+          )}
+
+          {/* Validation Summary */}
+          {Object.keys(validationErrors).length > 0 && (
+            <div className="border border-red-300 bg-red-50 p-4 rounded-lg">
+              <h4 className="text-red-800 font-semibold mb-2">
+                Please fix the following errors to continue:
+              </h4>
+              <ul className="text-red-700 text-sm space-y-1">
+                {Object.entries(validationErrors).map(([field, error]) => (
+                  <li key={field}>• {error}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Navigation Buttons */}
+          <div className="flex justify-between pt-4">
+            {step > 1 && (
+              <button
+                type="button"
+                onClick={prevStep}
+                className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-semibold py-3 px-8 rounded-lg transition duration-200"
+              >
+                Back
+              </button>
+            )}
+            <button
+              type="submit"
+              disabled={isUploading}
+              className={`ml-auto bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 px-8 rounded-lg transition duration-200 focus:ring-4 focus:ring-blue-300 ${
+                step === 1 ? "w-full" : ""
+              }`}
+            >
+              {step === 5
+                ? isUploading
+                  ? "Submitting..."
+                  : "Submit Application"
+                : "Next"}
+            </button>
+          </div>
+        </form>
       </div>
 
-      <form onSubmit={handleFinalSubmit} className="flex flex-col gap-6 w-full">
-        {/* Step 1: Personal Info */}
-        {step === 1 && (
-          <PresidentPersonalInfo
-            formData={formData}
-            getFieldErrorClass={getFieldErrorClass}
-            handleInputChange={handleInputChange}
-            renderFieldError={renderFieldError}
-            loading={loading}
-            countries={countries}
-          />
-        )}
-
-        {/* Step 2: Guardian Info */}
-        {step === 2 && (
-          <PresidentGuardianInfo
-            formData={formData}
-            handleInputChange={handleInputChange}
-            getFieldErrorClass={getFieldErrorClass}
-            renderFieldError={renderFieldError}
-          />
-        )}
-
-        {/* Step 3: Address Section */}
-        {step === 3 && (
-          <>
-            <PhilippineAddressForm
-              ref={formRef}
-              initialData={formData.address}
-              onChange={(data) => setAddressFormData(data)}
-            />
-            {validationErrors.address && (
-              <div className="text-red-500 text-sm">
-                {validationErrors.address}
-              </div>
-            )}
-          </>
-        )}
-
-        {/* Step 4: Talent Info */}
-        {step === 4 && (
-          <PresidentTalentInfo
-            talentSkills={talentSkills}
-            skillLevels={skillLevels}
-            handleSkillChange={handleSkillChange}
-            removeSkill={removeSkill}
-            formData={formData}
-            getFieldErrorClass={getFieldErrorClass}
-            handleInputChange={handleInputChange}
-            renderFieldError={renderFieldError}
-            loading={loading}
-            countries={countries}
-          />
-        )}
-
-        {/* Step 5: Class Sched Info */}
-        {step === 5 && (
-          <PresidentClassSchedInfo
-            validationErrors={validationErrors}
-            classSchedules={classSchedules}
-            handleClassChange={handleClassChange}
-            removeClassSchedule={removeClassSchedule}
-            renderFieldError={renderFieldError}
-            formData={formData}
-            getFieldErrorClass={getFieldErrorClass}
-            handleInputChange={handleInputChange}
-            loading={loading}
-            countries={countries}
-          />
-        )}
-
-        {/* Validation Summary for current step */}
-        {Object.keys(validationErrors).length > 0 && (
-          <div className="border border-red-300 bg-red-50 p-4 rounded-lg">
-            <h4 className="text-red-800 font-semibold mb-2">
-              Please fix the following errors to continue:
-            </h4>
-            <ul className="text-red-700 text-sm space-y-1">
-              {Object.entries(validationErrors).map(([field, error]) => (
-                <li key={field}>• {error}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Navigation Buttons */}
-        <div className="flex justify-between pt-4">
-          {step > 1 && (
-            <button
-              type="button"
-              onClick={prevStep}
-              className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-semibold py-3 px-8 rounded-lg transition duration-200"
-            >
-              Back
-            </button>
-          )}
-          <button
-            type="submit"
-            disabled={isUploading}
-            className={`ml-auto bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 px-8 rounded-lg transition duration-200 focus:ring-4 focus:ring-blue-300 ${
-              step === 1 ? "w-full" : ""
-            }`}
-          >
-            {step === 5
-              ? isUploading
-                ? "Submitting..."
-                : "Submit Application"
-              : "Next"}
-          </button>
-        </div>
-      </form>
-
-      {/* Close Button */}
+      {/* Close Button - stays fixed in corner */}
       <X
         size={32}
         className="text-red-500 absolute top-4 right-4 cursor-pointer hover:text-red-600 transition-colors"
