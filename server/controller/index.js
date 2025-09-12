@@ -1,4 +1,5 @@
 export * from "./accreditation-document.js";
+export * from "./accomplishments.js";
 export * from "./financial-report.js";
 export * from "./general-document.js";
 export * from "./general.js";

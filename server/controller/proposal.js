@@ -112,10 +112,6 @@ export const updateStudentLeaderProposal = async (req, res) => {
 
 export const postStudentLeaderProposal = async (req, res) => {
   try {
-    console.log("=== BACKEND LOG ===");
-    console.log("req.body:", req.body);
-    console.log("===================");
-
     const {
       activityTitle,
       alignedSDG,

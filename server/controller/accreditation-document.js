@@ -78,7 +78,6 @@ export const GetAllAccreditationId = async (req, res) => {
 export const GetAccreditationById = async (req, res) => {
   try {
     const { id } = req.params; // this is the organizationProfile id
-    console.log("OrganizationProfile ID:", id);
 
     const accreditation = await Accreditation.findOne({
       organizationProfile: id,
@@ -208,7 +207,6 @@ export const AddAccreditationDocument = async (req, res) => {
       accreditation,
     });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ error: error.message });
   }
 };

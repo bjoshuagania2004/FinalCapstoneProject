@@ -31,7 +31,6 @@ const upload = multer({ storage });
 export const uploadFileAndAddDocument = async (req, res, next) => {
   upload.single("file")(req, res, async (err) => {
     if (err) {
-      console.log(err);
       return res
         .status(500)
         .json({ error: "File upload failed", details: err.message });
@@ -68,7 +67,6 @@ export const uploadFileAndAddDocument = async (req, res, next) => {
 
       next();
     } catch (error) {
-      console.log(error);
       return res.status(400).json({ error: error.message });
     }
   });

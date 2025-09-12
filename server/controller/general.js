@@ -229,7 +229,6 @@ export const GetUserInformation = async (req, res) => {
         organization: false,
       });
     }
-    console.log(organization);
 
     return res.status(200).json({
       message: "Organization profile found",

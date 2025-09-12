@@ -34,6 +34,10 @@ const RosterMember = mongoose.model("RosterMembers", rosterMembersSchema);
 const Organization = mongoose.model("Organizations", organizationSchema);
 const Accreditation = mongoose.model("Accreditations", accreditationSchema);
 const Accomplishment = mongoose.model("Accomplishments", accomplishmentSchema);
+const SubAccomplishment = mongoose.model(
+  "SubAccomplishment",
+  accomplishmentSchema
+);
 
 const ProposedActionPlan = mongoose.model(
   "ProposedActionPlan",
@@ -65,6 +69,7 @@ export {
   ProposalConduct,
   Accreditation,
   Accomplishment,
+  SubAccomplishment,
   ProposedActionPlan,
   FinancialReport,
   PresidentProfile,

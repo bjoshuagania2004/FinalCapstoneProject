@@ -54,7 +54,9 @@ export const accomplishmentSchema = new Schema(
     overallStatus: { type: String, default: "Pending" },
 
     // Store all sub accomplishments (PPAs, awards, outreach, etc.)
-    accomplishments: [subAccomplishmentSchema],
+    accomplishments: [
+      { type: Schema.Types.ObjectId, ref: "SubAccomplishment" },
+    ],
 
     // Aggregated scores
     totalOrganizationalDevelopment: { type: Number, default: 0 },

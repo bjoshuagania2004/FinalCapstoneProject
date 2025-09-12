@@ -138,6 +138,10 @@ router.get(
   Controller.GetAccreditationDetails
 );
 router.get(
+  "/getAccomplishment/:OrgProfileId",
+  Controller.getAccomplishmentReport
+);
+router.get(
   "/getAccreditatationDocuments/:orgProfileId",
   Controller.GetAccreditationDocuments
 );

@@ -65,7 +65,6 @@ export const SendEmailToOrgUsers = async (req, res) => {
 };
 
 export const revisionNoteRosterList = async (req, res) => {
-  console.log("Approving roster list...", req.params);
   try {
     const { rosterId } = req.params;
     const { revisionNotes, position } = req.body;
