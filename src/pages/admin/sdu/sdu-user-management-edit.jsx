@@ -50,7 +50,6 @@ export function EditUserModal({ user, onClose, onUserUpdated, organization }) {
       ...prev,
       [name]: value,
       ...(name === "position" && {
-        deliveryUnit: "",
         organizationId: "",
         deliveryUnit: "",
       }),

@@ -4,6 +4,8 @@ import { useState } from "react";
 export function ShowDetailedProposal({ proposal, onClose }) {
   if (!proposal) return null;
 
+  console.log(proposal);
+
   const [selectedDocIndex, setSelectedDocIndex] = useState(0);
   const selectedDoc = proposal?.document?.[selectedDocIndex] || null;
 

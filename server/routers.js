@@ -156,9 +156,21 @@ router.get(
   Controller.getStudentPpaByAccreditationId
 );
 router.post("/postStudentLeaderProposal", Controller.postStudentLeaderProposal);
+router.delete("/deleteProposalConduct/:id", Controller.deleteProposalConduct);
+router.put(
+  "/updateProposalConduct/:id",
+  upload.single("file"), // 👈 this parses multipart/form-data
+
+  Controller.updateProposalConduct
+);
 
 router.post(
   "/postStudentLeaderProposalConduct",
+  Controller.uploadFileAndAddDocument,
+  Controller.postProposalConduct
+);
+router.post(
+  "/postStudentLeaderAccomplishment",
   Controller.uploadFileAndAddDocument,
   Controller.postProposalConduct
 );
