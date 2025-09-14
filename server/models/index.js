@@ -13,7 +13,10 @@ import {
 import { documentSchema } from "./document.js";
 import { accreditationSchema } from "./accreditation.js";
 import { rosterMembersSchema, rosterSchema } from "./roster.js";
-import { accomplishmentSchema } from "./accomplishment.js";
+import {
+  accomplishmentSchema,
+  subAccomplishmentSchema,
+} from "./accomplishment.js";
 import { presidentProfileSchema } from "./president_profile.js";
 import { ReceiptSchema, financialReportSchema } from "./financial_report.js";
 // Compile models
@@ -36,7 +39,7 @@ const Accreditation = mongoose.model("Accreditations", accreditationSchema);
 const Accomplishment = mongoose.model("Accomplishments", accomplishmentSchema);
 const SubAccomplishment = mongoose.model(
   "SubAccomplishment",
-  accomplishmentSchema
+  subAccomplishmentSchema
 );
 
 const ProposedActionPlan = mongoose.model(

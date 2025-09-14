@@ -14,8 +14,6 @@ export function AddNewProposal({ onClose, orgData }) {
     organization: "",
   });
 
-  console.log(orgData);
-
   const [uploadedFile, setUploadedFile] = useState(null);
   const [errors, setErrors] = useState({});
 
