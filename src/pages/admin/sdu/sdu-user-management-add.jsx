@@ -29,7 +29,6 @@ export function AddUserModal({ organization, onClose, onUserAdded }) {
       ...(name === "position" && {
         deliveryUnit: "",
         organizationId: "",
-        deliveryUnit: "",
       }),
     }));
 
@@ -120,8 +119,6 @@ export function AddUserModal({ organization, onClose, onUserAdded }) {
       ) {
         userData.deliveryUnit = formData.deliveryUnit.trim();
       }
-
-      console.log(userData);
 
       const response = await axios.post(`${API_ROUTER}/postNewUser`, userData);
 

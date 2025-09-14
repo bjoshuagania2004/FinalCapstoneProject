@@ -1,22 +1,27 @@
 import { Accomplishment, SubAccomplishment } from "../models/index.js";
 
-// ✅ Get or Create Accomplishment Report for an OrgProfile
 export const getAccomplishmentReport = async (req, res) => {
   try {
     const { OrgProfileId } = req.params;
 
     if (!OrgProfileId) {
-      return res
-        .status(400)
-        .json({ error: "Missing organizationProfile or academicYear." });
+      return res.status(400).json({ error: "Missing organizationProfile ID." });
     }
 
     // 1️⃣ Ensure Accomplishment Report exists
     let report = await Accomplishment.findOne({
       organizationProfile: OrgProfileId,
-    });
+    })
+      .populate({
+        path: "accomplishments",
+        populate: {
+          path: "proposal", // ✅ populate proposal inside accomplishments
+        },
+      })
+      .select("accomplishments grandTotal");
 
     if (!report) {
+      // Create new if not exists
       report = new Accomplishment({
         organizationProfile: OrgProfileId,
         accomplishments: [],
@@ -28,9 +33,10 @@ export const getAccomplishmentReport = async (req, res) => {
 
       await report.save();
 
-      report = await Accomplishment.findById(report._id).populate(
-        "organization organizationProfile accomplishments documentRefs"
-      );
+      report = await Accomplishment.findById(report._id).populate({
+        path: "accomplishments",
+        populate: { path: "proposal" },
+      });
     }
 
     return res.status(200).json(report);
@@ -45,66 +51,40 @@ export const getAccomplishmentReport = async (req, res) => {
 // ✅ Add a Sub-Accomplishment (PPA, Meeting, Award, etc.)
 export const addAccomplishment = async (req, res) => {
   try {
-    const {
-      reportId, // existing accomplishment report id
-      category,
-      title,
-      description,
-      date,
-      level,
-      numberOfAwardees,
-      isApprovedActionPlan,
-      documentRefs,
-      maxPoints,
-      awardedPoints,
-    } = req.body;
+    const { accomplishmentId, category, title, level, proposal, description } =
+      req.body;
 
-    if (!reportId || !category) {
-      return res
-        .status(400)
-        .json({ error: "Missing required fields (reportId or category)." });
+    if (!accomplishmentId || !category) {
+      return res.status(400).json({
+        error: "Missing required fields (accomplishmentId or category).",
+      });
     }
 
-    const report = await Accomplishment.findById(reportId);
+    const report = await Accomplishment.findById(accomplishmentId);
     if (!report) {
       return res
         .status(404)
         .json({ error: "Accomplishment report not found." });
     }
 
-    // 1️⃣ Create SubAccomplishment doc
-    const subAcc = new SubAccomplishment({
-      category,
-      title,
-      description,
-      date,
-      level,
-      numberOfAwardees,
-      isApprovedActionPlan,
-      documentRefs,
-      maxPoints,
-      awardedPoints,
-    });
+    // ✅ Build only the fields that are provided
+    const subAccData = { category };
+    if (title) subAccData.title = title;
+    if (proposal) subAccData.proposal = proposal;
+    if (level) subAccData.level = level;
+    if (description) subAccData.description = description;
 
+    // 1️⃣ Create SubAccomplishment doc
+    const subAcc = new SubAccomplishment(subAccData);
     await subAcc.save();
 
     // 2️⃣ Link it to parent report
     report.accomplishments.push(subAcc._id);
-
-    // 3️⃣ Update totals automatically (basic version)
-    report.grandTotal += awardedPoints || 0;
-
     await report.save();
-
-    // 4️⃣ Return populated version
-    const updatedReport = await Accomplishment.findById(report._id).populate(
-      "organization organizationProfile accomplishments documentRefs"
-    );
 
     return res.status(201).json({
       message: "Sub-accomplishment added successfully.",
       subAccomplishment: subAcc,
-      report: updatedReport,
     });
   } catch (error) {
     console.error("❌ Error adding sub-accomplishment:", error);

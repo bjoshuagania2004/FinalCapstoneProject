@@ -156,6 +156,7 @@ router.get(
   "/getStudentLeaderProposalById/:accreditationId",
   Controller.getStudentPpaByAccreditationId
 );
+
 router.post("/postStudentLeaderProposal", Controller.postStudentLeaderProposal);
 router.delete("/deleteProposalConduct/:id", Controller.deleteProposalConduct);
 router.put(
@@ -197,6 +198,9 @@ router.post(
   Controller.uploadFileAndAddDocument,
   Controller.AddNewRosterMember
 );
+
+/* ********** STUDENT LEADER ACCOMPLISHMENT ********** */
+router.post("/addAccomplishment", Controller.addAccomplishment);
 
 /* ********** STUDENT LEADER PRESIDENT ********** */
 router.post("/addPresident", Controller.AddPresident);

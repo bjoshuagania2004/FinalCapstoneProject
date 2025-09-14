@@ -2,39 +2,25 @@ import mongoose from "mongoose";
 const { Schema } = mongoose;
 
 // Sub-schema for Program/Project/Activity, Meetings, etc.
-const subAccomplishmentSchema = new Schema(
+export const subAccomplishmentSchema = new Schema(
   {
     category: {
       type: String,
-      enum: [
-        "PPA", // Program, Projects, and Activities
-        "Meetings",
-        "Documents",
-        "InstitutionalInvolvement",
-        "Awards",
-        "Outreach",
-      ],
       required: true,
     },
     title: String,
     description: String,
     date: Date,
-
+    proposal: { type: Schema.Types.ObjectId, ref: "ProposalsConduct" },
     // For Awards specifically
     level: {
       type: String,
-      enum: ["International", "National", "Regional", "Institutional", "Local"],
     },
-    numberOfAwardees: Number, // useful for auto-computing score tiers
-
-    // For PPAs and Outreach
-    isApprovedActionPlan: { type: Boolean, default: false },
 
     // Documents
-    documentRefs: [{ type: Schema.Types.ObjectId, ref: "Document" }],
+    documents: [{ type: Schema.Types.ObjectId, ref: "Document" }],
 
     // Scoring
-    maxPoints: Number,
     awardedPoints: { type: Number, default: 0 },
   },
   { timestamps: true }
