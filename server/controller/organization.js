@@ -36,14 +36,6 @@ export const PostOrganizationalLogo = async (req, res) => {
       });
     }
 
-    console.log({
-      message: "Organization logo updated successfully",
-      data: {
-        orgId: updatedOrganization._id,
-        orgLogo: updatedOrganization.orgLogo,
-      },
-    });
-
     res.status(200).json({
       success: true,
       message: "Organization logo updated successfully",
@@ -66,7 +58,6 @@ export const PostStatusUpdateOrganization = async (req, res) => {
   try {
     const { orgId, overAllStatus, revisionNotes } = req.body;
 
-    console.log(req.body);
     // Validate input
     if (!orgId) {
       return res.status(400).json({

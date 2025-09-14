@@ -79,9 +79,6 @@ export const AddReceipt = async (req, res) => {
 
     const documentId = res.locals.documentId;
 
-    console.log("📥 Form Data:", req.body);
-    console.log("🧾 Linked Document ID:", documentId);
-
     // Create and save the receipt
     const newReceipt = new Receipt({
       description,

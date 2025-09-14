@@ -7,7 +7,7 @@ import {
 import { AdviserSchema, userSchema } from "./users.js";
 import {
   proposalConductSchema,
-  proposalSchema,
+  proposedIndividualActionPlanSchema,
   ProposedActionPlanSchema,
 } from "./proposals.js";
 import { documentSchema } from "./document.js";
@@ -21,7 +21,10 @@ const User = mongoose.model("Users", userSchema);
 const Adviser = mongoose.model("Advisers", AdviserSchema);
 const Receipt = mongoose.model("Receipts", ReceiptSchema);
 const Document = mongoose.model("Documents", documentSchema);
-const Proposal = mongoose.model("Proposals", proposalSchema);
+const Proposal = mongoose.model(
+  "Proposals",
+  proposedIndividualActionPlanSchema
+);
 const ProposalConduct = mongoose.model(
   "ProposalsConduct",
   proposalConductSchema
@@ -31,6 +34,10 @@ const RosterMember = mongoose.model("RosterMembers", rosterMembersSchema);
 const Organization = mongoose.model("Organizations", organizationSchema);
 const Accreditation = mongoose.model("Accreditations", accreditationSchema);
 const Accomplishment = mongoose.model("Accomplishments", accomplishmentSchema);
+const SubAccomplishment = mongoose.model(
+  "SubAccomplishment",
+  accomplishmentSchema
+);
 
 const ProposedActionPlan = mongoose.model(
   "ProposedActionPlan",
@@ -62,6 +69,7 @@ export {
   ProposalConduct,
   Accreditation,
   Accomplishment,
+  SubAccomplishment,
   ProposedActionPlan,
   FinancialReport,
   PresidentProfile,

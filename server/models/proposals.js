@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
-export const proposalSchema = new Schema(
+export const proposedIndividualActionPlanSchema = new Schema(
   {
     organization: { type: Schema.Types.ObjectId, ref: "Organization" },
 
@@ -56,10 +56,7 @@ export const proposalConductSchema = new Schema(
       ref: "ProposedActionPlan",
     },
 
-    ProposedIndividualActionPlan: {
-      type: Schema.Types.ObjectId,
-      ref: "Proposals",
-    },
+    ProposedIndividualActionPlan: Object,
 
     overallStatus: { type: String, default: "Pending" },
 

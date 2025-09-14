@@ -195,8 +195,6 @@ export const ChangePasswordAdviser = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    console.log(req.body);
-    console.log(req.params);
     // 🔒 Hash password
     // const hashedPassword = await bcrypt.hash(newPassword, 10);
 

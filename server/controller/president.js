@@ -104,13 +104,6 @@ export const UpdatePresidentProfileStatus = async (req, res) => {
   const { presidentId } = req.params;
   const { overallStatus, revisionNotes } = req.body;
 
-  console.log(
-    "Updating president profile with ID:",
-    presidentId,
-    "to status:",
-    overallStatus
-  );
-
   if (!presidentId) {
     return res.status(400).json({ message: "President ID is required." });
   }
@@ -199,7 +192,6 @@ export const UpdatePresidentProfile = async (req, res) => {
       { profilePicture: file }, // or file.originalname if you prefer the original name
       { new: true }
     );
-    console.log("Updated Profile:", updatedProfile.profilePicture);
 
     if (!updatedProfile) {
       return res.status(404).json({ message: "President profile not found." });
@@ -209,9 +201,7 @@ export const UpdatePresidentProfile = async (req, res) => {
       message: "Profile picture updated successfully",
       profile: updatedProfile,
     });
-    console.log("error1");
   } catch (error) {
-    console.log("error2");
     console.log("Error updating profile picture:", error);
     res.status(500).json({ message: "Server error", error });
   }
