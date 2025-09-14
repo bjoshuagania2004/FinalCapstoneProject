@@ -105,45 +105,52 @@ export default function StudentLeaderRosters({ orgData }) {
   ];
 
   return (
-    <div className="p-4 flex flex-col bg-gray-50 min-h-screen">
-      <div className="flex w-full justify-between items-center mb-6">
-        <div className="">
-          <h1 className="text-2xl font-bold text-gray-900">
-            Roster Management
-          </h1>
-          <h1 className="text-sm font-bold text-gray-900">
-            Status: {rosterData.roster.isComplete ? "Complete" : "Not Complete"}
-          </h1>
-        </div>
-        {/* Dropdown Container */}
-        <div className="relative  dropdown-container">
-          <MoreHorizontal
-            size={32}
-            onClick={() => setShowDropdown(!showDropdown)}
-          >
-            Actions
-          </MoreHorizontal>
+    <div className="p-4 flex flex-col bg-gray-cnsc- min-h-screen">
+      {/* Outer Container for Roster Management */}
+      <div className=" rounded-l-xl shadow-md p-6 bg-gray-500 ">
+        <div className="flex w-full justify-between items-center  ">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Roster Management
+            </h1>
+            <h1 className="text-sm font-bold text-gray-900">
+              Status:{" "}
+              {rosterData.roster.isComplete ? "Complete" : "Not Complete"}
+            </h1>
+          </div>
 
-          {/* Dropdown Menu */}
-          {showDropdown && (
-            <div className="absolute right-0 rounded-b-lg w-64 bg-white shadow-lg border border-gray-300 z-10">
-              <div className="flex flex-col gap-1">
-                {dropdownItems.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => handleDropdownAction(item.id)}
-                    className="w-full text-left px-4 py-3  flex hover:bg-amber-200 items-center gap-3 transition-colors duration-300"
-                  >
-                    <span className="text-lg">{item.icon}</span>
-                    <span className={`font-medium text-black`}>
-                      {item.label}
-                    </span>
-                  </button>
-                ))}
+          {/* Dropdown Container */}
+          <div className="relative dropdown-container">
+            <MoreHorizontal
+              size={32}
+              onClick={() => setShowDropdown(!showDropdown)}
+              className="cursor-pointer"
+            />
+
+            {/* Dropdown Menu */}
+            {showDropdown && (
+              <div className="absolute right-0 rounded-lg w-64 bg-white shadow-lg border border-gray-300 z-10">
+                <div className="flex flex-col gap-1">
+                  {dropdownItems.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => handleDropdownAction(item.id)}
+                      className="w-full text-left px-4 py-3 flex hover:bg-amber-200 items-center gap-3 transition-colors duration-300"
+                    >
+                      <span className="text-lg">{item.icon}</span>
+                      <span className="font-medium text-black">
+                        {item.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
+
+        {/* Future Content Goes Here */}
+        <div>{/* You can add roster table, members list, etc. */}</div>
       </div>
 
       {!rosterData || rosterMembers.length === 0 ? (
@@ -161,7 +168,7 @@ export default function StudentLeaderRosters({ orgData }) {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-6 overflow-auto">
+        <div className="mt-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-6 overflow-auto">
           {rosterMembers.map((member) => (
             <RosterMemberCard
               key={member._id}

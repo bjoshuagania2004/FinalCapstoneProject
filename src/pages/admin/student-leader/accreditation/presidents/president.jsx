@@ -259,7 +259,7 @@ const CurrentPresidentCard = ({ currentPresident, orgData }) => {
   return (
     <div className=" mx-auto bg-white ">
       {/* Header Section */}
-      <div className="bg-blue-600 px-6 py-8">
+      <div className="bg-gray-600 px-6 py-8">
         <div className="flex flex-col md:flex-row items-center gap-6">
           {/* Profile Image */}
           <div
