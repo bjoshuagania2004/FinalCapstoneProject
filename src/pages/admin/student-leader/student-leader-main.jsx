@@ -17,11 +17,7 @@ import {
   Clock,
   LogOut,
   X,
-  CameraIcon,
   Plus,
-  Bell,
-  MessageSquare,
-  HelpCircle,
 } from "lucide-react";
 
 import axios from "axios";

@@ -1,4 +1,12 @@
-import { Award, FileText, Calendar, X, AlertCircle } from "lucide-react";
+import {
+  Award,
+  FileText,
+  Calendar,
+  X,
+  AlertCircle,
+  File,
+  FileTextIcon,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { API_ROUTER, DOCU_API_ROUTER } from "../../../../App";
 import axios from "axios";
@@ -90,8 +98,8 @@ export function StudentAccomplishmentDetailed({
       {loading ? (
         // 🔄 Loading State
         <div className="h-full flex flex-col items-center justify-center text-center p-6">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p className="text-gray-500">Loading accomplishment details...</p>
+          <FileTextIcon className="h-12 w-full text-gray-500 mb-4" />
+          <p className="text-gray-500">Select Accomplishments</p>
         </div>
       ) : selectedAccomplishment ? (
         <div className="flex flex-col h-full w-full p-4 overflow-auto">
