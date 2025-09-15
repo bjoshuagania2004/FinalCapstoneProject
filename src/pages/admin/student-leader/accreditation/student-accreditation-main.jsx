@@ -157,19 +157,19 @@ export default function StudentAccreditationMainComponent({ orgId }) {
   }
 
   return (
-    <div className="h-full mt-4 -t-2xl overflow-auto">
+    <div className="h-full mt-4 overflow-auto">
       <div className="w-full">
         {/* Main Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+        <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-7 gap-2">
           <div className="lg:col-span-2 xl:col-span-3">
             <OverallStatus accreditationData={accreditationData} />
           </div>
 
-          <div className="lg:col-span-1 xl:col-span-2">
+          <div className="lg:col-span-2 ">
             <PresidentInformation accreditationData={accreditationData} />
           </div>
 
-          <div className="lg:col-span-2">
+          <div className="col-span-2">
             <DocumentDisplayCard
               accreditationData={accreditationData}
               uploadingDocType={uploadingDocType}
@@ -182,7 +182,7 @@ export default function StudentAccreditationMainComponent({ orgId }) {
             />
           </div>
 
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-7">
             <RosterLists accreditationData={accreditationData} />
           </div>
         </div>
@@ -352,7 +352,7 @@ function ErrorState({ error, onRetry }) {
   </div>;
 }
 
-function OverallStatus({ accreditationData }) {
+function OverallStatus({ accreditationData, setUploadingDocType }) {
   const { overallStatus } = accreditationData;
 
   const requirements = [
@@ -400,12 +400,7 @@ function OverallStatus({ accreditationData }) {
         <h2 className="text-2xl font-bold text-gray-900">
           Accreditation Status
         </h2>
-        <div
-          className={`px-4 py-2 -full flex items-center gap-2 ${getStatusColor(
-            overallStatus
-          )}`}
-        >
-          {getStatusIcon(overallStatus)}
+        <div className={`px-4 py-2 -full flex items-center gap-2 `}>
           <span className="font-medium">{overallStatus}</span>
         </div>
       </div>
@@ -440,11 +435,7 @@ function OverallStatus({ accreditationData }) {
               <FileText className="w-5 h-5 text-gray-400" />
               <span className="font-medium text-gray-900">{req.name}</span>
             </div>
-            <div
-              className={`px-3 py-1 -full text-sm flex items-center gap-2 ${getStatusColor(
-                req.status
-              )}`}
-            >
+            <div className={`px-3 py-1 -full text-sm flex items-center gap-2 `}>
               {getStatusIcon(req.status)}
               <span>{req.status}</span>
             </div>
@@ -558,31 +549,29 @@ function DocumentDisplayCard({ accreditationData, setUploadingDocType }) {
   const renderDocumentCard = (label, doc, key) => {
     if (doc && doc.fileName) {
       return (
-        <div className="border border-gray-200  p-4 hover:bg-gray-50 transition-colors">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <FileText className="w-8 h-8 text-blue-600" />
-              <div>
-                <h3 className="font-medium text-gray-900">{label}</h3>
-                <p className="text-sm text-gray-500">{doc.fileName}</p>
-                <p className="text-xs text-gray-400">
-                  Uploaded: {new Date(doc.createdAt).toLocaleDateString()}
-                </p>
-              </div>
+        <div className="flex flex-col gap-4 border-2 border-gray-400 bg-white shadow-md  p-4 justify-between">
+          <div className="flex items-center gap-3">
+            <FileText className="min-w-8 min- h-8 text-blue-600" />
+            <div>
+              <h3 className="font-medium text-gray-900">{label}</h3>
+              <p className="text-sm text-gray-500">{doc.fileName}</p>
+              <p className="text-xs text-gray-400">
+                Uploaded: {new Date(doc.createdAt).toLocaleDateString()}
+              </p>
             </div>
-            <div className="flex items-center gap-2">
-              <div
-                className={`px-2 py-1 -full text-xs flex items-center gap-1 ${getStatusColor(
-                  doc.status
-                )}`}
-              >
-                {getStatusIcon(doc.status)}
-                <span>{doc.status}</span>
-              </div>
-              <button className="p-2 text-gray-400 hover:text-gray-600">
-                <Download className="w-4 h-4" />
-              </button>
+          </div>
+          <div className="flex items-center justify-end gap-2">
+            <div
+              className={`px-2 py-1 -full text-xs flex items-center gap-1 ${getStatusColor(
+                doc.status
+              )}`}
+            >
+              {getStatusIcon(doc.status)}
+              <span>{doc.status}</span>
             </div>
+            <button className="p-2 text-gray-400 hover:text-gray-600">
+              <Download className="w-4 h-4" />
+            </button>
           </div>
         </div>
       );
@@ -591,7 +580,7 @@ function DocumentDisplayCard({ accreditationData, setUploadingDocType }) {
     return (
       <div
         onClick={() => setUploadingDocType(key)}
-        className="border-2 border-dashed border-gray-300  p-8 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
+        className="border-2 border-dashed  border-gray-300  p-8 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
       >
         <div className="text-center">
           <Upload className="w-8 h-8 mx-auto text-gray-400 mb-2" />
@@ -603,13 +592,13 @@ function DocumentDisplayCard({ accreditationData, setUploadingDocType }) {
   };
 
   return (
-    <div className="bg-white  border border-gray-400 p-6 h-full">
+    <div className="flex  flex-col  w-full  bg-white  border border-gray-400 p-6 h-full">
       <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
         <FileText className="w-5 h-5" />
         Required DocumentDisplayCard
       </h2>
 
-      <div className="space-y-4">
+      <div className="flex  flex-col space-y-4">
         {renderDocumentCard(
           "Joint Statement",
           JointStatement,

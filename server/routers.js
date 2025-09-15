@@ -128,6 +128,11 @@ router.post(
   Controller.uploadFileAndAddDocument,
   Controller.AddReceipt
 );
+router.post(
+  "/addReciept",
+  Controller.uploadFileAndAddDocument,
+  Controller.AddReceipt
+);
 
 /* **********  STUDENT LEADER ACCREDITATION ********** */
 router.get(
@@ -201,6 +206,16 @@ router.post(
 
 /* ********** STUDENT LEADER ACCOMPLISHMENT ********** */
 router.post("/addAccomplishment", Controller.addAccomplishment);
+router.put(
+  "/StudentUpdateAccomplishmentDcument/:id",
+  Controller.uploadFileAndUpdateDocument,
+  Controller.updateAccomplishment
+);
+router.post(
+  "/addDocumentAccomplishment",
+  Controller.uploadFileAndAddDocument,
+  Controller.AddDocumentToSubAccomplishment
+);
 
 /* ********** STUDENT LEADER PRESIDENT ********** */
 router.post("/addPresident", Controller.AddPresident);
