@@ -636,10 +636,16 @@ export default function AddStudentPresident({
 
       {/* Step Indicator - Centered */}
       <div className="relative flex items-center justify-between w-full max-w-2xl mx-auto mb-8">
-        {/* Background Line (behind all circles) */}
-        <div className="absolute top-7 left-11 right-11  h-1 bg-gray-300 transform -translate-y-1/2 z-0" />
+        {/* Background Line (behind all circles, trimmed to circle centers) */}
+        <div
+          className="absolute top-7 h-1 bg-gray-300 transform -translate-y-1/2 z-0"
+          style={{
+            left: "calc(6rem / 2)", // half of circle width (w-12 = 3rem)
+            right: "calc(6rem / 2)", // trims at last circle center
+          }}
+        />
 
-        {steps.map((stepItem, index) => {
+        {steps.map((stepItem) => {
           const isActive = step === stepItem.id;
           const isCompleted = step > stepItem.id;
 
@@ -651,17 +657,16 @@ export default function AddStudentPresident({
               {/* Circle with number */}
               <div
                 className={`flex items-center justify-center w-12 h-12 rounded-full border-2 text-lg font-bold
-                ${
-                  isActive
-                    ? "bg-blue-600 border-blue-600 text-white"
-                    : isCompleted
-                    ? "bg-green-500 border-green-500 text-white"
-                    : "bg-gray-300 border-gray-300 text-gray-700"
-                }
-              `}
+              ${
+                isActive
+                  ? "bg-blue-600 border-blue-600 text-white"
+                  : isCompleted
+                  ? "bg-green-500 border-green-500 text-white"
+                  : "bg-gray-300 border-gray-300 text-gray-700"
+              }
+            `}
               >
                 {isCompleted ? (
-                  // Check icon for completed steps
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="w-6 h-6"
@@ -693,12 +698,16 @@ export default function AddStudentPresident({
           );
         })}
 
-        {/* Progress Line Overlay */}
+        {/* Progress Line Overlay (trimmed to circle centers) */}
         <div
-          className={`absolute top-7 left-11 right h-1 transform -translate-y-1/2 z-0 transition-all duration-300 
-    ${step > 1 ? "bg-green-500" : "bg-blue-600"}`}
+          className={`absolute top-7 h-1 transform -translate-y-1/2 z-0 transition-all duration-300 ${
+            step > 1 ? "bg-green-500" : "bg-blue-600"
+          }`}
           style={{
-            width: `${((step - 1) / (steps.length - 1)) * 100}%`,
+            left: "calc(6rem / 2)", // start at first circle center
+            width: `calc(((100% - 6rem) / (${steps.length - 1})) * ${
+              step - 1
+            })`,
           }}
         />
       </div>

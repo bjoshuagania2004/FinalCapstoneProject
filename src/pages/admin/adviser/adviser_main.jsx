@@ -135,9 +135,10 @@ function AdviserNavigation({ orgData }) {
       : "";
 
   return (
-    <div className="h-full w-full flex-col flex">
-      <div className="text-white  px-2 py-4 gap-4 font-bold flex items-center  hover:cursor-pointer">
-        <div className="my-1 ml-3 w-15 aspect-square rounded-full bg-cnsc-secondary-color flex items-center justify-center text-2xl cursor-pointer overflow-hidden hover:bg-white hover:text-cnsc-primary-color transition-all duration-500">
+    <div className="h-full w-full flex flex-col">
+      {/* Header with Org Logo + Name */}
+      <div className="text-white mt-2 mb-4 font-bold flex items-center space-x-4 hover:cursor-pointer">
+        <div className="my-1 ml-3 w-15 aspect-square rounded-full bg-cnsc-secondary-color flex items-center justify-center cursor-pointer overflow-hidden group relative">
           {imageSrc ? (
             <img
               src={imageSrc}
@@ -163,64 +164,71 @@ function AdviserNavigation({ orgData }) {
         <h1>{orgData.orgName || "Organization"}</h1>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex flex-col h-full flex-1  gap-2">
-        {[
-          {
-            key: "home",
-            icon: <Home className="mr-3 w-5 h-5" />,
-            label: "Reports / Dashboard",
-            path: "/adviser",
-          },
-          {
-            key: "accreditations",
-            icon: <FolderOpen className="mr-3 w-5 h-5" />,
-            label: "Accreditations",
-            path: "/adviser/accreditation",
-          },
-          {
-            key: "accomplishments",
-            icon: <File className="mr-3 w-5 h-5" />,
-            label: "Accomplishments",
-            path: "/adviser/accomplishment",
-          },
-          {
-            key: "proposals",
-            icon: <FileText className="mr-3 w-5 h-5" />,
-            label: "Proposals",
-            path: "/adviser/proposal",
-          },
-          {
-            key: "post",
-            icon: <PenSquare className="mr-3 w-5 h-5" />,
-            label: "Post",
-            path: "/adviser/post",
-          },
-          {
-            key: "logs",
-            icon: <Clock className="mr-3 w-5 h-5" />,
-            label: "Logs",
-            path: "/adviser/log",
-          },
-        ].map((item) => (
-          <NavLink
-            key={item.key}
-            to={item.path}
-            end={item.key === "home"}
-            className={({ isActive }) =>
-              `flex items-center   py-4 px-6 text-lg font-medium transition-all duration-300 ${
-                isActive
-                  ? "bg-white text-cnsc-primary-color shadow-md"
-                  : "text-white hover:bg-amber-500/90 hover:pl-8"
-              }`
-            }
-          >
-            {item.icon}
-            {item.label}
-          </NavLink>
-        ))}
-      </nav>
-      <LogoutButton />
+      {/* Navigation + Logout */}
+      <div className="flex flex-col flex-1">
+        {/* Navigation */}
+        <nav className="flex flex-col gap-1 mx-2">
+          {[
+            {
+              key: "home",
+              icon: <Home className="mr-3 w-5 h-5" />,
+              label: "Reports / Dashboard",
+              path: "/adviser",
+            },
+            {
+              key: "accreditations",
+              icon: <FolderOpen className="mr-3 w-5 h-5" />,
+              label: "Accreditations",
+              path: "/adviser/accreditation",
+            },
+            {
+              key: "accomplishments",
+              icon: <File className="mr-3 w-5 h-5" />,
+              label: "Accomplishments",
+              path: "/adviser/accomplishment",
+            },
+            {
+              key: "proposals",
+              icon: <FileText className="mr-3 w-5 h-5" />,
+              label: "Proposals",
+              path: "/adviser/proposal",
+            },
+            {
+              key: "post",
+              icon: <PenSquare className="mr-3 w-5 h-5" />,
+              label: "Post",
+              path: "/adviser/post",
+            },
+            {
+              key: "logs",
+              icon: <Clock className="mr-3 w-5 h-5" />,
+              label: "Logs",
+              path: "/adviser/log",
+            },
+          ].map((item) => (
+            <NavLink
+              key={item.key}
+              to={item.path}
+              end={item.key === "home"}
+              className={({ isActive }) =>
+                `flex items-center rounded-xl py-4 px-6 text-lg font-medium transition-all duration-300 ${
+                  isActive
+                    ? "bg-white text-cnsc-primary-color shadow-md"
+                    : "text-white hover:bg-amber-500/90 hover:pl-8"
+                }`
+              }
+            >
+              {item.icon}
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+
+        {/* Logout Button pinned at bottom */}
+        <div className="mt-auto mx-2 mb-4">
+          <LogoutButton />
+        </div>
+      </div>
     </div>
   );
 }
@@ -440,7 +448,7 @@ function LogoutButton() {
       {/* Logout Button */}
       <div
         onClick={handleLogoutClick}
-        className="flex gap-2 items-center justify-evenly text-xl text-cnsc-primary-color font-bold px-4 w-full bg-white border-12 border-cnsc-primary-color py-2  hover:text-cnsc-secondary-color transition-all duration-500 cursor-pointer  hover:border-white"
+        className="flex gap-2 items-center justify-center text-xl text-cnsc-primary-color font-bold px-4 w-full bg-white border-12 border-cnsc-primary-color py-2  hover:text-cnsc-secondary-color transition-all duration-500 cursor-pointer  hover:border-white"
       >
         <LogOut size={16} />
         Logout
