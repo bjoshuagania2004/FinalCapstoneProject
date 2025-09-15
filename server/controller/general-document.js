@@ -22,7 +22,7 @@ const storage = multer.diskStorage({
   filename: (req, file, cb) => {
     const timestamp = Date.now();
     const safeName = file.originalname.replace(/\s+/g, "_");
-    cb(null, `${timestamp}-${safeName}`);
+    cb(null, `${timestamp}_${safeName}`);
   },
 });
 
@@ -101,4 +101,90 @@ export const getDocuments = async (req, res) => {
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
+};
+
+export const deleteDocument = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Find the document first
+    const document = await Document.findById(id);
+    if (!document) {
+      return res.status(404).json({ error: "Document not found" });
+    }
+
+    // Build the file path
+    const uploadPath = path.join(
+      process.cwd(),
+      "./uploads",
+      document.organizationProfile || "default-folder",
+      document.fileName
+    );
+
+    // Delete the file if it exists
+    if (fs.existsSync(uploadPath)) {
+      fs.unlinkSync(uploadPath);
+    }
+
+    // Delete the document from MongoDB
+    await Document.findByIdAndDelete(id);
+
+    return res.status(200).json({ message: "Document deleted successfully" });
+  } catch (error) {
+    return res.status(500).json({
+      error: "Failed to delete document",
+      details: error.message,
+    });
+  }
+};
+
+export const uploadFileAndUpdateDocument = async (req, res, next) => {
+  const { id } = req.params;
+
+  upload.single("file")(req, res, async (err) => {
+    if (err) {
+      return res
+        .status(500)
+        .json({ error: "File upload failed", details: err.message });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: "File is required" });
+    }
+
+    try {
+      // Find existing document
+      const document = await Document.findById(id);
+      if (!document) {
+        return res.status(404).json({ error: "Document not found" });
+      }
+
+      // Build old file path
+      const oldFilePath = path.join(
+        process.cwd(),
+        "./uploads",
+        String(document.organizationProfile) || "default-folder",
+        document.fileName
+      );
+
+      // Delete old file if it exists
+      if (fs.existsSync(oldFilePath)) {
+        fs.unlinkSync(oldFilePath);
+      }
+
+      // Update with new file info
+      res.locals.fileName = document.fileName;
+
+      document.fileName = req.file.filename;
+
+      await document.save();
+
+      next();
+    } catch (error) {
+      return res.status(500).json({
+        error: "Failed to replace document file",
+        details: error.message,
+      });
+    }
+  });
 };

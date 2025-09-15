@@ -18,9 +18,15 @@ export const subAccomplishmentSchema = new Schema(
     },
 
     // Documents
-    documents: [{ type: Schema.Types.ObjectId, ref: "Document" }],
+    documents: [{ type: Schema.Types.ObjectId, ref: "Documents" }],
 
-    // Scoring
+    organization: { type: Schema.Types.ObjectId, ref: "Organization" },
+    // Scoring    organization: { type: Schema.Types.ObjectId, ref: "Organization" },
+    organizationProfile: {
+      type: Schema.Types.ObjectId,
+      ref: "OrganizationProfile",
+    },
+
     awardedPoints: { type: Number, default: 0 },
   },
   { timestamps: true }

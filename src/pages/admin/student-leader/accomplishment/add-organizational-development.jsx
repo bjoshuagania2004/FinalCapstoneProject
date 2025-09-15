@@ -16,6 +16,8 @@ export function OrganizationalDevelopmentModal({
     description: "",
     proposal: "",
     accomplishmentId,
+    organization: orgData?.organization, // 👈 Add orgId here
+    organizationProfile: orgData?._id || "", // 👈 If you also want profileId
   });
 
   // Category options based on the requirements
@@ -25,11 +27,8 @@ export function OrganizationalDevelopmentModal({
       label: "Programs, Projects, and Activities (PPAs)",
     },
     { value: "Meetings & Assemblies", label: "Meetings & Assemblies" },
-    {
-      value: "Quality of Required Documents",
-      label: "Quality of Required Documents",
-    },
     { value: "Institutional Involvement", label: "Institutional Involvement" },
+    { value: "External Activities", label: "External Activities" },
   ];
 
   const handleChange = (e) => {
@@ -82,11 +81,12 @@ export function OrganizationalDevelopmentModal({
 
   return (
     <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl shadow-lg p-6 w-[32rem] max-h-[90vh] overflow-y-auto">
+      <div className="bg-white relative rounded-2xl shadow-lg p-6 w-[32rem] max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-bold">Add Organizational Development</h2>
-          <button onClick={onClose}>
+        <div className="flex flex-col just-start mb-4">
+          <h2 className="text-xl mb-2 font-bold">Add Accomplishment</h2>
+
+          <button onClick={onClose} className="absolute top-4 right-4">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -171,7 +171,10 @@ export function OrganizationalDevelopmentModal({
               }
             />
           </div>
-
+          <p className="text-sm italic text-gray-500">
+            Note: This entry serves as an initial submission intent of an
+            accomplishment. Additional details will be provided as required.
+          </p>
           {/* Buttons */}
           <div className="flex justify-end gap-3 mt-4">
             <button
@@ -183,7 +186,7 @@ export function OrganizationalDevelopmentModal({
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded-lg bg-blue-600 text-white"
+              className="px-4 py-2 rounded-lg bg-amber-600 text-white"
             >
               Save
             </button>
