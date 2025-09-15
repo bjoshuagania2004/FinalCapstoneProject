@@ -276,7 +276,7 @@ function DekstopNavigation({ scrollToSection }) {
   return (
     <div className="relative h-screen w-screen overflow-x-hidden">
       {/* Fixed Navigation Bar */}
-      <div className="fixed top-0 left-0 w-full z-50 text-black font-bold">
+      <div className="fixed top-0 left-0 w-full z-50 text-white font-bold">
         <div className="h-16 flex justify-end items-center px-16">
           <nav className="hidden md:flex items-center justify-center space-x-8 py-4">
             <button
@@ -322,7 +322,7 @@ function DekstopNavigation({ scrollToSection }) {
               CNSC
             </p>
             <p className="stroked-text-codex text-[100px] -mt-6">CODEX</p>
-            <h1 className="text-white text-2xl font-bold italic mt-4">
+            <h1 className="text-white text-2xl font-bold italic mt-2 mb-5">
               Document Tracking and Data Management for Student Organizations
             </h1>
           </div>

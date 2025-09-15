@@ -12,10 +12,7 @@ export const upload = multer({ storage });
 **********                                **********
 **********                                ********** 
 */
-router.get(
-  "/getOrganizations/:deliveryUnit",
-  Controller.GetOrganizationsByDeliveryUnit
-);
+router.post("/getOrganizations", Controller.GetOrganizationsByDeliveryUnit);
 router.post("/financialReportInquiry", Controller.SendFinancialEmailInquiry);
 router.get("/getAllUser", Controller.GetUsers);
 router.post(

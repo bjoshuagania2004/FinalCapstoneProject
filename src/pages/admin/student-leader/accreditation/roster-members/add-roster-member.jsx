@@ -340,8 +340,11 @@ export default function AddRosterForm({ onClose, orgData, onMemberAdded }) {
                       type="radio"
                       name="position"
                       value="Officer"
-                      checked={rosterData.rosterMember.position === "Officer"}
-                      onChange={(e) => updateMember("position", e.target.value)}
+                      checked={
+                        rosterData.rosterMember.position !== "Member" &&
+                        rosterData.rosterMember.position !== ""
+                      }
+                      onChange={() => updateMember("position", "Officer")}
                       className="mr-2"
                     />
                     Officer
@@ -358,30 +361,32 @@ export default function AddRosterForm({ onClose, orgData, onMemberAdded }) {
                     Member
                   </label>
                 </div>
+
+                {/* Officer Role Textbox */}
+                {rosterData.rosterMember.position !== "Member" &&
+                  rosterData.rosterMember.position !== "" && (
+                    <div className="mt-3">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Officer Role <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={
+                          rosterData.rosterMember.position !== "Member"
+                            ? rosterData.rosterMember.position
+                            : ""
+                        }
+                        onChange={(e) =>
+                          updateMember("position", e.target.value)
+                        }
+                        placeholder="Enter officer role (e.g., President, Secretary)"
+                        className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                  )}
+
                 {errors.position && (
                   <p className="text-red-500 text-sm mt-1">{errors.position}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Contact Number
-                </label>
-                <input
-                  type="tel"
-                  value={rosterData.rosterMember.contactNumber}
-                  onChange={(e) =>
-                    updateMember("contactNumber", e.target.value)
-                  }
-                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.contactNumber ? "border-red-500" : "border-gray-300"
-                  }`}
-                  placeholder="Enter contact number"
-                />
-                {errors.contactNumber && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.contactNumber}
-                  </p>
                 )}
               </div>
 

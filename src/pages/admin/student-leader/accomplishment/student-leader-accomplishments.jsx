@@ -335,41 +335,55 @@ export function StudentLeaderAccomplishmentReport({ orgData }) {
 
 function AccomplishmentChoiceModal({ onClose, onSelect }) {
   return (
-    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-slate-200 rounded-2xl shadow-lg p-4 w-1/3 text-center">
-        <h2 className="text-lg font-bold mb-4">Choose Upload Type</h2>
-        <div className="flex flex-col gap-4 text-left">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg">
+        {/* Title */}
+        <h2 className="text-xl font-bold text-gray-800 text-center mb-6">
+          Choose Upload Type
+        </h2>
+
+        {/* Options */}
+        <div className="flex flex-col gap-4">
           {/* Organizational Development */}
           <div
-            className="flex gap-4 bg-white rounded-xl shadow-md hover:cursor-pointer"
             onClick={() => onSelect("Organizational Development")}
+            className="flex items-center gap-4 bg-gray-50 rounded-xl border border-gray-200 p-4 hover:shadow-md hover:border-blue-400 transition cursor-pointer"
           >
-            <button className="w-full px-4 py-2 flex-1 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">
-              Organizational Development
-            </button>
-            <p className="p-4 flex-1/3 text-sm text-gray-600">
-              Covers Programs, Projects & Activities (PPAs), Meetings, and
-              Institutional Involvement.
-            </p>
+            <div className="bg-blue-100 text-blue-600 rounded-full p-3">📊</div>
+            <div className="flex flex-col">
+              <h3 className="text-base font-semibold text-gray-800">
+                Organizational Development
+              </h3>
+              <p className="text-sm text-gray-600">
+                Covers Programs, Projects & Activities (PPAs), Meetings, and
+                Institutional Involvement.
+              </p>
+            </div>
           </div>
 
+          {/* Organizational Performance */}
           <div
-            className="flex gap-4 bg-white rounded-xl shadow-md hover:cursor-pointer"
             onClick={() => onSelect("Organizational Performance")}
+            className="flex items-center gap-4 bg-gray-50 rounded-xl border border-gray-200 p-4 hover:shadow-md hover:border-emerald-400 transition cursor-pointer"
           >
-            <button className="px-4 py-2 flex-1 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 transition">
-              Organizational Performance
-            </button>
-            <p className="p-4 flex-1/3 text-sm text-gray-600">
-              Focuses on awards, recognition, and achievements of the
-              organization and its members.
-            </p>
+            <div className="bg-emerald-100 text-emerald-600 rounded-full p-3">
+              🏆
+            </div>
+            <div className="flex flex-col">
+              <h3 className="text-base font-semibold text-gray-800">
+                Organizational Performance
+              </h3>
+              <p className="text-sm text-gray-600">
+                Focuses on awards, recognition, and achievements of the
+                organization and its members.
+              </p>
+            </div>
           </div>
 
           {/* Cancel */}
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-medium hover:bg-gray-300 transition"
+            className="px-6 py-2 rounded-lg bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 transition"
           >
             Cancel
           </button>
