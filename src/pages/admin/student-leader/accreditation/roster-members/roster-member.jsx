@@ -311,6 +311,7 @@ const RosterMemberCard = ({ member, orgId }) => {
           Name: {member.name}
         </h3>
         <p className="text-sm font-medium text-indigo-600">{member.position}</p>
+
         <p className="text-sm text-gray-600">{member.email}</p>
         <p className="text-sm text-gray-600">{member.contactNumber}</p>
         <p className="text-sm text-gray-500">{member.address}</p>
