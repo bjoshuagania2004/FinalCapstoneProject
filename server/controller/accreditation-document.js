@@ -3,6 +3,7 @@ import {
   Document,
   OrganizationProfile,
   Adviser,
+  User,
 } from "../models/index.js";
 
 export const GetAccreditationDocuments = async (req, res) => {
@@ -259,5 +260,70 @@ export const GetAccreditationDetails = async (req, res) => {
   } catch (error) {
     console.error("Error handling accreditation request:", error);
     res.status(500).json({ error: "Server error" });
+  }
+};
+
+export const SendAccreditationDocumentsInquiryEmailInquiry = async (
+  req,
+  res
+) => {
+  try {
+    const {
+      orgId,
+      orgName,
+      inquiryText,
+      inquirySubject,
+      userPosition,
+      userName,
+    } = req.body;
+
+    // Find the active user linked to the organization profile, return only email
+    const recipients = await User.find({
+      organizationProfile: orgId,
+      position: { $ne: "Adviser" }, // exclude advisers
+    }).select("email");
+
+    if (!recipients || !recipients.email) {
+      return res.status(404).json({
+        success: false,
+        error: "recipients email not found.",
+      });
+    }
+
+    // --- Email to Adviser ---
+    const Subject = inquirySubject || "New Financial Report Inquiry";
+    const Message = `
+Hello ${orgName},
+
+A new inquiry has been submitted regarding a transaction in your organization's financial report.
+
+Transaction Details:
+- Type: ${type}
+- Description: ${description}
+- Amount: ₱${amount.toLocaleString()}
+- Date: ${new Date(date).toLocaleDateString()}
+- ${documentInfo}
+
+Inquiry Details:
+- From: ${userPosition} ${userName}  
+- Message: ${inquiryText}
+
+Please log in to the system to review.
+
+Thank you.
+    `;
+
+    await NodeEmail(recipients, Subject, Message);
+
+    return res.status(200).json({
+      success: true,
+      message: "Inquiry emails sent successfully.",
+    });
+  } catch (error) {
+    console.error("❌ Error sending inquiry emails:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Failed to send inquiry emails.",
+    });
   }
 };

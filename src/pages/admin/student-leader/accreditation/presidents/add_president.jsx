@@ -1313,7 +1313,8 @@ function PresidentClassSchedInfo({
             <tr>
               <th className="p-2 text-left border">Subject</th>
               <th className="p-2 text-left border">Place</th>
-              <th className="p-2 text-left border">Time</th>
+              <th className="p-2 text-left border">Time Start</th>
+              <th className="p-2 text-left border">Time End</th>
               <th className="p-2 text-left border">Day</th>
               <th className="p-2 text-left border">Action</th>
             </tr>
@@ -1349,6 +1350,8 @@ function PresidentClassSchedInfo({
                     onChange={(e) => handleClassChange(index, e)}
                     className="w-full px-2 py-1.5 border border-gray-300 rounded focus:ring focus:ring-gray-500"
                   />
+                </td>
+                <td className="p-2 border">
                   <input
                     type="time"
                     name="timeEnd"
@@ -1357,6 +1360,7 @@ function PresidentClassSchedInfo({
                     className="w-full px-2 py-1.5 border border-gray-300 rounded focus:ring focus:ring-gray-500"
                   />
                 </td>
+
                 <td className="p-2 border">
                   <select
                     name="day"

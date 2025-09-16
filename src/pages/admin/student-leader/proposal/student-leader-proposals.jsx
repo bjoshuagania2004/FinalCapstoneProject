@@ -22,7 +22,6 @@ import {
   Legend,
 } from "recharts";
 import { EditProposal } from "./student-leader-edit-proposal";
-import { EditUserModal } from "../../sdu/sdu-user-management-edit";
 
 export function StudentLeaderProposal({ orgData }) {
   const [proposals, setProposals] = useState([]);
@@ -38,6 +37,7 @@ export function StudentLeaderProposal({ orgData }) {
         `${API_ROUTER}/getApprovedPPA/${orgData._id}`,
         { withCredentials: true }
       );
+      console.log(data);
       setProposals(data);
     } catch (err) {
       console.error("Error fetching proposals:", err);
@@ -88,6 +88,7 @@ export function StudentLeaderProposal({ orgData }) {
     new Date(dateString).toLocaleDateString("en-PH", {
       year: "numeric",
       month: "long",
+      day: "numeric",
     });
   const formatDate = (dateString) =>
     new Date(dateString).toLocaleDateString("en-PH", {

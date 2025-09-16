@@ -6,18 +6,17 @@ export const postProposalConduct = async (req, res) => {
       ProposedActionPlanSchema,
       ProposedIndividualActionPlan: proposedIndividualId, // only ID comes from client
       organization,
+      proposedDate,
       organizationProfile,
       overallStatus,
     } = req.body;
 
     const documentId = res.locals.documentId;
-
     if (!documentId) {
       return res.status(400).json({ error: "No document uploaded" });
     }
-    Proposal;
 
-    // 1️⃣ Find the ProposedIndividualActionPlan by ID
+    // 1️⃣ Find the existing ProposedIndividualActionPlan by ID
     const proposedIndividual = await Proposal.findById(proposedIndividualId);
     if (!proposedIndividual) {
       return res
@@ -25,24 +24,22 @@ export const postProposalConduct = async (req, res) => {
         .json({ error: "ProposedIndividualActionPlan not found" });
     }
 
-    // 2️⃣ Copy selected fields into the embedded object
+    // 2️⃣ Copy only schema-approved fields into embedded object
     const embeddedIndividual = {
       activityTitle: proposedIndividual.activityTitle,
       alignedSDG: proposedIndividual.alignedSDG,
       budgetaryRequirements: proposedIndividual.budgetaryRequirements,
       venue: proposedIndividual.venue,
-      proposalType: proposedIndividual.proposalType,
-      ProposalCategory: proposedIndividual.ProposalCategory,
       briefDetails: proposedIndividual.briefDetails,
       AlignedObjective: proposedIndividual.AlignedObjective,
-      proposedDate: proposedIndividual.proposedDate,
+      proposedDate: proposedDate || proposedIndividual.proposedDate,
       Proponents: proposedIndividual.Proponents,
     };
 
-    // 3️⃣ Save new ProposalConduct with embedded details
+    // 3️⃣ Save ProposalConduct
     const proposalConduct = new ProposalConduct({
       ProposedActionPlanSchema,
-      ProposedIndividualActionPlan: embeddedIndividual, // 👈 stored as object
+      ProposedIndividualActionPlan: embeddedIndividual,
       organization,
       organizationProfile,
       overallStatus: overallStatus || "Pending",
@@ -58,12 +55,67 @@ export const postProposalConduct = async (req, res) => {
       proposalConduct,
     });
   } catch (error) {
-    console.error(error);
+    console.error("❌ postProposalConduct error:", error);
     return res.status(500).json({ error: error.message });
   }
 };
 
-// ✅ UPDATE ProposalConduct
+export const postNewProposalConduct = async (req, res) => {
+  try {
+    const {
+      activityTitle,
+      briefDetails,
+      alignedObjective,
+      venue,
+      date,
+      budget,
+      alignedSDG,
+      Proponents,
+      organization,
+      organizationProfile,
+      overallStatus,
+    } = req.body;
+
+    const documentId = res.locals.documentId;
+    if (!documentId) {
+      return res.status(400).json({ error: "No document uploaded" });
+    }
+
+    // ✅ Build the embedded object directly
+    const embeddedIndividual = {
+      activityTitle,
+      briefDetails,
+      AlignedObjective: alignedObjective,
+      venue,
+      proposedDate: date ? new Date(date) : null,
+      budgetaryRequirements: budget ? Number(budget) : 0,
+      alignedSDG: alignedSDG || [],
+      Proponents: Proponents || [],
+    };
+
+    // ✅ Save ProposalConduct
+    const proposalConduct = new ProposalConduct({
+      ProposedIndividualActionPlan: embeddedIndividual,
+      organization,
+      organizationProfile,
+      overallStatus: overallStatus || "Pending",
+      document: [documentId],
+    });
+
+    await proposalConduct.save();
+
+    return res.status(201).json({
+      success: true,
+      message:
+        "Proposal Conduct created with direct ProposedIndividualActionPlan",
+      proposalConduct,
+    });
+  } catch (error) {
+    console.error("❌ postNewProposalConduct error:", error);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
 export const updateProposalConduct = async (req, res) => {
   try {
     const { id } = req.params; // ProposalConduct ID
@@ -177,15 +229,40 @@ export const getProposalConductByOrgProfile = async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 };
+
 export const getDoneProposalConductsByOrgProfile = async (req, res) => {
   try {
     const { orgProfileId } = req.params;
 
     const doneConducts = await ProposalConduct.find({
       organizationProfile: orgProfileId,
-      overallStatus: "Ready for Accomplishments", // ✅ filter only completed conducts
+      overallStatus: "Conduct Approved", // ✅ filter only completed conducts
     })
       .populate("document") // include uploaded document(s)
+      .populate("ProposedIndividualActionPlan"); // optional for extra details
+
+    if (!doneConducts || doneConducts.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message:
+          "No completed ProposalConduct found for this organization profile",
+      });
+    }
+
+    res.json(doneConducts);
+  } catch (error) {
+    console.error("Error fetching done ProposalConducts:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+export const getAllProposalConduct = async (req, res) => {
+  try {
+    const doneConducts = await ProposalConduct.find({
+      overallStatus: "Conduct Approved", // ✅ filter only completed conducts
+    })
+      .populate("document") // include uploaded document(s)
+      .populate("organizationProfile") // include uploaded document(s)
       .populate("ProposedIndividualActionPlan"); // optional for extra details
 
     if (!doneConducts || doneConducts.length === 0) {

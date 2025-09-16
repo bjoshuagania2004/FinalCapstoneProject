@@ -177,6 +177,12 @@ router.post(
   Controller.postProposalConduct
 );
 router.post(
+  "/postStudentLeaderNewProposalConduct",
+  Controller.uploadFileAndAddDocument,
+  Controller.postNewProposalConduct
+);
+
+router.post(
   "/postStudentLeaderAccomplishment",
   Controller.uploadFileAndAddDocument,
   Controller.postProposalConduct
@@ -256,6 +262,7 @@ router.post(
 router.post("/initialRegistration", Controller.PostInitialOrganizationProfile);
 router.post("/reRegistration", Controller.ReRegisterOrganizationProfile);
 router.get("/documents/:id", Controller.getDocumentById);
+router.get("/getAllProposalConduct", Controller.getAllProposalConduct);
 router.get("/documents/:id", Controller.getDocumentById);
 
 router.post("/CheckUsingAI", upload.single("file"), Controller.getAIFeedback);
