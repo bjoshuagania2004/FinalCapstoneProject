@@ -217,6 +217,7 @@ export const getStudentPpaByAccreditationId = async (req, res) => {
       accreditation: accreditationId,
     }); // Collaborating org profiles
 
+    console.log(proposals);
     if (!proposals || proposals.length === 0) {
       return res.status(404).json({ error: "No proposals found" });
     }
@@ -227,6 +228,7 @@ export const getStudentPpaByAccreditationId = async (req, res) => {
     return res.status(500).json({ error: "Failed to fetch proposals" });
   }
 };
+
 export const getAdviserProposal = async (req, res) => {
   const { orgId } = req.params;
 
@@ -288,7 +290,7 @@ export const getApprovedPPA = async (req, res) => {
   try {
     const proposals = await Proposal.find({
       organizationProfile: orgId, // ✅ filter by organizationProfile
-      overallStatus: "Approved For Conduct", // ✅ only approved
+      overallStatus: "Intent Approved", // ✅ only approved
     });
 
     if (!proposals || proposals.length === 0) {

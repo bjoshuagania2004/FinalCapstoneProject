@@ -46,3 +46,21 @@ export const AdviserSchema = new Schema(
   },
   { timestamps: true }
 );
+
+export const LogsSchema = new Schema(
+  {
+    action: String,
+    organizationProfile: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "OrganizationProfile",
+      },
+    ],
+
+    Organization: {
+      type: Schema.Types.ObjectId,
+      ref: "Organizations",
+    },
+  },
+  { timestamps: true }
+);

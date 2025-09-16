@@ -1,3 +1,4 @@
+import { AlignCenter } from "lucide-react";
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
@@ -56,7 +57,16 @@ export const proposalConductSchema = new Schema(
       ref: "ProposedActionPlan",
     },
 
-    ProposedIndividualActionPlan: Object,
+    ProposedIndividualActionPlan: {
+      activityTitle: String,
+      alignedSDG: Array,
+      budgetaryRequirements: Number,
+      venue: String,
+      briefDetails: String,
+      AlignedObjective: String,
+      proposedDate: Date,
+      Proponents: Array,
+    },
 
     overallStatus: { type: String, default: "Pending" },
 

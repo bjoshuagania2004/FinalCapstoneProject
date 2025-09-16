@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { Upload } from "lucide-react";
+import { DonePopUp } from "../../../../components/components";
+import { API_ROUTER } from "../../../../App";
+import axios from "axios";
 
 export function AddNewProposal({ onClose, orgData }) {
   const [formData, setFormData] = useState({
@@ -10,41 +13,29 @@ export function AddNewProposal({ onClose, orgData }) {
     date: "",
     budget: "",
     alignedSDG: [],
-    organizationProfile: "",
-    organization: "",
+    organizationProfile: orgData._id || "",
+    organization: orgData.organization || "",
   });
 
   const [uploadedFile, setUploadedFile] = useState(null);
   const [errors, setErrors] = useState({});
-
-  const sdgOptions = [
-    "1 - No Poverty",
-    "2 - Zero Hunger",
-    "3 - Good Health and Well-being",
-    "4 - Quality Education",
-    "5 - Gender Equality",
-    "6 - Clean Water and Sanitation",
-    "7 - Affordable and Clean Energy",
-    "8 - Decent Work and Economic Growth",
-    "9 - Industry, Innovation and Infrastructure",
-    "10 - Reduced Inequalities",
-    "11 - Sustainable Cities and Communities",
-    "12 - Responsible Consumption and Production",
-    "13 - Climate Action",
-    "14 - Life Below Water",
-    "15 - Life on Land",
-    "16 - Peace, Justice and Strong Institutions",
-    "17 - Partnerships for the Goals",
-  ];
+  const [showPopup, setShowPopup] = useState(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+
+    let processedValue = value;
+
+    if (name === "date" && value) {
+      const date = new Date(value); // value is yyyy-MM-dd
+      processedValue = date.toISOString(); // standard full ISO string
+    }
+
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: processedValue,
     }));
 
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
@@ -107,7 +98,9 @@ export function AddNewProposal({ onClose, orgData }) {
       newErrors.date = "Date is required";
     }
 
-    if (!formData.budget || formData.budget <= 0) {
+    // Fix: Convert budget to number and validate properly
+    const budgetValue = parseFloat(formData.budget);
+    if (!formData.budget.trim() || isNaN(budgetValue) || budgetValue <= 0) {
       newErrors.budget = "Budget must be a positive number";
     }
 
@@ -128,34 +121,73 @@ export function AddNewProposal({ onClose, orgData }) {
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+
+    // Log validation results
+    const isValid = Object.keys(newErrors).length === 0;
+
+    if (!isValid) {
+      console.log("❌ Validation failed. Missing/invalid fields:");
+      Object.entries(newErrors).forEach(([field, error]) => {
+        console.log(`  - ${field}: ${error}`);
+      });
+      console.log("📋 Current form data:", formData);
+      console.log("📄 Uploaded file:", uploadedFile);
+    } else {
+      console.log("✅ Validation passed successfully!");
+    }
+
+    return isValid;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    console.log("🚀 handleSubmit triggered");
+
     if (!validateForm()) {
+      console.log("handleSubmit not right");
       return;
     }
 
-    // Create the complete proposal data
-    const proposalData = {
-      ...formData,
-      budget: parseFloat(formData.budget),
-      file: uploadedFile
-        ? {
-            name: uploadedFile.name,
-            size: uploadedFile.size,
-            type: uploadedFile.type,
-          }
-        : null,
-      overallStatus: "Pending",
-      submittedAt: new Date().toISOString(),
-    };
-
-    console.log("📋 New Proposal Data:", proposalData);
+    console.log("📋 Form Data:", formData);
     console.log("📄 Uploaded File:", uploadedFile);
 
-    // Close the modal after logging
-    onClose();
+    try {
+      // Build FormData to support file upload
+      const fd = new FormData();
+
+      // ✅ Append each field individually (not as nested proposalData object)
+      fd.append("activityTitle", formData.activityTitle);
+      fd.append("briefDetails", formData.briefDetails);
+      fd.append("alignedObjective", formData.alignedObjective);
+      fd.append("venue", formData.venue);
+      fd.append("date", formData.date);
+      fd.append("budget", parseFloat(formData.budget));
+      fd.append("alignedSDG", JSON.stringify(formData.alignedSDG)); // Array needs to be stringified
+      fd.append("organization", formData.organization);
+      fd.append("organizationProfile", formData.organizationProfile);
+      fd.append("overallStatus", "Pending");
+      fd.append("submittedAt", new Date().toISOString());
+
+      // Append uploaded file
+      if (uploadedFile) {
+        fd.append("file", uploadedFile);
+      }
+
+      const res = await axios.post(
+        `${API_ROUTER}/postStudentLeaderNewProposalConduct`,
+        fd,
+        {
+          withCredentials: true,
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+
+      console.log("✅ Upload response:", res.data);
+      setShowPopup("success");
+    } catch (err) {
+      console.error("❌ Upload failed:", err);
+      setShowPopup("error");
+    }
   };
 
   return (
@@ -275,12 +307,13 @@ export function AddNewProposal({ onClose, orgData }) {
                   <input
                     type="date"
                     name="date"
-                    value={formData.date}
+                    value={formData.date ? formData.date.split("T")[0] : ""}
                     onChange={handleInputChange}
                     className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                       errors.date ? "border-red-500" : "border-gray-300"
                     }`}
                   />
+
                   {errors.date && (
                     <p className="text-red-500 text-sm mt-1">{errors.date}</p>
                   )}
@@ -313,51 +346,74 @@ export function AddNewProposal({ onClose, orgData }) {
             {/* Right Side - SDG Selection and File Upload */}
             <div className="space-y-6">
               {/* Aligned SDG */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
+              <div className="md:col-span-2 text-black">
+                <label className="block text-sm font-medium text-black mb-2">
                   Aligned SDG *
                 </label>
-                <div className="bg-gray-50 rounded-lg p-4 max-h-60 overflow-y-auto">
-                  <div className="grid grid-cols-1 gap-2">
-                    {sdgOptions.map((sdg) => (
-                      <label
-                        key={sdg}
-                        className="flex items-center space-x-3 p-2 hover:bg-white rounded cursor-pointer"
-                      >
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { value: "SDG 1", label: "SDG 1: No Poverty" },
+                    { value: "SDG 2", label: "SDG 2: Zero Hunger" },
+                    {
+                      value: "SDG 3",
+                      label: "SDG 3: Good Health and Well-being",
+                    },
+                    { value: "SDG 4", label: "SDG 4: Quality Education" },
+                    { value: "SDG 5", label: "SDG 5: Gender Equality" },
+                    {
+                      value: "SDG 6",
+                      label: "SDG 6: Clean Water and Sanitation",
+                    },
+                    {
+                      value: "SDG 7",
+                      label: "SDG 7: Affordable and Clean Energy",
+                    },
+                    {
+                      value: "SDG 8",
+                      label: "SDG 8: Decent Work and Economic Growth",
+                    },
+                    {
+                      value: "SDG 9",
+                      label: "SDG 9: Industry, Innovation and Infrastructure",
+                    },
+                    { value: "SDG 10", label: "SDG 10: Reduced Inequalities" },
+                    {
+                      value: "SDG 11",
+                      label: "SDG 11: Sustainable Cities and Communities",
+                    },
+                    {
+                      value: "SDG 12",
+                      label: "SDG 12: Responsible Consumption and Production",
+                    },
+                    { value: "SDG 13", label: "SDG 13: Climate Action" },
+                    { value: "SDG 14", label: "SDG 14: Life Below Water" },
+                    { value: "SDG 15", label: "SDG 15: Life on Land" },
+                    {
+                      value: "SDG 16",
+                      label: "SDG 16: Peace, Justice and Strong Institutions",
+                    },
+                    {
+                      value: "SDG 17",
+                      label: "SDG 17: Partnerships for the Goals",
+                    },
+                  ].map((sdg) => (
+                    <div key={sdg.value} className="bg-gray-200 rounded-full">
+                      <label className="flex items-center space-x-1 p-2 hover:bg-gray-100 rounded cursor-pointer">
                         <input
                           type="checkbox"
-                          checked={formData.alignedSDG.includes(sdg)}
-                          onChange={() => handleSDGChange(sdg)}
-                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                          checked={formData.alignedSDG.includes(sdg.value)}
+                          onChange={() => handleSDGChange(sdg.value)}
+                          className="appearance-none h-5 w-5 rounded-full border border-gray-400 checked:bg-amber-500 cursor-pointer"
                         />
-                        <span className="text-sm text-gray-700">{sdg}</span>
+                        <span className="text-sm">{sdg.label}</span>
                       </label>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
                 {errors.alignedSDG && (
                   <p className="text-red-500 text-sm mt-1">
                     {errors.alignedSDG}
                   </p>
-                )}
-
-                {/* Selected SDGs Preview */}
-                {formData.alignedSDG.length > 0 && (
-                  <div className="mt-3">
-                    <span className="text-sm font-medium text-gray-600">
-                      Selected:
-                    </span>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {formData.alignedSDG.map((sdg) => (
-                        <span
-                          key={sdg}
-                          className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-medium"
-                        >
-                          {sdg}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
                 )}
               </div>
 
@@ -435,13 +491,29 @@ export function AddNewProposal({ onClose, orgData }) {
             </button>
 
             <button
-              onClick={handleSubmit}
+              onClick={(e) => handleSubmit(e)}
               className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
             >
               Create Proposal
             </button>
           </div>
         </div>
+        {showPopup && (
+          <DonePopUp
+            type={showPopup}
+            message={
+              showPopup === "success"
+                ? "Proposal uploaded successfully!"
+                : showPopup === "error"
+                ? "Something went wrong."
+                : "Check your input again."
+            }
+            onClose={() => {
+              setShowPopup(null);
+              onClose(); // ✅ after popup closes, close AddProposal modal
+            }}
+          />
+        )}
       </div>
     </div>
   );

@@ -1,9 +1,6 @@
 import { useState, useEffect } from "react";
 
 import {
-  Upload,
-  Download,
-  FileText,
   CheckCircle,
   Clock,
   AlertCircle,
@@ -17,6 +14,7 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import { API_ROUTER, DOCU_API_ROUTER } from "../../../../App";
+import { FileText, Upload, Mail, X } from "lucide-react";
 
 export function AdviserAccreditationMainComponent({ orgId }) {
   const [accreditationData, setAccreditationData] = useState(null);
@@ -46,7 +44,6 @@ export function AdviserAccreditationMainComponent({ orgId }) {
           { withCredentials: true }
         );
 
-        console.log(response.data);
         setAccreditationData(response.data);
 
         // If inactive → show reset popup
@@ -155,19 +152,19 @@ export function AdviserAccreditationMainComponent({ orgId }) {
   }
 
   return (
-    <div className="h-full mt-4 -t-2xl overflow-auto">
+    <div className="h-full mt-4 overflow-auto">
       <div className="w-full">
         {/* Main Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+        <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-7 gap-2">
           <div className="lg:col-span-2 xl:col-span-3">
             <OverallStatus accreditationData={accreditationData} />
           </div>
 
-          <div className="lg:col-span-1 xl:col-span-2">
+          <div className="lg:col-span-2 ">
             <PresidentInformation accreditationData={accreditationData} />
           </div>
 
-          <div className="lg:col-span-2">
+          <div className="col-span-2">
             <DocumentDisplayCard
               accreditationData={accreditationData}
               uploadingDocType={uploadingDocType}
@@ -180,7 +177,7 @@ export function AdviserAccreditationMainComponent({ orgId }) {
             />
           </div>
 
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-7">
             <RosterLists accreditationData={accreditationData} />
           </div>
         </div>
@@ -549,14 +546,41 @@ function PresidentInformation({ accreditationData }) {
   );
 }
 
-function DocumentDisplayCard({ accreditationData, setUploadingDocType }) {
+function DocumentDisplayCard({ accreditationData }) {
   const { JointStatement, PledgeAgainstHazing, ConstitutionAndByLaws } =
     accreditationData;
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailType, setEmailType] = useState(null);
+  const [emailData, setEmailData] = useState({
+    to: accreditationData.organizationProfile.orgName,
+    orgName: accreditationData.organizationProfile.orgName,
+    inquirySubject: "",
+    orgId: accreditationData.organizationProfile._id,
+    inquiryText: "",
+  });
+  const openEmailModal = (key, label, docId) => {
+    setEmailType(label);
+    setEmailData({
+      to: accreditationData.organizationProfile.orgName,
+      orgName: accreditationData.organizationProfile.orgName,
+      inquirySubject: `Regarding ${label}`,
+      orgId: accreditationData.organizationProfile._id,
+      inquiryText: "",
+    });
+    console.log(emailData);
+    setShowEmailModal(true);
+  };
+
+  const handleSendEmail = () => {
+    console.log("📨 Sending email:", emailData);
+    // TODO: hook up to backend/email service
+    setShowEmailModal(false);
+  };
 
   const renderDocumentCard = (label, doc, key) => {
     if (doc && doc.fileName) {
       return (
-        <div className="border border-gray-200  p-4 hover:bg-gray-50 transition-colors">
+        <div className="border border-gray-200 p-4 hover:bg-gray-50 transition-colors">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <FileText className="w-8 h-8 text-blue-600" />
@@ -568,19 +592,6 @@ function DocumentDisplayCard({ accreditationData, setUploadingDocType }) {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <div
-                className={`px-2 py-1 -full text-xs flex items-center gap-1 ${getStatusColor(
-                  doc.status
-                )}`}
-              >
-                {getStatusIcon(doc.status)}
-                <span>{doc.status}</span>
-              </div>
-              <button className="p-2 text-gray-400 hover:text-gray-600">
-                <Download className="w-4 h-4" />
-              </button>
-            </div>
           </div>
         </div>
       );
@@ -588,23 +599,23 @@ function DocumentDisplayCard({ accreditationData, setUploadingDocType }) {
 
     return (
       <div
-        onClick={() => setUploadingDocType(key)}
-        className="border-2 border-dashed border-gray-300  p-8 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
+        onClick={() => openEmailModal(key, label, doc?._id)}
+        className="border-2 border-dashed border-gray-300 p-8 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
       >
         <div className="text-center">
-          <Upload className="w-8 h-8 mx-auto text-gray-400 mb-2" />
-          <p className="text-gray-600 font-medium">Upload {label}</p>
-          <p className="text-sm text-gray-500">Click to select file</p>
+          <Mail className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+          <p className="text-gray-600 font-medium">Email about {label}</p>
+          <p className="text-sm text-gray-500">Click to compose</p>
         </div>
       </div>
     );
   };
 
   return (
-    <div className="bg-white  border border-gray-400 p-6 h-full">
+    <div className="bg-white border border-gray-400 p-6 h-full">
       <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
         <FileText className="w-5 h-5" />
-        Required DocumentDisplayCard
+        Required Documents / Email
       </h2>
 
       <div className="space-y-4">
@@ -624,6 +635,69 @@ function DocumentDisplayCard({ accreditationData, setUploadingDocType }) {
           "PledgeAgainstHazing"
         )}
       </div>
+
+      {/* Email Modal */}
+      {showEmailModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-lg w-full p-6 relative">
+            <button
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+              onClick={() => setShowEmailModal(false)}
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <h3 className="text-lg font-semibold mb-4">
+              Compose Email – {emailType}
+            </h3>
+
+            <div className="space-y-3">
+              <input
+                type="email"
+                placeholder="To"
+                className="w-full border rounded px-3 py-2 text-sm"
+                value={emailData.to}
+                onChange={(e) =>
+                  setEmailData({ ...emailData, to: e.target.value })
+                }
+              />
+              <input
+                type="text"
+                placeholder="Subject"
+                className="w-full border rounded px-3 py-2 text-sm"
+                value={emailData.inquirySubject}
+                onChange={(e) =>
+                  setEmailData({ ...emailData, inquirySubject: e.target.value })
+                }
+              />
+              <textarea
+                placeholder="Message"
+                rows={5}
+                className="w-full border rounded px-3 py-2 text-sm"
+                value={emailData.inquiryText}
+                onChange={(e) =>
+                  setEmailData({ ...emailData, inquiryText: e.target.value })
+                }
+              ></textarea>
+            </div>
+
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                className="px-4 py-2 text-sm bg-gray-200 rounded hover:bg-gray-300"
+                onClick={() => setShowEmailModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                onClick={handleSendEmail}
+              >
+                Send Email
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
