@@ -1,3 +1,4 @@
+import { NodeEmail } from "../middleware/emailer.js";
 import {
   Accreditation,
   Document,
@@ -263,10 +264,7 @@ export const GetAccreditationDetails = async (req, res) => {
   }
 };
 
-export const SendAccreditationDocumentsInquiryEmailInquiry = async (
-  req,
-  res
-) => {
+export const SendAccreditationInquiryEmailInquiry = async (req, res) => {
   try {
     const {
       orgId,
@@ -277,53 +275,61 @@ export const SendAccreditationDocumentsInquiryEmailInquiry = async (
       userName,
     } = req.body;
 
-    // Find the active user linked to the organization profile, return only email
-    const recipients = await User.find({
+    // Find all non-adviser users in the organization
+    const users = await User.find({
       organizationProfile: orgId,
-      position: { $ne: "Adviser" }, // exclude advisers
+      position: { $ne: "Adviser" },
     }).select("email");
 
-    if (!recipients || !recipients.email) {
+    if (!users || users.length === 0) {
       return res.status(404).json({
         success: false,
-        error: "recipients email not found.",
+        error: "No recipients found for this organization.",
       });
     }
 
-    // --- Email to Adviser ---
-    const Subject = inquirySubject || "New Financial Report Inquiry";
-    const Message = `
+    // Extract plain email list
+    const recipientEmails = users.map((u) => u.email).filter(Boolean);
+
+    if (recipientEmails.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: "No valid email addresses found.",
+      });
+    }
+
+    // Email body
+    const message = `
 Hello ${orgName},
 
-A new inquiry has been submitted regarding a transaction in your organization's financial report.
-
-Transaction Details:
-- Type: ${type}
-- Description: ${description}
-- Amount: ₱${amount.toLocaleString()}
-- Date: ${new Date(date).toLocaleDateString()}
-- ${documentInfo}
+A new inquiry has been submitted regarding your accreditation documents.
 
 Inquiry Details:
-- From: ${userPosition} ${userName}  
-- Message: ${inquiryText}
+- From: ${userName} || ${userPosition} 
+- Message: 
+${inquiryText}
 
-Please log in to the system to review.
+Please log in to the system to review and respond.
 
-Thank you.
+Thank you,
+Accreditation Support Team
     `;
 
-    await NodeEmail(recipients, Subject, Message);
+    // Send email to all recipients
+    // console.log(recipientEmails, inquirySubject, message);
+    await NodeEmail(recipientEmails, inquirySubject, message);
 
     return res.status(200).json({
       success: true,
       message: "Inquiry emails sent successfully.",
+      recipients: recipientEmails,
     });
   } catch (error) {
     console.error("❌ Error sending inquiry emails:", error);
     return res.status(500).json({
       success: false,
       error: "Failed to send inquiry emails.",
+      details: error.message,
     });
   }
 };

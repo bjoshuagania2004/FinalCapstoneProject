@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { API_ROUTER, DOCU_API_ROUTER } from "../../../../App";
 import axios from "axios";
-import { MoreHorizontal, MoreVertical, Users } from "lucide-react";
+import { MoreHorizontal, MoreVertical, Users, X } from "lucide-react";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import { DonePopUp } from "../../../../components/components";
 
-export function AdviserRosterData({ orgData }) {
+export function AdviserRosterData({ orgData, user }) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [alertModal, setAlertModal] = useState(false);
   const [revisionModal, setRevisionModal] = useState(false);
@@ -18,10 +18,22 @@ export function AdviserRosterData({ orgData }) {
   const [rosterData, setRosterData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [message, setMessage] = useState(
-    `Dear ${orgData.orgName},\n\nWe kindly request you to complete your roster list as part of the accreditation process. Please ensure that all required members and details are submitted at the earliest convenience.\n\nThank you for your cooperation.\n\nSincerely,\nAdviser`
-  );
-  const [subject, setSubject] = useState("Notification for Roster Lists");
+
+  const [message, setMessage] = useState("");
+
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [approvalLoading, setApprovalLoading] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
+
+  const [emailData, setEmailData] = useState({
+    to: orgData.orgName,
+    orgName: orgData.orgName,
+    inquirySubject: "Roster Members Not Found",
+    orgId: orgData._id,
+    inquiryText: "",
+    userPosition: user?.position || "",
+    userName: user?.name || "",
+  });
 
   const fetchRosterMembers = async () => {
     try {
@@ -29,7 +41,6 @@ export function AdviserRosterData({ orgData }) {
       const response = await axios.get(
         `${API_ROUTER}/getRosterMembers/${orgData._id}`
       );
-      console.log(response.data.roster);
       setRosterData(response.data);
       setError(null);
     } catch (err) {
@@ -60,117 +71,80 @@ export function AdviserRosterData({ orgData }) {
     };
   }, [showDropdown]);
 
-  const SendNotification = async () => {
-    if (!message.trim()) {
-      alert("Message cannot be empty");
-      return;
-    }
-
-    console.log({
-      organizationId: orgData._id,
-      subject,
-      message,
-    });
-    try {
-      setLoading(true);
-
-      const response = await axios.post(
-        `${API_ROUTER}/sendNotificationRoster`,
-        {
-          organizationId: orgData._id,
-          subject,
-          message,
-        }
-      );
-
-      console.log("✅ Notification Response:", response.data);
-      setPopup({
-        type: "success",
-        message: "Your action has been sent successfully!",
-      });
-      setError(null);
-    } catch (err) {
-      console.error("❌ Failed to send notification:", err.response.data);
-      setError("Failed to send notification");
-      setPopup({
-        type: "error",
-        message: "Something went wrong while processing your request.",
-      });
-    } finally {
-      setLoading(false);
-      setAlertModal(false);
-      setIncompleteModal(false);
-    }
-  };
-
   const handleExportExcel = async () => {
-    if (!rosterMembers || rosterMembers.length === 0) {
+    if (!rosterData?.rosterMembers || rosterData.rosterMembers.length === 0) {
       alert("No roster data to export.");
       return;
     }
 
-    // Create workbook & worksheet
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet("Roster Members");
+    try {
+      setExportLoading(true); // ✅ Set export loading
 
-    // Define headers
-    worksheet.columns = [
-      { header: "Name", key: "name", width: 25 },
-      { header: "Position", key: "position", width: 20 },
-      { header: "Email", key: "email", width: 30 },
-      { header: "Contact Number", key: "contactNumber", width: 20 },
-      { header: "Address", key: "address", width: 40 },
-      { header: "Birth Date", key: "birthDate", width: 15 },
-      { header: "Status", key: "status", width: 15 },
-    ];
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet("Roster Members");
 
-    // Add data rows
-    rosterMembers.forEach((member) => {
-      worksheet.addRow({
-        name: member.name,
-        position: member.position,
-        email: member.email,
-        contactNumber: member.contactNumber,
-        address: member.address,
-        birthDate: member.birthDate
-          ? new Date(member.birthDate).toLocaleDateString()
-          : "Not provided",
-        status: member.status,
+      worksheet.columns = [
+        { header: "Name", key: "name", width: 25 },
+        { header: "Position", key: "position", width: 20 },
+        { header: "Email", key: "email", width: 30 },
+        { header: "Contact Number", key: "contactNumber", width: 20 },
+        { header: "Address", key: "address", width: 40 },
+        { header: "Birth Date", key: "birthDate", width: 15 },
+        { header: "Status", key: "status", width: 15 },
+      ];
+
+      rosterData.rosterMembers.forEach((member) => {
+        worksheet.addRow({
+          name: member.name,
+          position: member.position,
+          email: member.email,
+          contactNumber: member.contactNumber,
+          address: member.address,
+          birthDate: member.birthDate
+            ? new Date(member.birthDate).toLocaleDateString()
+            : "Not provided",
+          status: member.status,
+        });
       });
-    });
 
-    // Style header row
-    worksheet.getRow(1).eachCell((cell) => {
-      cell.font = { bold: true };
-      cell.fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: { argb: "FFDCE6F1" },
-      };
-      cell.border = {
-        top: { style: "thin" },
-        left: { style: "thin" },
-        bottom: { style: "thin" },
-        right: { style: "thin" },
-      };
-    });
+      worksheet.getRow(1).eachCell((cell) => {
+        cell.font = { bold: true };
+        cell.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "FFDCE6F1" },
+        };
+        cell.border = {
+          top: { style: "thin" },
+          left: { style: "thin" },
+          bottom: { style: "thin" },
+          right: { style: "thin" },
+        };
+      });
 
-    // Generate buffer
-    const buffer = await workbook.xlsx.writeBuffer();
-
-    // Save file
-    saveAs(new Blob([buffer]), "RosterMembers.xlsx");
-
-    setExportModal(false); // close modal after export
+      const buffer = await workbook.xlsx.writeBuffer();
+      saveAs(new Blob([buffer]), "RosterMembers.xlsx");
+      setExportModal(false);
+    } catch (err) {
+      console.error("❌ Failed to export:", err);
+      setPopup({
+        type: "error",
+        message: "Failed to export roster data.",
+      });
+    } finally {
+      setExportLoading(false); // ✅ Reset export loading
+    }
   };
 
   const handleApproval = async ({ status, revisionNotes }) => {
     if (!rosterData?.roster?.isComplete) {
-      setIncompleteModal(true); // 👈 open modal
+      setIncompleteModal(true);
       return;
     }
 
     try {
+      setApprovalLoading(true); // ✅ Set approval loading
+
       const payload = { overAllStatus: status };
       if (revisionNotes && revisionNotes.trim() !== "") {
         payload.revisionNotes = revisionNotes;
@@ -188,10 +162,33 @@ export function AdviserRosterData({ orgData }) {
       });
       setError(null);
     } catch (err) {
+      console.error("❌ Failed to approve:", err);
       setPopup({
         type: "error",
         message: "Something went wrong while processing your request.",
       });
+    } finally {
+      setApprovalLoading(false); // ✅ Reset approval loading
+    }
+  };
+
+  // ✅ FIXED: Email handler
+  const handleSendEmail = async () => {
+    try {
+      setEmailLoading(true); // ✅ Set email loading
+
+      const response = await axios.post(
+        `${API_ROUTER}/accreditationEmailInquiry`,
+        emailData
+      );
+      console.log("📧 Email Sent:", response.data);
+      setPopup({ type: "success", message: "Email sent successfully!" });
+      setAlertModal(false);
+    } catch (err) {
+      console.error("❌ Failed to send email:", err);
+      setPopup({ type: "error", message: "Failed to send email" });
+    } finally {
+      setEmailLoading(false); // ✅ Reset email loading
     }
   };
 
@@ -334,6 +331,7 @@ export function AdviserRosterData({ orgData }) {
             <button
               onClick={() => setRevisionModal(false)}
               className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+              disabled={approvalLoading} // ✅ Disable when loading
             >
               ✕
             </button>
@@ -352,6 +350,7 @@ export function AdviserRosterData({ orgData }) {
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   className="border rounded-lg w-full h-28 p-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  disabled={approvalLoading} // ✅ Disable when loading
                 />
               </div>
             </div>
@@ -364,9 +363,14 @@ export function AdviserRosterData({ orgData }) {
                 }); // 👈 call with "Revision"
                 setRevisionModal(false);
               }}
-              className="mt-6 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-sm font-medium shadow-md transition"
+              disabled={approvalLoading} // ✅ Disable when loading
+              className={`mt-6 px-6 py-2 rounded-lg text-sm font-medium shadow-md transition ${
+                approvalLoading
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-indigo-600 hover:bg-indigo-700 text-white"
+              }`}
             >
-              Send
+              {approvalLoading ? "Sending..." : "Send"} {/* ✅ Loading text */}
             </button>
           </div>
         </div>
@@ -379,6 +383,7 @@ export function AdviserRosterData({ orgData }) {
             <button
               onClick={() => setApprovalModal(false)}
               className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+              disabled={approvalLoading} // ✅ Disable when loading
             >
               ✕
             </button>
@@ -398,51 +403,100 @@ export function AdviserRosterData({ orgData }) {
                 handleApproval("Approved By the Adviser"); // 👈 call with "Approved"
                 setApprovalModal(false);
               }}
-              className="mt-6 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-sm font-medium shadow-md transition"
+              disabled={approvalLoading} // ✅ Disable when loading
+              className={`mt-6 px-6 py-2 rounded-lg text-sm font-medium shadow-md transition ${
+                approvalLoading
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-indigo-600 hover:bg-indigo-700 text-white"
+              }`}
             >
-              Confirm Approval
+              {approvalLoading ? "Processing..." : "Confirm Approval"}{" "}
+              {/* ✅ Loading text */}
             </button>
           </div>
         </div>
       )}
       {alertModal && (
-        <div className="absolute bg-black/10 backdrop-blur-xs inset-0 flex justify-center items-center">
-          <div className="h-fit bg-white w-1/3 flex flex-col px-6 py-6 justify-center items-center rounded-2xl shadow-xl">
-            <h1 className="text-lg font-semibold mb-4">Notify Organization</h1>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-lg w-full p-6 relative">
+            <button
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+              onClick={() => setAlertModal(false)}
+              disabled={emailLoading} // ✅ Disable when loading
+            >
+              <X className="w-5 h-5" />
+            </button>
 
-            <div className="flex flex-col gap-4 w-full">
-              {/* Subject */}
-              <div className="flex flex-col gap-1 w-full">
-                <label className="text-sm font-medium text-gray-700">
-                  Subject
-                </label>
+            <h3 className="text-lg font-semibold mb-4">
+              Compose Email – President Notification
+            </h3>
+
+            <div className="flex flex-col gap-4">
+              <label>
+                <p>Organization name:</p>
+                <input
+                  type="email"
+                  placeholder="To"
+                  className="w-full border rounded px-3 py-2 text-sm"
+                  value={emailData.to}
+                  onChange={(e) =>
+                    setEmailData({ ...emailData, to: e.target.value })
+                  }
+                  disabled={emailLoading} // ✅ Disable when loading
+                />
+              </label>
+              <label>
+                <p>Subject:</p>
                 <input
                   type="text"
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                  className="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm"
+                  placeholder="Subject"
+                  className="w-full border rounded px-3 py-2 text-sm"
+                  value={emailData.inquirySubject}
+                  onChange={(e) =>
+                    setEmailData({
+                      ...emailData,
+                      inquirySubject: e.target.value,
+                    })
+                  }
+                  disabled={emailLoading} // ✅ Disable when loading
                 />
-              </div>
-
-              {/* Message */}
-              <div className="flex flex-col gap-1 w-full">
-                <label className="text-sm font-medium text-gray-700">
-                  Message
-                </label>
+              </label>
+              <label>
+                <p>Message:</p>
                 <textarea
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  className="border rounded-lg w-full h-28 p-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                />
-              </div>
+                  placeholder="Message"
+                  rows={5}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                  value={emailData.inquiryText}
+                  onChange={(e) =>
+                    setEmailData({ ...emailData, inquiryText: e.target.value })
+                  }
+                  disabled={emailLoading} // ✅ Disable when loading
+                ></textarea>
+              </label>
             </div>
 
-            <button
-              onClick={SendNotification}
-              className="mt-6 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-sm font-medium shadow-md transition"
-            >
-              Send
-            </button>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                className="px-4 py-2 text-sm bg-gray-200 rounded hover:bg-gray-300"
+                onClick={() => setAlertModal(false)}
+                disabled={emailLoading} // ✅ Disable when loading
+              >
+                Cancel
+              </button>
+              <button
+                className={`px-4 py-2 text-sm rounded ${
+                  emailLoading
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700 text-white"
+                }`}
+                onClick={handleSendEmail}
+                disabled={emailLoading} // ✅ Disable when loading
+              >
+                {emailLoading ? "Sending..." : "Send Email"}{" "}
+                {/* ✅ Loading text */}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -452,6 +506,7 @@ export function AdviserRosterData({ orgData }) {
             <button
               onClick={() => setExportModal(false)}
               className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+              disabled={exportLoading} // ✅ Disable when loading
             >
               ✕
             </button>
@@ -465,14 +520,21 @@ export function AdviserRosterData({ orgData }) {
               <button
                 onClick={() => setExportModal(false)}
                 className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm"
+                disabled={exportLoading} // ✅ Disable when loading
               >
                 Cancel
               </button>
               <button
                 onClick={handleExportExcel}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md transition"
+                disabled={exportLoading} // ✅ Disable when loading
+                className={`px-4 py-2 rounded-lg text-sm font-medium shadow-md transition ${
+                  exportLoading
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-green-600 hover:bg-green-700 text-white"
+                }`}
               >
-                Export
+                {exportLoading ? "Exporting..." : "Export"}{" "}
+                {/* ✅ Loading text */}
               </button>
             </div>
           </div>
@@ -494,45 +556,74 @@ export function AdviserRosterData({ orgData }) {
               organization to complete their roster list?
             </p>
 
-            <div className="flex flex-col gap-4 w-full">
-              {/* Subject */}
-              <div className="flex flex-col gap-1 w-full">
-                <label className="text-sm font-medium text-gray-700">
-                  Subject
-                </label>
+            <h3 className="text-lg font-semibold mb-4">
+              Compose Email – President Notification
+            </h3>
+
+            <div className="flex flex-col gap-4">
+              <label>
+                <p>Organization name:</p>
+                <input
+                  type="email"
+                  placeholder="To"
+                  className="w-full border rounded px-3 py-2 text-sm"
+                  value={emailData.to}
+                  onChange={(e) =>
+                    setEmailData({ ...emailData, to: e.target.value })
+                  }
+                  disabled={emailLoading} // ✅ Disable when loading
+                />
+              </label>
+              <label>
+                <p>Subject:</p>
                 <input
                   type="text"
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                  className="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm"
+                  placeholder="Subject"
+                  className="w-full border rounded px-3 py-2 text-sm"
+                  value={emailData.inquirySubject}
+                  onChange={(e) =>
+                    setEmailData({
+                      ...emailData,
+                      inquirySubject: e.target.value,
+                    })
+                  }
+                  disabled={emailLoading} // ✅ Disable when loading
                 />
-              </div>
-
-              {/* Message */}
-              <div className="flex flex-col gap-1 w-full">
-                <label className="text-sm font-medium text-gray-700">
-                  Message
-                </label>
+              </label>
+              <label>
+                <p>Message:</p>
                 <textarea
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  className="border rounded-lg w-full h-28 p-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                />
-              </div>
+                  placeholder="Message"
+                  rows={5}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                  value={emailData.inquiryText}
+                  onChange={(e) =>
+                    setEmailData({ ...emailData, inquiryText: e.target.value })
+                  }
+                  disabled={emailLoading} // ✅ Disable when loading
+                ></textarea>
+              </label>
             </div>
 
-            <div className="flex justify-end gap-3 mt-6">
+            <div className="mt-4 flex justify-end gap-2">
               <button
-                onClick={() => setIncompleteModal(false)}
-                className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm"
+                className="px-4 py-2 text-sm bg-gray-200 rounded hover:bg-gray-300"
+                onClick={() => setAlertModal(false)}
+                disabled={emailLoading} // ✅ Disable when loading
               >
                 Cancel
               </button>
               <button
-                onClick={SendNotification} // 👈 reuse your function
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-sm font-medium shadow-md transition"
+                className={`px-4 py-2 text-sm rounded ${
+                  emailLoading
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700 text-white"
+                }`}
+                onClick={handleSendEmail}
+                disabled={emailLoading} // ✅ Disable when loading
               >
-                Notify Organization
+                {emailLoading ? "Sending..." : "Send Email"}{" "}
+                {/* ✅ Loading text */}
               </button>
             </div>
           </div>
@@ -550,7 +641,6 @@ export function AdviserRosterData({ orgData }) {
 }
 
 const RosterMemberCard = ({ member, orgId }) => {
-  console.log(`${DOCU_API_ROUTER}/${orgId}/${member.profilePicture}`);
   return (
     <div className="bg-white w-full h-full rounded-lg flex flex-col gap-2 items-center shadow-md p-6 border border-gray-200 hover:shadow-lg transition-shadow">
       <div className="flex items-center justify-between">

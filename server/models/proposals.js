@@ -69,6 +69,7 @@ export const proposalConductSchema = new Schema(
     },
 
     overallStatus: { type: String, default: "Pending" },
+    revision: String,
 
     organizationProfile: {
       type: Schema.Types.ObjectId,

@@ -13,7 +13,17 @@ export const upload = multer({ storage });
 **********                                ********** 
 */
 router.post("/getOrganizations", Controller.GetOrganizationsByDeliveryUnit);
+
+router.post(
+  "/updateStatusProposalConduct/:proposalConductId",
+  Controller.updateProposalConductStatus
+);
+
 router.post("/financialReportInquiry", Controller.SendFinancialEmailInquiry);
+router.post(
+  "/accreditationEmailInquiry",
+  Controller.SendAccreditationInquiryEmailInquiry
+);
 router.get("/getAllUser", Controller.GetUsers);
 router.post(
   "/updateOrganizationProfileStatus",

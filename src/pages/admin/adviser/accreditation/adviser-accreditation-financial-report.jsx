@@ -8,6 +8,8 @@ import {
   User,
   FileText,
   Tag,
+  PersonStandingIcon,
+  Signal,
 } from "lucide-react";
 import {
   XAxis,
@@ -114,48 +116,6 @@ export function AdviserFinancialReport({ orgData }) {
       style: "currency",
       currency: "USD",
     }).format(amount);
-  };
-
-  const [modalOpen, setModalOpen] = useState(false);
-  const [transactionType, setTransactionType] = useState(null);
-
-  const handleAddClick = (type) => {
-    setTransactionType(type);
-    setModalOpen(true);
-  };
-
-  const handleModalClose = () => {
-    setModalOpen(false);
-    setTransactionType(null);
-  };
-
-  const handleTransactionSubmit = async (formData) => {
-    console.log("🔍 Logging submitted FormData:");
-
-    for (let [key, value] of formData.entries()) {
-      console.log(`${key}:`, value);
-    }
-
-    try {
-      const response = await axios.post(`${API_ROUTER}/addReciept`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      console.log("✅ Successfully submitted:", response.data);
-
-      // Refresh the financial report after successful submission
-      const updatedReport = await axios.get(
-        `${API_ROUTER}/getFinancialReport/${orgData._id}`
-      );
-      setFinancialReport(updatedReport.data);
-    } catch (error) {
-      console.error(
-        "❌ Error submitting transaction:",
-        error.response?.data || error.message
-      );
-    }
   };
 
   // Show loading state
@@ -419,6 +379,55 @@ export function AdviserFinancialReport({ orgData }) {
 
       {/* Reimbursements and Disbursements */}
       <div className="flex flex-col flex-1 gap-4 h-full overflow-hidden">
+        {/* Collectible Fees */}
+        <div className="bg-white p-0  border overflow-hidden border-gray-100 flex-1 flex flex-col">
+          <div className="flex flex-col flex-1 gap-4 h-full overflow-hidden">
+            {/* Collectible Fees */}
+            <div className="bg-white p-0 border overflow-hidden border-gray-100 flex-1 flex flex-col">
+              <div className="sticky flex justify-between w-full top-0 z-10 bg-white p-6 border-b border-gray-400 items-center gap-3">
+                <div className="flex gap-2 items-center">
+                  <div className="p-2.5 bg-amber-100 rounded-lg">
+                    <DollarSign className="w-5 h-5 text-amber-600" />
+                  </div>
+                  <h2 className="text-xl font-bold text-gray-800">
+                    Collectible Fees
+                  </h2>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex-1 p-4 overflow-auto flex flex-col gap-3">
+            {financialReport.reimbursements.length === 0 ? (
+              <div className="text-center text-gray-500 py-8">
+                No reimbursements found
+              </div>
+            ) : (
+              financialReport.reimbursements.map((item, index) => (
+                <div
+                  key={`reimbursement-${index}`}
+                  className="bg-green-50 p-4  border border-green-200"
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-medium text-gray-800">
+                      {item.description}
+                    </h3>
+                    <span className="text-green-600 font-bold">
+                      {formatCurrency(item.amount)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm text-gray-600">
+                    <span>
+                      Date Reimbursed:
+                      {new Date(item.date).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1"></div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
         {/* Reimbursements */}
         <div className="bg-white p-0  border overflow-hidden border-gray-100 flex-1 flex flex-col">
           <div className="sticky flex justify-between w-full top-0 z-10 bg-white p-6 border-b border-gray-400 items-center gap-3">
