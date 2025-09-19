@@ -18,6 +18,10 @@ router.post(
   "/updateStatusProposalConduct/:proposalConductId",
   Controller.updateProposalConductStatus
 );
+router.post(
+  "/updateStatusAccomplishment/:accomplishmentId",
+  Controller.updateAccomplishmentStatus
+);
 
 router.post("/financialReportInquiry", Controller.SendFinancialEmailInquiry);
 router.post(
@@ -71,10 +75,6 @@ router.get(
 router.post(
   "/updateStatusPresident/:presidentId",
   Controller.UpdatePresidentProfileStatus
-);
-router.post(
-  "/revisionPresidentProfile/:presidentId",
-  Controller.RevisionPresidentProfile
 );
 
 /* ********** STUDENT DEVELOPMENT ROSTER ********** */

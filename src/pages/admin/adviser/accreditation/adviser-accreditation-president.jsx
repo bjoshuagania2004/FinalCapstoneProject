@@ -9,7 +9,6 @@ import {
   MapPin,
   Award,
   Clock,
-  MoreVertical,
   MoreHorizontal,
   AlertCircle,
   AlertTriangle,

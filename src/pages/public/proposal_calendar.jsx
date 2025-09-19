@@ -20,12 +20,7 @@ export function PostComponent() {
         );
         console.log(response.data);
         setProposalCalendar(response.data);
-      } catch (error) {
-        console.log("Error fetching user data:", error.response?.data);
-        if (!error.response?.data?.organization) {
-          setShowInitialRegistration(true);
-        }
-      }
+      } catch (error) {}
     };
 
     fetchUserData();

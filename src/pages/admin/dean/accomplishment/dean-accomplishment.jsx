@@ -2,18 +2,63 @@ import axios from "axios";
 import { API_ROUTER } from "../../../../App";
 
 import { useState, useEffect } from "react";
-import { OrganizationalDevelopmentModal } from "./add-organizational-development";
 import { Award, Target, Users, FileText, Heart, Calendar } from "lucide-react";
-import { StudentAccomplishmentDetailed } from "./detailed-accomplishment";
+import { DeanAccomplishmentReportDetailed } from "./dean-detailed-accomplishment";
 
-export function StudentLeaderAccomplishmentReport({ orgData }) {
-  const [proposals, setProposals] = useState([]);
+// Category icon mapping
+const getCategoryIcon = (category) => {
+  switch (category) {
+    case "Proposed Action Plan":
+      return <Target className="w-5 h-5" />;
+    case "Organizational Performance":
+      return <Award className="w-5 h-5" />;
+    case "Organizational Development":
+      return <Users className="w-5 h-5" />;
+    case "Meetings & Assemblies":
+      return <FileText className="w-5 h-5" />;
+    case "Service Community":
+      return <Heart className="w-5 h-5" />;
+    default:
+      return <FileText className="w-5 h-5" />;
+  }
+};
+
+// Category color mapping
+const getCategoryColor = (category) => {
+  switch (category) {
+    case "Proposed Action Plan":
+      return "bg-blue-100 text-blue-800 shadow-xl-blue-200";
+    case "Organizational Performance":
+      return "bg-green-100 text-green-800 shadow-xl-green-200";
+    case "Organizational Development":
+      return "bg-purple-100 text-purple-800 shadow-xl-purple-200";
+    case "Meetings & Assemblies":
+      return "bg-orange-100 text-orange-800 shadow-xl-orange-200";
+    case "Service Community":
+      return "bg-pink-100 text-pink-800 shadow-xl-pink-200";
+    default:
+      return "bg-gray-100 text-gray-800 shadow-xl-gray-200";
+  }
+};
+
+const formatDate = (dateString) => {
+  if (!dateString) return "N/A";
+  return new Date(dateString).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+export function DeanAccomplishmentReport({ orgData, user }) {
   const [accomplishmentData, setAccomplishmentData] = useState(null); // ✅ store report object
-  const [individualAccomplishment, setIndividualAccomplishment] = useState([]); // ✅ store sub individualAccomplishment
+  const [accomplishments, setAccomplishments] = useState([]); // ✅ store sub accomplishments
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedAccomplishment, setSelectedAccomplishment] = useState(null);
 
-  const [showOrgDevelopmentModal, setShowOrgDevelopmentModal] = useState(false);
+  useState(false);
 
   const fetchAccomplishmentInformation = async () => {
     try {
@@ -24,21 +69,7 @@ export function StudentLeaderAccomplishmentReport({ orgData }) {
 
       setAccomplishmentData(getAccomplishment.data); // ✅ full report
       console.log(getAccomplishment.data); // ✅ full report
-      setIndividualAccomplishment(getAccomplishment.data.accomplishments); // ✅ safe list
-    } catch (error) {
-      console.error(error.response || error);
-    }
-  };
-
-  const fetchProposalInformation = async () => {
-    try {
-      // Proposals
-      const res = await axios.get(
-        `${API_ROUTER}/getStudentLeaderAccomplishmentReady/${orgData._id}`
-      );
-      setProposals(res.data);
-
-      setProposals(res.data);
+      setAccomplishments(getAccomplishment.data.accomplishments); // ✅ safe list
     } catch (error) {
       console.error(error.response || error);
     }
@@ -46,31 +77,25 @@ export function StudentLeaderAccomplishmentReport({ orgData }) {
 
   useEffect(() => {
     fetchAccomplishmentInformation();
-    fetchProposalInformation();
   }, []);
 
   // ✅ Categories
   const categories = [
     "All",
-    ...new Set(individualAccomplishment.map((acc) => acc.category)),
+    ...new Set(accomplishments.map((acc) => acc.category)),
   ];
 
   // ✅ Filtered
   const filteredAccomplishments =
     selectedCategory === "All"
-      ? individualAccomplishment
-      : individualAccomplishment.filter(
-          (acc) => acc.category === selectedCategory
-        );
+      ? accomplishments
+      : accomplishments.filter((acc) => acc.category === selectedCategory);
 
   // ✅ Stats
-  const categoryStats = individualAccomplishment.reduce(
-    (acc, accomplishment) => {
-      acc[accomplishment.category] = (acc[accomplishment.category] || 0) + 1;
-      return acc;
-    },
-    {}
-  );
+  const categoryStats = accomplishments.reduce((acc, accomplishment) => {
+    acc[accomplishment.category] = (acc[accomplishment.category] || 0) + 1;
+    return acc;
+  }, {});
 
   return (
     <div className="h-full w-full overflow-hidden  flex flex-col bg-gray-100">
@@ -80,16 +105,10 @@ export function StudentLeaderAccomplishmentReport({ orgData }) {
           <h1 className="text-3xl font-bold text-gray-900">
             Accomplishment Reports Analytics
           </h1>
-          <button
-            onClick={() => setShowOrgDevelopmentModal(true)}
-            className="bg-amber-700 py-2 px-4  text-white font-semibold hover:bg-amber-600 transition-colors"
-          >
-            Add Accomplishment
-          </button>
         </div>
         <p className="text-gray-600">
-          Total Accomplishments: {individualAccomplishment.length} | Grand Total
-          Points: {individualAccomplishment?.grandTotal || 0}
+          Total Accomplishments: {accomplishments.length} | Grand Total Points:{" "}
+          {accomplishmentData?.grandTotal || 0}
         </p>
       </div>
 
@@ -104,14 +123,14 @@ export function StudentLeaderAccomplishmentReport({ orgData }) {
                   Total Accomplishments
                 </p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {individualAccomplishment.length}
+                  {accomplishments.length}
                 </p>
               </div>
               <Award className="w-8 h-8 text-blue-500" />
             </div>
           </div>
 
-          <div className="bg-white  rounded-lg shadow-lg p-4 border border-gray-200">
+          <div className="bg-white rounded-lg shadow-lg p-4 border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">
@@ -142,10 +161,10 @@ export function StudentLeaderAccomplishmentReport({ orgData }) {
               <div>
                 <p className="text-sm font-medium text-gray-600">Most Recent</p>
                 <p className="text-sm font-bold text-gray-900 ">
-                  {individualAccomplishment.length > 0
+                  {accomplishments.length > 0
                     ? formatDate(
                         Math.max(
-                          ...individualAccomplishment.map(
+                          ...accomplishments.map(
                             (acc) => new Date(acc.createdAt)
                           )
                         )
@@ -153,7 +172,7 @@ export function StudentLeaderAccomplishmentReport({ orgData }) {
                     : "N/A"}
                 </p>
               </div>
-              <Calendar className="w-8 h-8 text-amber-500" />
+              <Calendar className="w-8 h-8 text-orange-500" />
             </div>
           </div>
         </div>
@@ -241,82 +260,28 @@ export function StudentLeaderAccomplishmentReport({ orgData }) {
               <div className="h-full flex flex-col items-center justify-center text-center py-12">
                 <FileText className="w-16 h-16 text-gray-300 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No individualAccomplishment found
+                  No accomplishments found
                 </h3>
                 <p className="text-gray-500 max-w-sm">
                   {selectedCategory === "All"
                     ? "Get started by adding your first accomplishment."
-                    : `No individualAccomplishment match the "${selectedCategory}" category.`}
+                    : `No accomplishments match the "${selectedCategory}" category.`}
                 </p>
               </div>
             )}
           </div>
           <div className="col-span-4 overflow-auto">
-            <StudentAccomplishmentDetailed
+            <DeanAccomplishmentReportDetailed
               getCategoryIcon={getCategoryIcon}
               formatDate={formatDate}
+              orgData={orgData}
+              user={user}
               getCategoryColor={getCategoryColor}
               selectedAccomplishment={selectedAccomplishment}
             />
           </div>
         </div>
       </div>
-
-      {showOrgDevelopmentModal && (
-        <OrganizationalDevelopmentModal
-          orgData={orgData}
-          accomplishmentId={accomplishmentData?._id}
-          proposals={proposals}
-          onClose={() => setShowOrgDevelopmentModal(false)}
-        />
-      )}
     </div>
   );
 }
-
-// Category icon mapping
-const getCategoryIcon = (category) => {
-  switch (category) {
-    case "Proposed Action Plan":
-      return <Target className="w-5 h-5" />;
-    case "Organizational Performance":
-      return <Award className="w-5 h-5" />;
-    case "Organizational Development":
-      return <Users className="w-5 h-5" />;
-    case "Meetings & Assemblies":
-      return <FileText className="w-5 h-5" />;
-    case "Service Community":
-      return <Heart className="w-5 h-5" />;
-    default:
-      return <FileText className="w-5 h-5" />;
-  }
-};
-
-// Category color mapping
-const getCategoryColor = (category) => {
-  switch (category) {
-    case "Programs, Projects, and Activities (PPAs)":
-      return "bg-rose-100 text-rose-800 shadow-xl-rose-200";
-    case "External Activities":
-      return "bg-indigo-100 text-indigo-800 shadow-xl-indigo-200";
-    case "Institutional Involvement":
-      return "bg-purple-100 text-purple-800 shadow-xl-purple-200";
-    case "Meetings & Assemblies":
-      return "bg-amber-100 text-amber-800 shadow-xl-amber-200";
-    case "Service Community":
-      return "bg-pink-100 text-pink-800 shadow-xl-pink-200";
-    default:
-      return "bg-gray-100 text-gray-800 shadow-xl-gray-200";
-  }
-};
-
-const formatDate = (dateString) => {
-  if (!dateString) return "N/A";
-  return new Date(dateString).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};

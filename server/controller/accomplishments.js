@@ -2,11 +2,112 @@ import {
   Accomplishment,
   SubAccomplishment,
   Document,
+  User,
 } from "../models/index.js";
+
+// ✅ Update Accomplishment status (similar to ProposalConduct)
+export const updateAccomplishmentStatus = async (req, res) => {
+  try {
+    const { accomplishmentId } = req.params;
+    const {
+      overallStatus,
+      inquiryText,
+      inquirySubject,
+      userName,
+      userPosition,
+      orgProfileId,
+      orgName,
+    } = req.body;
+
+    // 🔎 Find Accomplishment by ID
+    const accomplishment = await SubAccomplishment.findById(
+      accomplishmentId
+    ).populate("documents");
+
+    if (!accomplishment) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Accomplishment not found" });
+    }
+
+    // ✅ Update Accomplishment
+    if (overallStatus) {
+      accomplishment.overallStatus = overallStatus;
+    }
+
+    if (inquiryText) {
+      accomplishment.revision = inquiryText;
+    }
+
+    // ✅ Update all linked Documents
+    if (accomplishment.documents?.length > 0) {
+      for (let doc of accomplishment.documents) {
+        if (overallStatus) {
+          doc.status = overallStatus; // or map status differently if needed
+        }
+        if (inquiryText) {
+          doc.revisionNotes = inquiryText;
+        }
+
+        // optional log entry
+        doc.logs.push(
+          `[${new Date().toISOString()}] Updated by ${userName} (${userPosition}) → Status: ${overallStatus}`
+        );
+
+        await doc.save();
+      }
+    }
+
+    await accomplishment.save();
+
+    // 📧 Optional: Send email inquiry
+    if (inquiryText && inquirySubject) {
+      const users = await User.find({
+        organizationProfile: orgProfileId,
+        position: { $ne: "Adviser" },
+      }).select("email");
+
+      if (users?.length > 0) {
+        const recipientEmails = users.map((u) => u.email).filter(Boolean);
+
+        if (recipientEmails.length > 0) {
+          const message = `
+Hello ${orgName},
+
+An accomplishment status update has been submitted.
+
+Details:
+- From: ${userName} || ${userPosition}
+- Status: ${accomplishment.overallStatus}
+- Message:
+${inquiryText}
+
+Please log in to the system to review.
+
+Thank you,
+Accreditation Support Team
+          `;
+
+          await NodeEmail(recipientEmails, inquirySubject, message);
+        }
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Accomplishment and documents updated successfully",
+      accomplishment,
+    });
+  } catch (error) {
+    console.error("❌ Error updating Accomplishment:", error);
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
 
 export const getAccomplishmentReport = async (req, res) => {
   try {
     const { OrgProfileId } = req.params;
+    console.log(OrgProfileId);
 
     if (!OrgProfileId) {
       return res.status(400).json({ error: "Missing organizationProfile ID." });

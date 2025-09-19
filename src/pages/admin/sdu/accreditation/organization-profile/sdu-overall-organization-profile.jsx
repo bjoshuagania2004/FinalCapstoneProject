@@ -1,11 +1,9 @@
 import axios from "axios";
 import { useState, useEffect } from "react";
-import { NavLink, Outlet, useLocation } from "react-router-dom";
-import { API_ROUTER, DOCU_API_ROUTER } from "../../../../App";
-import { School2 } from "lucide-react";
-import { StudentDevOrganizationProfileCard } from "../sdu-main";
+import { API_ROUTER, DOCU_API_ROUTER } from "../../../../../App";
+import { School2, User } from "lucide-react";
 
-export function SduAccreditationOverview({ selectedOrg, onSelectOrg }) {
+export function SduOverallOrganizationProfile({ selectedOrg, onSelectOrg }) {
   const [activeOrganization, setActiveOrganization] = useState([]);
 
   const fetchStatus = async () => {
@@ -104,8 +102,8 @@ export function SduAccreditationOverview({ selectedOrg, onSelectOrg }) {
               className="w-8 h-8 rounded-full object-cover"
             />
           ) : (
-            <div className="w-8 h-8 bg-blue-200 rounded-full flex items-center justify-center">
-              <span className="text-blue-600 text-xs font-medium">👤</span>
+            <div className="w-12 aspect-square  bg-blue-200 rounded-full flex items-center justify-center">
+              <User />
             </div>
           )}
           <div>
@@ -119,11 +117,7 @@ export function SduAccreditationOverview({ selectedOrg, onSelectOrg }) {
         </div>
         <div className="flex gap-4 text-xs text-gray-600">
           <span>📞 {president.contactNo}</span>
-          <span
-            className={`px-2 py-1 rounded text-xs font-medium border ${getStatusBadge(
-              president.overAllStatus
-            )}`}
-          >
+          <span className={`px-2 py-1 rounded text-xs font-medium border`}>
             {president.overAllStatus}
           </span>
         </div>
@@ -140,11 +134,14 @@ export function SduAccreditationOverview({ selectedOrg, onSelectOrg }) {
     ];
 
     return (
-      <div className="space-y-2">
+      <div className="flex flex-col gap-2 bg-amber-50 p-4">
         <p className="text-sm font-medium text-gray-700">📄 Document Status</p>
-        <div className="grid grid-cols-1 gap-1 text-xs">
+        <div className="flex flex-col gap-2 text-sm">
           {documents.map((doc, index) => (
-            <div key={index} className="flex justify-between items-center">
+            <div
+              key={index}
+              className="flex justify-between items-center gap-4 "
+            >
               <span className="text-gray-600">{doc.name}:</span>
               {doc.data ? (
                 <span
@@ -224,7 +221,7 @@ export function SduAccreditationOverview({ selectedOrg, onSelectOrg }) {
             ? onSelectOrg(null)
             : onSelectOrg(org.organizationProfile)
         }
-        className={`shadow-lg   rounded-2xl border bg-white cursor-pointer transition-all duration-200 ${
+        className={`shadow-md rounded-xl min-w-fit flex-1 bg-white cursor-pointer transition-all duration-200 ${
           isSelected
             ? "ring-2 ring-blue-500 bg-blue-50 border-blue-200 transform scale-[1.02]"
             : isActive
@@ -232,7 +229,7 @@ export function SduAccreditationOverview({ selectedOrg, onSelectOrg }) {
             : "border-gray-300 hover:shadow-lg hover:border-gray-400 opacity-90"
         }`}
       >
-        <div className="p-5 space-y-4">
+        <div className="p-4 flex flex-col gap-4 ">
           {/* Header with Logo and Basic Info */}
           <div className="flex items-start gap-4">
             <div className="flex-shrink-0">
@@ -249,40 +246,28 @@ export function SduAccreditationOverview({ selectedOrg, onSelectOrg }) {
               )}
             </div>
 
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-2">
+            <div className="w-full">
+              <div className="flex items-start justify-between gap-4">
                 <h2 className="text-lg font-bold text-gray-800 leading-tight">
                   {org.organizationProfile?.orgName || "Unnamed Organization"}
+                  <p className="text-sm text-gray-600">
+                    <span className="font-bold">
+                      {org.organizationProfile?.orgAcronym}
+                    </span>
+                    {" • "}
+                    <span className="font-normal italic">
+                      {org.organizationProfile?.orgClass}
+                    </span>
+                  </p>
                 </h2>
-                <div className="flex flex-col gap-1">
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusBadge(
-                      overallStatus
-                    )}`}
-                  >
-                    {overallStatus}
-                  </span>
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      isActive
-                        ? "bg-green-100 text-green-700 border-green-200"
-                        : "bg-gray-100 text-gray-600 border-gray-200"
-                    }`}
-                  >
-                    {isActive ? "🟢 Active" : "🔴 Inactive"}
-                  </span>
-                </div>
+                <span
+                  className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusBadge(
+                    overallStatus
+                  )}`}
+                >
+                  {overallStatus}
+                </span>
               </div>
-
-              <p className="text-sm text-gray-600 mt-1">
-                <span className="font-medium">
-                  {org.organizationProfile?.orgAcronym}
-                </span>
-                {" • "}
-                <span className="capitalize">
-                  {org.organizationProfile?.orgClass}
-                </span>
-              </p>
             </div>
           </div>
 
@@ -303,11 +288,11 @@ export function SduAccreditationOverview({ selectedOrg, onSelectOrg }) {
           <div>{renderPresidentInfo(org)}</div>
 
           {/* Roster Status */}
-          <div className="bg-purple-50 p-3 rounded-lg">
+          <div className="bg-purple-50 p-3 rounded-lg ">
             <div className="flex justify-between items-center">
               <div>
                 <p className="text-sm font-medium text-gray-700">
-                  📋 Roster Status
+                  Roster Status
                 </p>
                 <div className="flex gap-4 text-xs text-gray-600 mt-1">
                   <span
@@ -360,24 +345,10 @@ export function SduAccreditationOverview({ selectedOrg, onSelectOrg }) {
   };
 
   return (
-    <div className="p-6 overflow-auto space-y-8">
+    <div className="p-4 overflow-auto bg-gray-200 space-y-8">
       {activeOrganization.length === 0 ? (
         <div className="text-center py-12">
-          <div className="text-gray-400 mb-4">
-            <svg
-              className="mx-auto h-12 w-12"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-          </div>
+          <div className="text-gray-400 mb-4"></div>
           <p className="text-gray-500 text-lg">No accreditation data found.</p>
           <p className="text-gray-400 text-sm mt-2">
             Organizations will appear here once they submit their accreditation
@@ -387,9 +358,9 @@ export function SduAccreditationOverview({ selectedOrg, onSelectOrg }) {
       ) : (
         <>
           {/* Summary Statistics */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-100">
+          <div className="shadow-md rounded-xl bg-white p-4">
             <h2 className="text-2xl font-bold text-gray-800 mb-4">
-              📊 Accreditation Overview
+              Accreditation Overview
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center">
@@ -425,9 +396,8 @@ export function SduAccreditationOverview({ selectedOrg, onSelectOrg }) {
 
           {/* Active Organizations Section */}
           {activeOrgs.length > 0 && (
-            <div>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-1 h-6 bg-green-500 rounded-full"></div>
+            <div className="bg-gray-100 p-4 rounded-xl shadow-md">
+              <div className="flex items-center gap-4">
                 <h3 className="text-xl font-bold text-gray-800">
                   Active Organizations
                 </h3>
@@ -436,7 +406,7 @@ export function SduAccreditationOverview({ selectedOrg, onSelectOrg }) {
                   {activeOrgs.length !== 1 ? "s" : ""}
                 </span>
               </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div className="flex gap-4 p-4 overflow-y-auto">
                 {activeOrgs.map(renderOrganizationCard)}
               </div>
             </div>
@@ -462,183 +432,6 @@ export function SduAccreditationOverview({ selectedOrg, onSelectOrg }) {
           )}
         </>
       )}
-    </div>
-  );
-}
-
-export function SduAccreditationNavigation({ selectedOrg, onSelectOrg }) {
-  const tabs = [
-    { to: ".", label: "Overview", end: true },
-    { to: "president-information", label: "President's Information Sheet" },
-    { to: "financial-report", label: "Financial Report" },
-    { to: "roster-of-members", label: "Roster of Members" },
-    { to: "proposed-action-plan", label: "Proposed Action Plan" },
-    { to: "document", label: "Accreditation Documents" },
-  ];
-
-  const dropdownLinks = [
-    { to: "history", label: "History" },
-    { to: "settings", label: "Settings" },
-  ];
-
-  const [isTabsOpen, setTabsOpen] = useState(false);
-  const [isManageRosterOpen, setManageRosterOpen] = useState(false);
-  const [accreditationStatus, setAccreditationStatus] = useState(null);
-  const [showApprovalPopup, setShowApprovalPopup] = useState(false);
-
-  const fetchStatus = async () => {
-    try {
-      const res = await axios.get(
-        `${API_ROUTER}/checkAccreditationApprovalStatuses/${selectedOrg._id}`
-      );
-
-      setAccreditationStatus(res.data);
-
-      if (res.data.isEverythingApproved) {
-        setShowApprovalPopup(true);
-      }
-    } catch (error) {
-      console.error("Failed to fetch accreditation data", error);
-    }
-  };
-
-  const location = useLocation();
-  useEffect(() => {
-    if (selectedOrg?._id) {
-      fetchStatus();
-    }
-  }, [location, selectedOrg]);
-
-  const sendApprovalLetter = async () => {
-    try {
-      const res = await axios.post(
-        `${API_ROUTER}/sendAccreditationConfirmationEmail/${selectedOrg._id}`,
-        {
-          orgName: selectedOrg.orgName,
-          orgId: selectedOrg._id,
-        }
-      );
-
-      console.log("Approval letter sent:", res.data);
-      setShowApprovalPopup(false);
-      alert("Approval letter has been sent successfully!");
-    } catch (error) {
-      console.error("Failed to send approval letter:", error);
-      alert("Something went wrong while sending the approval letter.");
-    }
-  };
-
-  return (
-    <div className="flex h-full w-full overflow-hidden transition-all duration-1000">
-      <div className="h-full w-full flex flex-col">
-        {/* Navigation */}
-        <nav className="flex justify-end gap-4 px-6 p-4 items-center  bg-white border-b">
-          {/* Tabs Dropdown */}
-          <div className="relative inline-block text-left">
-            <button
-              onClick={() => setTabsOpen((prev) => !prev)}
-              className={`px-4 py-2 bg-cnsc-primary-color  w-56 text-white  transition-colors hover:bg-cnsc-secondary-color ${
-                isTabsOpen ? "rounded-t-lg" : "rounded-lg"
-              }`}
-            >
-              Accreditation Tabs
-            </button>
-
-            {isTabsOpen && (
-              <div className="absolute left-0 z-10 bg-white border border-gray-200 rounded-b-lg shadow-lg w-56">
-                {tabs.map((tab) => (
-                  <NavLink
-                    key={tab.to}
-                    to={tab.to}
-                    end={tab.end}
-                    className={({ isActive }) =>
-                      `block w-full text-left px-4 py-2 text-sm ${
-                        isActive
-                          ? "bg-gray-200 text-blue-600 font-semibold"
-                          : "text-gray-700 hover:bg-gray-100"
-                      }`
-                    }
-                    onClick={() => setTabsOpen(false)}
-                  >
-                    {tab.label}
-                  </NavLink>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Manage Accreditation Dropdown */}
-          <div className="relative inline-block text-left">
-            <button
-              onClick={() => setManageRosterOpen((prev) => !prev)}
-              className={`px-4 py-2 bg-cnsc-primary-color w-56 text-white transition-colors hover:bg-cnsc-primary-color-dark ${
-                isManageRosterOpen ? "rounded-t-lg" : "rounded-lg"
-              }`}
-            >
-              Manage Accreditation
-            </button>
-
-            {isManageRosterOpen && (
-              <div className="absolute right-0 z-10 bg-white border border-gray-200 rounded-b-lg shadow-lg w-56">
-                {dropdownLinks.map((link) => (
-                  <NavLink
-                    key={link.to}
-                    to={link.to}
-                    className={({ isActive }) =>
-                      `block w-full text-left px-4 py-2 text-sm ${
-                        isActive
-                          ? "bg-gray-200 text-blue-600 font-semibold"
-                          : "text-gray-700 hover:bg-gray-100"
-                      }`
-                    }
-                    onClick={() => setManageRosterOpen(false)}
-                  >
-                    {link.label}
-                  </NavLink>
-                ))}
-              </div>
-            )}
-          </div>
-        </nav>
-
-        {/* Tab Content */}
-        <div className="h-full overflow-hidden flex flex-col">
-          <Outlet context={{ accreditationStatus, selectedOrg }} />
-        </div>
-
-        {/* ✅ Popup Modal */}
-        {showApprovalPopup && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-md z-50">
-            <div className="bg-white rounded-lg shadow-lg p-6 w-96 text-center">
-              <p>
-                This Accreditation of "{selectedOrg.orgName}" is done. Do you
-                want to notify them?
-              </p>
-
-              <button
-                onClick={sendApprovalLetter}
-                className="mt-4 px-4 py-2 bg-cnsc-primary-color text-white rounded-lg hover:bg-cnsc-primary-color-dark"
-              >
-                Send Approval Letter
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ✅ Sliding Sidebar */}
-      <div
-        className={`transition-all duration-500 transform ${
-          selectedOrg ? "translate-x-0 w-[23%]" : "translate-x-full w-0"
-        }`}
-      >
-        {selectedOrg && (
-          <StudentDevOrganizationProfileCard
-            selectedOrg={selectedOrg}
-            onSelectOrg={onSelectOrg}
-          />
-        )}
-      </div>
     </div>
   );
 }

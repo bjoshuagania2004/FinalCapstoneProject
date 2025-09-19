@@ -15,9 +15,10 @@ export const updateProposalConductStatus = async (req, res) => {
       userPosition,
     } = req.body;
 
-    console.log(req.body);
-    // 🔎 Find ProposalConduct by ID (returns single doc, not array)
-    const proposalConduct = await ProposalConduct.findById(proposalConductId);
+    // 🔎 Find ProposalConduct by ID and populate its linked documents
+    const proposalConduct = await ProposalConduct.findById(
+      proposalConductId
+    ).populate("document");
 
     if (!proposalConduct) {
       return res
@@ -25,7 +26,7 @@ export const updateProposalConductStatus = async (req, res) => {
         .json({ success: false, message: "ProposalConduct not found" });
     }
 
-    // ✅ Update fields
+    // ✅ Update ProposalConduct
     if (overallStatus) {
       proposalConduct.overallStatus = overallStatus;
     }
@@ -34,7 +35,24 @@ export const updateProposalConductStatus = async (req, res) => {
       proposalConduct.revision = inquiryText;
     }
 
-    await proposalConduct.save(); // ✅ save document instance
+    // ✅ Update linked Documents
+    if (proposalConduct.document?.length > 0) {
+      for (let doc of proposalConduct.document) {
+        if (overallStatus) {
+          doc.status = overallStatus;
+        }
+        if (inquiryText) {
+          doc.revisionNotes = inquiryText;
+        }
+        doc.logs.push(
+          `[${new Date().toISOString()}] Updated by ${userName} (${userPosition}) → Status: ${overallStatus}`
+        );
+
+        await doc.save();
+      }
+    }
+
+    await proposalConduct.save();
 
     // 📧 Optional: Send email inquiry
     if (inquiryText && inquirySubject) {
@@ -43,26 +61,26 @@ export const updateProposalConductStatus = async (req, res) => {
         position: { $ne: "Adviser" },
       }).select("email");
 
-      if (users && users.length > 0) {
+      if (users?.length > 0) {
         const recipientEmails = users.map((u) => u.email).filter(Boolean);
 
         if (recipientEmails.length > 0) {
           const message = `
-    Hello ${orgName},
+Hello ${orgName},
 
-    A proposal status update has been submitted.
+A proposal status update has been submitted.
 
-    Details:
-    - From: ${userName} || ${userPosition}
-    - Status: ${proposalConduct.overallStatus}
-    - Message:
-    ${inquiryText}
+Details:
+- From: ${userName} || ${userPosition}
+- Status: ${proposalConduct.overallStatus}
+- Message:
+${inquiryText}
 
-    Please log in to the system to review.
+Please log in to the system to review.
 
-    Thank you,
-    Accreditation Support Team
-              `;
+Thank you,
+Accreditation Support Team
+          `;
 
           await NodeEmail(recipientEmails, inquirySubject, message);
         }
@@ -71,7 +89,7 @@ export const updateProposalConductStatus = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "ProposalConduct status updated successfully",
+      message: "ProposalConduct and related documents updated successfully",
       proposalConduct,
     });
   } catch (error) {

@@ -2,12 +2,7 @@ import { DOCU_API_ROUTER } from "../../../../App";
 import { useState } from "react";
 import { UpdateStatusProposal } from "../../../../components/update-status-proposal";
 
-export function ShowAdviserDetailedProposal({
-  proposal,
-  orgData,
-  user,
-  onClose,
-}) {
+export function ShowDeanDetailedProposal({ proposal, orgData, user, onClose }) {
   if (!proposal) return null;
   const [statusModal, setStatusModal] = useState(null); // ✅ unique name
 
@@ -176,7 +171,7 @@ export function ShowAdviserDetailedProposal({
             <div className="flex-1 bg-gray-100">
               {selectedDoc ? (
                 <iframe
-                  src={`${DOCU_API_ROUTER}/${proposal.organizationProfile}/${selectedDoc.fileName}#toolbar=0&navpanes=0`}
+                  src={`${DOCU_API_ROUTER}/${proposal.organizationProfile}/${selectedDoc.fileName}`}
                   title={`${selectedDoc.label || "Document"} PDF`}
                   className="w-full h-full border-0"
                 />
@@ -289,26 +284,20 @@ export function ShowAdviserDetailedProposal({
               Close
             </button>
 
-            {/* Send Revision button - opens alert modal */}
+            {/* Send Revision button */}
             <button
               onClick={() =>
-                setStatusModal({
-                  type: "alert",
-                  status: "Revision from Adviser",
-                })
+                setStatusModal({ type: "alert", status: "Revision from Dean" })
               }
               className="px-4 py-2 text-white bg-amber-700 hover:bg-amber-800 rounded-md"
             >
               Send Revision
             </button>
 
-            {/* Approve button - opens approval modal */}
+            {/* Approve button */}
             <button
               onClick={() =>
-                setStatusModal({
-                  type: "approval",
-                  status: "Approved by the Adviser",
-                })
+                setStatusModal({ type: "approval", status: "Conduct Approved" })
               }
               className="px-4 py-2 text-white bg-green-700 hover:bg-green-800 rounded-md"
             >

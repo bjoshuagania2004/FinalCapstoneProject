@@ -18,10 +18,9 @@ import {
   Area,
   Legend,
 } from "recharts";
+import { ShowDeanDetailedProposal } from "./dean-detailed-proposal";
 
-import { ShowAdviserDetailedProposal } from "./adviser-detailed-proposal";
-
-export function AdviserProposalConduct({ orgData, user }) {
+export function DeanProposalConduct({ orgData, user }) {
   const [proposalsConduct, setProposalsConduct] = useState([]);
   const [selectedProposal, setSelectedProposal] = useState(null); // for details modal
 
@@ -349,9 +348,6 @@ export function AdviserProposalConduct({ orgData, user }) {
                           <Eye
                             size={16}
                             className="ml-4 text-blue-600 cursor-pointer hover:scale-125"
-                            onClick={(e) => {
-                              e.stopPropagation(); // prevent row click
-                            }}
                           />
                         </div>
                       </td>
@@ -365,7 +361,7 @@ export function AdviserProposalConduct({ orgData, user }) {
       </div>
 
       {selectedProposal && (
-        <ShowAdviserDetailedProposal
+        <ShowDeanDetailedProposal
           proposal={selectedProposal}
           orgData={orgData}
           user={user}

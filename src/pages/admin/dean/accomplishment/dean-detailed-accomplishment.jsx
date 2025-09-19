@@ -2,7 +2,7 @@ import { Award, FileText, FileTextIcon, MoreHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
 import { UpdateStatusAccomplishment } from "../../../../components/update-status-accomplishment";
 
-export function AdviserAccomplishmentReportDetailed({
+export function DeanAccomplishmentReportDetailed({
   getCategoryIcon,
   orgData,
   user,
@@ -10,8 +10,9 @@ export function AdviserAccomplishmentReportDetailed({
   getCategoryColor,
   selectedAccomplishment,
 }) {
-  const [notifyDocumentPopUp, setNotifyDocumentPopUp] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState(null);
+  const [statusModal, setStatusModal] = useState(null);
+
   const [loading, setLoading] = useState(true);
   const [showDropdown, setShowDropdown] = useState(false);
   const [modalType, setModalType] = useState(null);
@@ -127,13 +128,23 @@ export function AdviserAccomplishmentReportDetailed({
                   <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-20">
                     <button
                       className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition"
-                      onClick={() => setModalType("approval")}
+                      onClick={() =>
+                        setStatusModal({
+                          type: "approval",
+                          status: "Approved by Dean",
+                        })
+                      }
                     >
                       Approve
                     </button>
                     <button
                       className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition"
-                      onClick={() => setModalType("revision")}
+                      onClick={() =>
+                        setStatusModal({
+                          type: "revision",
+                          status: "Revision from Dean",
+                        })
+                      }
                     >
                       Request Revision
                     </button>
@@ -227,7 +238,6 @@ export function AdviserAccomplishmentReportDetailed({
                         key={index}
                         onClick={() => {
                           setSelectedDoc(doc.label);
-                          setNotifyDocumentPopUp(true);
                         }}
                         className="flex items-center gap-2 p-2 rounded border bg-red-50 border-red-200 cursor-pointer hover:bg-red-100 transition-colors"
                       >
@@ -323,8 +333,8 @@ export function AdviserAccomplishmentReportDetailed({
           </div>
           <UpdateStatusAccomplishment
             accomplishment={selectedAccomplishment}
-            modalType={modalType}
-            setModalType={setModalType}
+            statusModal={statusModal}
+            setStatusModal={setStatusModal}
             orgData={orgData}
             user={user}
             getCategoryIcon={getCategoryIcon}

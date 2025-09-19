@@ -8,6 +8,8 @@ import { DeanFinancialReport } from "./individual-accreditation/dean-accreditati
 import { DeanProposedPlan } from "./individual-accreditation/dean-accreditation-proposed-plan";
 import { DeanAccreditationDocument } from "./individual-accreditation/dean-accreditation-documents";
 import { X, School2 } from "lucide-react";
+import { DeanProposalConduct } from "./proposals/dean-proposal";
+import { DeanAccomplishmentReport } from "./accomplishment/dean-accomplishment";
 
 export function DeanComponent({
   selectedOrg,
@@ -281,12 +283,7 @@ export function DeanComponent({
             path="/proposal"
             element={
               selectedOrg ? (
-                <div className="h-full">
-                  <h1 className="text-2xl font-bold mb-4">
-                    Proposals - {selectedOrg.orgName}
-                  </h1>
-                  <p>Proposals for {selectedOrg.orgName}</p>
-                </div>
+                <DeanProposalConduct orgData={selectedOrg} user={user} />
               ) : (
                 <div>
                   <OrganizationSelector title="Proposal" />
@@ -410,12 +407,7 @@ export function DeanComponent({
             path="/accomplishment"
             element={
               selectedOrg ? (
-                <div>
-                  <h1 className="text-2xl font-bold mb-4">
-                    Accomplishments - {selectedOrg.orgName}
-                  </h1>
-                  <p>Accomplishments for {selectedOrg.orgName}</p>
-                </div>
+                <DeanAccomplishmentReport orgData={selectedOrg} user={user} />
               ) : (
                 <div>
                   <OrganizationSelector title="Accreditation" />

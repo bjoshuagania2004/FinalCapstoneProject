@@ -9,7 +9,6 @@ export function OrganizationalDevelopmentModal({
   orgData,
   onClose,
 }) {
-  console.log(accomplishmentId);
   const [formData, setFormData] = useState({
     category: "",
     title: "",

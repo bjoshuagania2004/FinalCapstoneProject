@@ -3,6 +3,7 @@ import { API_ROUTER } from "../../../../App";
 
 import { useState, useEffect } from "react";
 import { Award, Target, Users, FileText, Heart, Calendar } from "lucide-react";
+import { AdviserAccomplishmentReportDetailed } from "./adviser-detailed-accomplishment";
 
 // Category icon mapping
 const getCategoryIcon = (category) => {
@@ -51,7 +52,7 @@ const formatDate = (dateString) => {
   });
 };
 
-export function AdviserAccomplishmentReport({ orgData }) {
+export function AdviserAccomplishmentReport({ orgData, user }) {
   const [proposals, setProposals] = useState([]);
   const [accomplishmentData, setAccomplishmentData] = useState(null); // ✅ store report object
   const [accomplishments, setAccomplishments] = useState([]); // ✅ store sub accomplishments
@@ -61,22 +62,29 @@ export function AdviserAccomplishmentReport({ orgData }) {
   const [showOrgDevelopmentModal, setShowOrgDevelopmentModal] = useState(false);
   useState(false);
 
-  const fetchInformation = async () => {
+  const fetchAccomplishmentInformation = async () => {
     try {
-      // Proposals
-      const res = await axios.get(
-        `${API_ROUTER}/getStudentLeaderAccomplishmentReady/${orgData._id}`
-      );
-
       // Accomplishment Report
       const getAccomplishment = await axios.get(
         `${API_ROUTER}/getAccomplishment/${orgData._id}`
       );
 
-      console.log(getAccomplishment.data);
-
       setAccomplishmentData(getAccomplishment.data); // ✅ full report
+      console.log(getAccomplishment.data); // ✅ full report
       setAccomplishments(getAccomplishment.data.accomplishments); // ✅ safe list
+    } catch (error) {
+      console.error(error.response || error);
+    }
+  };
+
+  const fetchProposalInformation = async () => {
+    try {
+      // Proposals
+      const res = await axios.get(
+        `${API_ROUTER}/getStudentLeaderAccomplishmentReady/${orgData._id}`
+      );
+      setProposals(res.data);
+
       setProposals(res.data);
     } catch (error) {
       console.error(error.response || error);
@@ -84,9 +92,9 @@ export function AdviserAccomplishmentReport({ orgData }) {
   };
 
   useEffect(() => {
-    fetchInformation();
+    fetchAccomplishmentInformation();
+    fetchProposalInformation();
   }, []);
-
   // ✅ Categories
   const categories = [
     "All",
@@ -285,9 +293,11 @@ export function AdviserAccomplishmentReport({ orgData }) {
             )}
           </div>
           <div className="col-span-4 overflow-auto">
-            <StudentAccomplishmentDetailed
+            <AdviserAccomplishmentReportDetailed
               getCategoryIcon={getCategoryIcon}
               formatDate={formatDate}
+              orgData={orgData}
+              user={user}
               getCategoryColor={getCategoryColor}
               selectedAccomplishment={selectedAccomplishment}
             />

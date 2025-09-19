@@ -17,21 +17,15 @@ import { Routes, Route } from "react-router-dom";
 import { API_ROUTER, DOCU_API_ROUTER } from "./../../../App";
 import { SduAccreditationSettings } from "./accreditation/sdu-accreditation-settings";
 import { SduAccreditationHistoryOverview } from "./accreditation/sdu-accreditation-history";
-import { SduOrganizationInformation } from "./accreditation/sdu-accreditation-organization-profile";
 import {
   SduAccreditationOverview,
-  OrganizationAccreditation,
+  SduAccreditationNavigation,
 } from "./accreditation/sdu-accreditation-overview";
 
 import {
   SduRoster,
   SduRosterOverview,
 } from "./accreditation/sdu-accreditation-roster";
-
-import {
-  SduPresident,
-  SduPresidentOverview,
-} from "./accreditation/sdu-accreditation-president";
 
 import {
   SduAccreditationDocumentOrganization,
@@ -44,166 +38,29 @@ import {
 } from "./accreditation/sdu-accreditation-proposed-action-plan";
 import { FinancialReportOverview } from "./accreditation/sdu-accreditation-financial-report";
 import { SduUserManagement } from "./sdu-user-management";
+import { SduIndividualOrganizationPresident } from "./accreditation/president/sdu-individual-president";
+import { SduOverallPresident } from "./accreditation/president/sdu-overall-president";
+import { SduIndividualOrganizationProfile } from "./accreditation/organization-profile/sdu-individual-organization-profile";
+import { SduOverallOrganizationProfile } from "./accreditation/organization-profile/sdu-overall-organization-profile";
 
-// This should be used in your main App.js router
+// ✅ Main Layout Wrapper
 export default function StudentDevMainLayout() {
   const [selectedOrg, setSelectedOrg] = useState(null);
-  const [accreditationStatus, setAccreditationStatus] = useState(null);
 
   return (
-    <div className="flex h-screen w-screen bg-gray-50">
-      <div className="flex   h-full w-1/5 justify-between bg-cnsc-primary-color  overflow-hidden">
+    <div className="h-screen w-screen flex overflow-hidden bg-gray-50">
+      {/* Sidebar */}
+      <aside className="min-w-64 bg-cnsc-primary-color flex flex-col">
         <StudentDevMainNavigation />
-      </div>
-      <div className=" w-full h-full">
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-auto">
         <StudentDevUnitComponent
           selectedOrg={selectedOrg}
           onSelectOrg={setSelectedOrg}
         />
-      </div>
-    </div>
-  );
-}
-
-function StudentDevUnitComponent({ selectedOrg, onSelectOrg }) {
-  return (
-    <div className="flex-1 bg-white h-full overflow-auto">
-      <Routes>
-        {/* Dashboard/Home route */}
-        <Route
-          path="/"
-          element={
-            selectedOrg ? (
-              <OrganizationDashboard selectedOrg={selectedOrg} />
-            ) : (
-              <DashboardOverview />
-            )
-          }
-        />
-
-        {/* Proposals routes */}
-        <Route
-          path="/proposal"
-          element={
-            selectedOrg ? (
-              <OrganizationProposals selectedOrg={selectedOrg} />
-            ) : (
-              <ProposalsOverview />
-            )
-          }
-        />
-
-        {/* Accreditation routes */}
-        <Route
-          path="/accreditation/"
-          element={
-            <OrganizationAccreditation
-              selectedOrg={selectedOrg}
-              onSelectOrg={onSelectOrg}
-            />
-          }
-        >
-          <Route
-            index
-            element={
-              selectedOrg ? (
-                <SduOrganizationInformation selectedOrg={selectedOrg} />
-              ) : (
-                <SduAccreditationOverview
-                  selectedOrg={selectedOrg}
-                  onSelectOrg={onSelectOrg}
-                />
-              )
-            }
-          />
-          <Route
-            path="financial-report"
-            element={<FinancialReportOverview />}
-          />
-
-          <Route
-            path="roster-of-members"
-            element={
-              selectedOrg ? (
-                <SduRoster selectedOrg={selectedOrg} />
-              ) : (
-                <SduRosterOverview />
-              )
-            }
-          />
-          <Route
-            path="document"
-            element={
-              selectedOrg ? (
-                <SduAccreditationDocumentOrganization
-                  selectedOrg={selectedOrg}
-                />
-              ) : (
-                <SduAccreditationDocumentOverview />
-              )
-            }
-          />
-          <Route
-            path="proposed-action-plan"
-            element={
-              selectedOrg ? (
-                <SduProposedActionPlanOrganization selectedOrg={selectedOrg} />
-              ) : (
-                <SduProposedActionPlanOverview
-                  selectedOrg={selectedOrg}
-                  onSelectOrg={onSelectOrg}
-                />
-              )
-            }
-          />
-          <Route
-            path="president-information"
-            element={
-              selectedOrg ? (
-                <SduPresident selectedOrg={selectedOrg} />
-              ) : (
-                <SduPresidentOverview onSelectOrg={onSelectOrg} />
-              )
-            }
-          />
-          <Route path="Settings" element={<SduAccreditationSettings />} />
-          <Route
-            path="history"
-            element={
-              selectedOrg ? (
-                <OrganizationAccreditationHistory selectedOrg={selectedOrg} />
-              ) : (
-                <SduAccreditationHistoryOverview />
-              )
-            }
-          />
-        </Route>
-
-        {/* Accomplishments route */}
-        <Route
-          path="/accomplishment"
-          element={
-            selectedOrg ? (
-              <OrganizationAccomplishments selectedOrg={selectedOrg} />
-            ) : (
-              <AccomplishmentsOverview />
-            )
-          }
-        />
-
-        {/* Posts route */}
-        <Route
-          path="/post"
-          element={
-            selectedOrg ? (
-              <OrganizationPosts selectedOrg={selectedOrg} />
-            ) : (
-              <PostsOverview />
-            )
-          }
-        />
-        <Route path="/user-management" element={<SduUserManagement />} />
-      </Routes>
+      </main>
     </div>
   );
 }
@@ -213,7 +70,6 @@ function StudentDevMainNavigation() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Update active key based on current location
   useEffect(() => {
     const path = location.pathname;
     if (path === "/SDU" || path === "/SDU/" || path === "/") {
@@ -250,7 +106,6 @@ function StudentDevMainNavigation() {
       label: "User management",
       path: "/SDU/user-management",
     },
-
     {
       key: "accomplishments",
       icon: <BookMarked className="w-5 h-5" />,
@@ -272,9 +127,14 @@ function StudentDevMainNavigation() {
   ];
 
   return (
-    <div className="w-full ">
-      <div className="h-24 bg-cnsc-secondary-color"></div>
-      <nav className="flex flex-col w-full transition-all duration-500 items-center ">
+    <div className="flex flex-col h-full">
+      {/* Logo/Header */}
+      <div className="h-20 bg-cnsc-secondary-color flex items-center justify-center">
+        <h1 className="text-white font-bold text-lg">SDU</h1>
+      </div>
+
+      {/* Navigation Links */}
+      <nav className="flex-1 flex flex-col py-2">
         {navigationItems.map((item) => (
           <button
             key={item.key}
@@ -282,29 +142,140 @@ function StudentDevMainNavigation() {
               setActiveKey(item.key);
               navigate(item.path);
             }}
-            className={`group relative w-full  h-full p-4 flex items-center gap-3 
-                  ${
-                    activeKey === item.key
-                      ? "bg-white text-cnsc-primary-color  transform"
-                      : "text-white hover:bg-amber-700 hover:text-black  hover:shadow-md"
-                  }`}
-          >
-            <span
-              className={`transition-colors duration-300 ${
+            className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors
+              ${
                 activeKey === item.key
-                  ? "text-cnsc-primary-color"
-                  : "text-white group-hover:text-black"
+                  ? "bg-white text-cnsc-primary-color"
+                  : "text-white hover:bg-amber-700 hover:text-black"
               }`}
-            >
-              {item.icon}
-            </span>
-            <span className="text-sm font-semibold tracking-wide">
-              {item.label}
-            </span>
+          >
+            {item.icon}
+            <span>{item.label}</span>
           </button>
         ))}
       </nav>
-      <LogoutButton />
+
+      {/* Logout */}
+      <div className="p-4">
+        <LogoutButton />
+      </div>
+    </div>
+  );
+}
+
+function StudentDevUnitComponent({ selectedOrg, onSelectOrg }) {
+  const renderRoute = (orgComponent, overviewComponent) =>
+    selectedOrg ? orgComponent : overviewComponent;
+
+  return (
+    <div className="h-full w-full ">
+      <Routes>
+        {/* Dashboard/Home */}
+        <Route
+          path="/"
+          element={renderRoute(
+            <OrganizationDashboard selectedOrg={selectedOrg} />,
+            <DashboardOverview />
+          )}
+        />
+
+        {/* Proposals */}
+        <Route
+          path="/proposal"
+          element={renderRoute(
+            <OrganizationProposals selectedOrg={selectedOrg} />,
+            <ProposalsOverview />
+          )}
+        />
+
+        {/* Accreditation */}
+        <Route
+          path="/accreditation"
+          element={
+            <SduAccreditationNavigation
+              selectedOrg={selectedOrg}
+              onSelectOrg={onSelectOrg}
+            />
+          }
+        >
+          <Route
+            index
+            element={renderRoute(
+              <SduIndividualOrganizationProfile selectedOrg={selectedOrg} />,
+              <SduOverallOrganizationProfile
+                selectedOrg={selectedOrg}
+                onSelectOrg={onSelectOrg}
+              />
+            )}
+          />
+          <Route
+            path="financial-report"
+            element={<FinancialReportOverview />}
+          />
+          <Route
+            path="roster-of-members"
+            element={renderRoute(
+              <SduRoster selectedOrg={selectedOrg} />,
+              <SduRosterOverview />
+            )}
+          />
+          <Route
+            path="document"
+            element={renderRoute(
+              <SduAccreditationDocumentOrganization
+                selectedOrg={selectedOrg}
+              />,
+              <SduAccreditationDocumentOverview />
+            )}
+          />
+          <Route
+            path="proposed-action-plan"
+            element={renderRoute(
+              <SduProposedActionPlanOrganization selectedOrg={selectedOrg} />,
+              <SduProposedActionPlanOverview
+                selectedOrg={selectedOrg}
+                onSelectOrg={onSelectOrg}
+              />
+            )}
+          />
+          <Route
+            path="president-information"
+            element={renderRoute(
+              <SduIndividualOrganizationPresident selectedOrg={selectedOrg} />,
+              <SduOverallPresident onSelectOrg={onSelectOrg} />
+            )}
+          />
+          <Route path="settings" element={<SduAccreditationSettings />} />
+          <Route
+            path="history"
+            element={renderRoute(
+              <OrganizationAccreditationHistory selectedOrg={selectedOrg} />,
+              <SduAccreditationHistoryOverview />
+            )}
+          />
+        </Route>
+
+        {/* Accomplishments */}
+        <Route
+          path="/accomplishment"
+          element={renderRoute(
+            <OrganizationAccomplishments selectedOrg={selectedOrg} />,
+            <AccomplishmentsOverview />
+          )}
+        />
+
+        {/* Posts */}
+        <Route
+          path="/post"
+          element={renderRoute(
+            <OrganizationPosts selectedOrg={selectedOrg} />,
+            <PostsOverview />
+          )}
+        />
+
+        {/* User Management */}
+        <Route path="/user-management" element={<SduUserManagement />} />
+      </Routes>
     </div>
   );
 }

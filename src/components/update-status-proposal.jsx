@@ -1,18 +1,19 @@
 import { useState } from "react";
 import { API_ROUTER } from "../App";
 import axios from "axios";
+import { Award, FileText, AlertTriangle, CheckCircle } from "lucide-react";
 
 export function UpdateStatusProposal({
   proposal,
-  modalType, // "approval" | "alert"
-  setModalType,
+  statusModal, // { type: "approval" | "alert", status: string }
+  setStatusModal,
   orgData,
-  route,
   user,
 }) {
   const [loading, setLoading] = useState(false);
-
+  const { type, status } = statusModal || {};
   // Prepare default email data
+  console.log(proposal);
   const [emailData, setEmailData] = useState({
     inquirySubject: `Revision of "${proposal.ProposedIndividualActionPlan.activityTitle}"`,
     inquiryText: "",
@@ -22,7 +23,7 @@ export function UpdateStatusProposal({
     orgName: orgData.orgName,
   });
 
-  const closeModal = () => setModalType(null);
+  const closeModal = () => setStatusModal(null);
 
   // ✅ Unified handler (approval + revision email)
   const handleSubmit = async (status) => {
@@ -56,12 +57,11 @@ export function UpdateStatusProposal({
     }
   };
 
-  if (!modalType) return null;
+  if (!statusModal) return null;
 
   return (
     <div className="absolute bg-black/10 backdrop-blur-xs inset-0 flex justify-center items-center z-50">
       <div className="h-fit bg-white w-1/3 flex flex-col px-6 py-6 rounded-2xl shadow-xl relative">
-        {/* Close Button */}
         <button
           onClick={closeModal}
           className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
@@ -71,23 +71,23 @@ export function UpdateStatusProposal({
         </button>
 
         {/* ✅ Approval Modal */}
-        {modalType === "approval" && (
+        {type === "approval" && (
           <>
             <h1 className="text-lg font-semibold mb-4">
-              Approval: Roster of Organization
+              Approval: Proposal "
+              {proposal.ProposedIndividualActionPlan.activityTitle}"
             </h1>
-            <p className="mb-4 text-gray-700">
-              By approving this section of the accreditation, you confirm that
-              you have reviewed the information provided and consent to its
-              approval. An approval email will also be sent.
+            <p className=" text-gray-700">
+              By approving this section you confirm that you have reviewed the
+              information provided and consent to its approval.
             </p>
             <button
-              onClick={() => handleSubmit("Approved By the Adviser")}
+              onClick={() => handleSubmit(status)}
               disabled={loading}
               className={`mt-6 px-6 py-2 rounded-lg text-sm font-medium shadow-md transition ${
                 loading
                   ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-indigo-600 hover:bg-indigo-700 text-white"
+                  : "bg-emerald-600 hover:bg-emerald-700 text-white"
               }`}
             >
               {loading ? "Processing..." : "Confirm Approval & Send Email"}
@@ -96,7 +96,7 @@ export function UpdateStatusProposal({
         )}
 
         {/* ✅ Revision (Alert / Email Modal) */}
-        {modalType === "alert" && (
+        {type === "alert" && (
           <>
             <h3 className="text-lg font-semibold mb-4">
               Compose Email – President Notification
@@ -132,6 +132,7 @@ export function UpdateStatusProposal({
                 />
               </label>
             </div>
+            {/* form content unchanged */}
             <div className="mt-4 flex justify-end gap-2">
               <button
                 className="px-4 py-2 text-sm bg-gray-200 rounded hover:bg-gray-300"
@@ -141,13 +142,13 @@ export function UpdateStatusProposal({
                 Cancel
               </button>
               <button
+                onClick={() => handleSubmit(status)}
+                disabled={loading}
                 className={`px-4 py-2 text-sm rounded ${
                   loading
                     ? "bg-gray-400 cursor-not-allowed"
                     : "bg-blue-600 hover:bg-blue-700 text-white"
                 }`}
-                onClick={() => handleSubmit("Revision from the Adviser")}
-                disabled={loading}
               >
                 {loading ? "Sending..." : "Send Revision Email"}
               </button>
