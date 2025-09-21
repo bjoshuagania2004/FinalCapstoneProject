@@ -16,7 +16,6 @@
     "@tailwindcss/oxide": "^4.1.13",
     "@tailwindcss/vite": "^4.0.8",
     "axios": "^1.8.3",
-    "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
     "body-parser": "^2.2.0",
     "connect-mongo": "^5.1.0",

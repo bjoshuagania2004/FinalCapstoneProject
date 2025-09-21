@@ -272,9 +272,25 @@ function StudentDevMainNavigation() {
   ];
 
   return (
-    <div className="w-full ">
-      <div className="h-24 bg-cnsc-secondary-color"></div>
-      <nav className="flex flex-col w-full transition-all duration-500 items-center ">
+    <div className="w-full h-full flex flex-col">
+      {/* Top Bar with Welcome */}
+      <div className="h-28 bg-cnsc-secondary-color flex flex-col items-center justify-center shadow-md">
+        <div className="flex items-center gap-3">
+          {/* Example icon for admin (you can replace with your preferred one) */}
+          <div className="bg-white/20 p-2 rounded-full">
+            <User className="w-8 h-8 text-white" />
+          </div>
+          <div className="text-center">
+            <h1 className="text-white text-2xl font-bold tracking-wide">
+              Welcome
+            </h1>
+            <p className="text-amber-300 text-lg font-medium">SDU Admin</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex flex-col gap-1 mx-2 flex-grow mt-5">
         {navigationItems.map((item) => (
           <button
             key={item.key}
@@ -282,33 +298,25 @@ function StudentDevMainNavigation() {
               setActiveKey(item.key);
               navigate(item.path);
             }}
-            className={`group relative w-full  h-full p-4 flex items-center gap-3 
-                  ${
-                    activeKey === item.key
-                      ? "bg-white text-cnsc-primary-color  transform"
-                      : "text-white hover:bg-amber-700 hover:text-black  hover:shadow-md"
-                  }`}
+            className={`flex items-center rounded-xl py-4 px-6 text-lg font-medium transition-all duration-300 ${
+              activeKey === item.key
+                ? "bg-white text-cnsc-primary-color shadow-md"
+                : "text-white hover:bg-amber-500/90 hover:pl-8"
+            }`}
           >
-            <span
-              className={`transition-colors duration-300 ${
-                activeKey === item.key
-                  ? "text-cnsc-primary-color"
-                  : "text-white group-hover:text-black"
-              }`}
-            >
-              {item.icon}
-            </span>
-            <span className="text-sm font-semibold tracking-wide">
-              {item.label}
-            </span>
+            <span className="mr-3 w-5 h-5">{item.icon}</span>
+            <span>{item.label}</span>
           </button>
         ))}
+
+        {/* Push logout to bottom */}
+        <div className="mt-auto">
+          <LogoutButton />
+        </div>
       </nav>
-      <LogoutButton />
     </div>
   );
 }
-
 // Dashboard Overview Components
 function DashboardOverview() {
   return (

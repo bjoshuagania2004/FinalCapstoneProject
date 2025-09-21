@@ -546,15 +546,20 @@ function DocumentDisplayCard({ accreditationData, setUploadingDocType }) {
   const { JointStatement, PledgeAgainstHazing, ConstitutionAndByLaws } =
     accreditationData;
 
-  const renderDocumentCard = (label, doc, key) => {
+  const renderDocumentCard = (label, doc) => {
     if (doc && doc.fileName) {
       return (
-        <div className="flex flex-col gap-4 border-2 border-gray-400 bg-white shadow-md  p-4 justify-between">
+        <div className="flex flex-col gap-4 border-2 border-gray-400 bg-white shadow-md p-4 justify-between">
           <div className="flex items-center gap-3">
-            <FileText className="min-w-8 min- h-8 text-blue-600" />
-            <div>
+            <FileText className="min-w-8 min-h-8 text-blue-600" />
+            <div className="flex-1 min-w-0">
               <h3 className="font-medium text-gray-900">{label}</h3>
-              <p className="text-sm text-gray-500">{doc.fileName}</p>
+              <p
+                className="text-sm text-gray-500 truncate"
+                title={doc.fileName}
+              >
+                {doc.fileName}
+              </p>
               <p className="text-xs text-gray-400">
                 Uploaded: {new Date(doc.createdAt).toLocaleDateString()}
               </p>
@@ -569,23 +574,17 @@ function DocumentDisplayCard({ accreditationData, setUploadingDocType }) {
               {getStatusIcon(doc.status)}
               <span>{doc.status}</span>
             </div>
-            <button className="p-2 text-gray-400 hover:text-gray-600">
-              <Download className="w-4 h-4" />
-            </button>
           </div>
         </div>
       );
     }
 
     return (
-      <div
-        onClick={() => setUploadingDocType(key)}
-        className="border-2 border-dashed  border-gray-300  p-8 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
-      >
+      <div className="border-2 border-dashed border-gray-300 p-8 bg-gray-50 cursor-not-allowed">
         <div className="text-center">
           <Upload className="w-8 h-8 mx-auto text-gray-400 mb-2" />
-          <p className="text-gray-600 font-medium">Upload {label}</p>
-          <p className="text-sm text-gray-500">Click to select file</p>
+          <p className="text-gray-600 font-medium">{label} Placeholder</p>
+          <p className="text-sm text-gray-500">No file uploaded</p>
         </div>
       </div>
     );
