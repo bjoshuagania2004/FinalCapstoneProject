@@ -26,7 +26,7 @@ import { InitialRegistration, ReRegistration } from "./initial-registration";
 import StudentLeaderPresidentListComponent from "./accreditation/presidents/president";
 import StudentLeaderRosters from "./accreditation/roster-members/roster-member";
 import StudentAccreditationMainComponent from "./accreditation/student-accreditation-main";
-import StudentHomePage from "./home";
+import StudentHomePage from "./dashboard/home";
 import FinancialReport from "./accreditation/financial-report.jsx/financial-report";
 import { ProportionCropTool } from "../../../components/image_uploader";
 import { AccreditationDocuments } from "./accreditation/accreditation-document";

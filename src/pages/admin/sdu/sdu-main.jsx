@@ -17,15 +17,9 @@ import { Routes, Route } from "react-router-dom";
 import { API_ROUTER, DOCU_API_ROUTER } from "./../../../App";
 import { SduAccreditationSettings } from "./accreditation/sdu-accreditation-settings";
 import { SduAccreditationHistoryOverview } from "./accreditation/sdu-accreditation-history";
-import {
-  SduAccreditationOverview,
-  SduAccreditationNavigation,
-} from "./accreditation/sdu-accreditation-overview";
+import { SduAccreditationNavigation } from "./accreditation/sdu-accreditation-overview";
 
-import {
-  SduRoster,
-  SduRosterOverview,
-} from "./accreditation/sdu-accreditation-roster";
+import { SduRosterOverview } from "./accreditation/roster/sdu-overall-roster";
 
 import {
   SduAccreditationDocumentOrganization,
@@ -37,11 +31,12 @@ import {
   SduProposedActionPlanOverview,
 } from "./accreditation/sdu-accreditation-proposed-action-plan";
 import { FinancialReportOverview } from "./accreditation/sdu-accreditation-financial-report";
-import { SduUserManagement } from "./sdu-user-management";
+import { SduUserManagement } from "./user-management/sdu-user-management";
 import { SduIndividualOrganizationPresident } from "./accreditation/president/sdu-individual-president";
 import { SduOverallPresident } from "./accreditation/president/sdu-overall-president";
 import { SduIndividualOrganizationProfile } from "./accreditation/organization-profile/sdu-individual-organization-profile";
 import { SduOverallOrganizationProfile } from "./accreditation/organization-profile/sdu-overall-organization-profile";
+import { SduIndividualOrganizationRoster } from "./accreditation/roster/sdu-individual-roster";
 
 // ✅ Main Layout Wrapper
 export default function StudentDevMainLayout() {
@@ -215,8 +210,8 @@ function StudentDevUnitComponent({ selectedOrg, onSelectOrg }) {
           <Route
             path="roster-of-members"
             element={renderRoute(
-              <SduRoster selectedOrg={selectedOrg} />,
-              <SduRosterOverview />
+              <SduIndividualOrganizationRoster selectedOrg={selectedOrg} />,
+              <SduRosterOverview onSelectOrg={onSelectOrg} />
             )}
           />
           <Route

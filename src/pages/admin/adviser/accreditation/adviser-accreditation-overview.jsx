@@ -29,7 +29,6 @@ export function AdviserAccreditationMainComponent({ user, orgId }) {
   // New state for "reset popup"
   const [showResetPopup, setShowResetPopup] = useState(false);
 
-  console.log(orgId);
   useEffect(() => {
     const GetAccreditationInformation = async () => {
       if (!orgId) {
@@ -71,7 +70,6 @@ export function AdviserAccreditationMainComponent({ user, orgId }) {
         { withCredentials: true }
       );
 
-      console.log(res.data);
       setAccreditationData(res.data);
       setShowResetPopup(false);
     } catch (err) {
@@ -290,7 +288,6 @@ function ErrorState({ error, onRetry }) {
 
 function OverallStatus({ accreditationData }) {
   const { overallStatus } = accreditationData;
-  console.log({ status: accreditationData.FinancialReport });
   const requirements = [
     {
       name: "Joint Statement",
@@ -486,7 +483,7 @@ function PresidentInformation({ accreditationData }) {
 }
 
 function DocumentDisplayCard({ user, accreditationData }) {
-  console.log(user);
+  console.log(accreditationData);
   const { JointStatement, PledgeAgainstHazing, ConstitutionAndByLaws } =
     accreditationData;
   const [showEmailModal, setShowEmailModal] = useState(false);

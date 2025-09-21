@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { API_ROUTER, DOCU_API_ROUTER } from "../../../../App";
 import { File, FileQuestion, Upload } from "lucide-react";
 
-export function SduAccreditationDocumentOverview() {
+export function SduAccreditationDocumentOverview({ onSelectOrg }) {
   return <> mama mo 2</>;
 }
 

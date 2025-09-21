@@ -78,7 +78,7 @@ router.post(
 );
 
 /* ********** STUDENT DEVELOPMENT ROSTER ********** */
-router.get("/getAllroster", Controller.GetRosterAllMembers);
+router.get("/getAllroster", Controller.GetAllRostersWithMembers);
 router.get(
   "/getRosterByOrg/:orgProfileId",
   Controller.GetRosterMembersByOrganizationIdSDU

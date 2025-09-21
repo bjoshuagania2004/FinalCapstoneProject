@@ -145,35 +145,41 @@ export const GetRosterMembersByOrganizationIdSDU = async (req, res) => {
   }
 };
 
-export const GetRosterAllMembers = async (req, res) => {
+export const GetAllRostersWithMembers = async (req, res) => {
   try {
-    // Step 1: Fetch all roster members with populated roster
-    const members = await RosterMember.find().populate("roster");
+    // Step 1: Fetch all rosters with organization profile
+    const rosters = await Roster.find()
+      .populate("organizationProfile") // populate org details
+      .lean();
 
-    // Step 2: Group members by organizationProfile ID (from the roster)
-    const groupedByOrg = {};
+    // Step 2: Fetch all members linked to rosters
+    const members = await RosterMember.find()
+      .populate({
+        path: "roster",
+        populate: { path: "organizationProfile" }, // nested populate
+      })
+      .lean();
 
+    // Step 3: Group members by rosterId
+    const membersByRoster = {};
     members.forEach((member) => {
-      const orgId = member.roster?.organizationProfile?.toString();
-      if (!orgId) return;
-
-      if (!groupedByOrg[orgId]) {
-        groupedByOrg[orgId] = [];
+      const rosterId = member.roster?._id?.toString();
+      if (!membersByRoster[rosterId]) {
+        membersByRoster[rosterId] = [];
       }
-
-      groupedByOrg[orgId].push(member);
+      membersByRoster[rosterId].push(member);
     });
 
-    return res.status(200).json({
-      message: "Roster members grouped by organization.",
-      data: groupedByOrg, // { orgId1: [members...], orgId2: [members...] }
-    });
+    // Step 4: Attach members to each roster
+    const result = rosters.map((roster) => ({
+      ...roster,
+      members: membersByRoster[roster._id.toString()] || [],
+    }));
+
+    return res.status(200).json(result);
   } catch (error) {
-    console.error("Error fetching all roster members:", error);
-    return res.status(500).json({
-      message: "Internal server error",
-      error: error.message,
-    });
+    console.error("Error fetching rosters:", error);
+    return res.status(500).json({ message: "Server error", error });
   }
 };
 

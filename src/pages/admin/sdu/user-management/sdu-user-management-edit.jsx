@@ -1,9 +1,9 @@
 import axios from "axios";
 import { useState, useCallback, useEffect } from "react";
-import { API_ROUTER } from "../../../App";
+import { API_ROUTER } from "../../../../App";
 
 import { GraduationCap, Building, Mail, X, Save, User } from "lucide-react";
-import { departments } from "./sdu-main";
+import { departments } from "../sdu-main";
 
 export function EditUserModal({ user, onClose, onUserUpdated, organization }) {
   const [formData, setFormData] = useState({

@@ -84,6 +84,7 @@ export const proposalConductSchema = new Schema(
         ref: "Documents",
       },
     ],
+    isActive: { type: Boolean, default: true },
   },
   { timestamps: true }
 );

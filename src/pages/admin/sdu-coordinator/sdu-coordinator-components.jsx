@@ -9,6 +9,8 @@ import { SduCoorFinancialReport } from "./individual-accreditation/sdu-coor-accr
 import { SduCoorRosterData } from "./individual-accreditation/sdu-coor-accreditation-roster";
 import { SduCoorProposedPlan } from "./individual-accreditation/sdu-coor-proposed-action-plan";
 import { SduCoorAccreditationDocument } from "./individual-accreditation/sdu-coor-accreditation-document";
+import { SduCoorProposalConduct } from "./proposals/sdu-coor-proposal";
+import { SduCoorAccomplishmentReport } from "./accomplishment/sdu-coor-accomplishment";
 
 export function SduCoordinatorComponent({
   selectedOrg,
@@ -276,7 +278,7 @@ export function SduCoordinatorComponent({
             path="/proposal"
             element={
               selectedOrg ? (
-                <UnderDevelopment />
+                <SduCoorProposalConduct orgData={selectedOrg} user={user} />
               ) : (
                 <OrganizationSelector title="Proposals" />
               )
@@ -382,7 +384,10 @@ export function SduCoordinatorComponent({
             path="/accomplishment"
             element={
               selectedOrg ? (
-                <UnderDevelopment />
+                <SduCoorAccomplishmentReport
+                  orgData={selectedOrg}
+                  user={user}
+                />
               ) : (
                 <OrganizationSelector title="Accomplishments" />
               )

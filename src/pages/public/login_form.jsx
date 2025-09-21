@@ -11,6 +11,7 @@ export default function Login({ navigate, onShowRegistration }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log({ email: username, password });
     try {
       const response = await axios.post(
         `${API_ROUTER}/login`,
@@ -29,7 +30,7 @@ export default function Login({ navigate, onShowRegistration }) {
         navigate("/dean");
       } else if (role === "ossd coordinator" || role === "ossd") {
         navigate("/OSSD-");
-      } else if (role === "sdu-coordinator" || role === "SDU") {
+      } else if (role === "sdu-coordinator" || role === "sdu-coordinator") {
         navigate("/sdu-coordinator");
       } else if (role === "sdu" || role === "SDU") {
         navigate("/SDU");
@@ -52,17 +53,6 @@ export default function Login({ navigate, onShowRegistration }) {
         className="w-full flex flex-col gap-6 relative z-10"
         onSubmit={handleSubmit}
       >
-        {/* Header
-        <div className="text-center mb-2">
-          <h1 className="text-2xl font-bold text-gray-800 tracking-wide">
-            WELCOME TO
-          </h1>
-          <h2 className="text-3xl font-black text-cnsc-primary-color mt-1 tracking-wider">
-            CNSC CODEX
-          </h2>
-          <div className="w-16 h-1 bg-gradient-to-r from-cnsc-primary-color to-cnsc-secondary-color rounded-full mx-auto mt-3"></div>
-        </div> */}
-        {/* Input Fields */}
         <div className="flex flex-col gap-5">
           <div className="relative group">
             <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">

@@ -5,7 +5,13 @@ export const rosterSchema = new Schema(
   {
     organizationProfile: {
       type: Schema.Types.ObjectId,
-      ref: "organizationProfile",
+      ref: "OrganizationProfile",
+      require: true,
+    },
+    organization: {
+      type: Schema.Types.ObjectId,
+      ref: "organization",
+      require: true,
     },
 
     isComplete: { type: Boolean, default: false },

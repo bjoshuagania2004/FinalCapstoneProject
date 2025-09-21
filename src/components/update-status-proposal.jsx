@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { API_ROUTER } from "../App";
 import axios from "axios";
-import { Award, FileText, AlertTriangle, CheckCircle } from "lucide-react";
 
 export function UpdateStatusProposal({
   proposal,
