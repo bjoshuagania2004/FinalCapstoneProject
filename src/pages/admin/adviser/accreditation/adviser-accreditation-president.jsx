@@ -9,22 +9,32 @@ import {
   MapPin,
   Award,
   Clock,
-  MoreVertical,
   MoreHorizontal,
+  AlertCircle,
+  AlertTriangle,
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { API_ROUTER, DOCU_API_ROUTER } from "../../../../App";
 
-export function AdviserPresident({ orgData, accreditationData }) {
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [presidents, setPresidents] = useState([]);
+export function AdviserPresident({ user, orgData }) {
   const [currentPresident, setCurrentPresident] = useState(null);
+  const [showEmailModal, setShowEmailModal] = useState(false);
   const [remainingPresidents, setRemainingPresidents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const orgId = orgData.organization;
+  const [emailData, setEmailData] = useState({
+    to: orgData.orgName,
+    orgName: orgData.orgName,
+    inquirySubject: "President Profile Not Found",
+    orgId: orgData._id,
+    inquiryText: "",
+    userPosition: user.position,
+    userName: user.name,
+  });
 
+  console.log(user);
   useEffect(() => {
     const GetAndSetPresidents = async () => {
       if (!orgId) return;
@@ -37,8 +47,6 @@ export function AdviserPresident({ orgData, accreditationData }) {
           `${API_ROUTER}/getPresidents/${orgId}`
         );
         const data = response.data;
-
-        setPresidents(data);
 
         if (orgData?.orgPresident?._id) {
           const orgPresidentId = orgData.orgPresident._id;
@@ -79,7 +87,26 @@ export function AdviserPresident({ orgData, accreditationData }) {
   };
 
   const handleAdd = () => {
-    setShowAddForm(true);
+    setShowEmailModal(true);
+  };
+
+  const handleSendEmail = async () => {
+    console.log("📨 Sending email:", emailData);
+
+    try {
+      setLoading(true);
+      const response = await axios.post(
+        `${API_ROUTER}/accreditationEmailInquiry`,
+        emailData
+      );
+      console.log(response.data);
+      setShowEmailModal(false);
+    } catch (err) {
+      console.error("Failed to fetch roster members:", err);
+      setError("Failed to load roster members");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDelete = (president) => {
@@ -155,6 +182,7 @@ export function AdviserPresident({ orgData, accreditationData }) {
     <div className="flex flex-col mt-4 h-full w-full gap-4 overflow-auto">
       <div className="grid grid-cols-4 gap-4">
         {/* Current President (2 columns) */}
+
         <div className="col-span-4">
           <h1>CURRENT PRESIDENT</h1>
           {currentPresident ? (
@@ -164,31 +192,36 @@ export function AdviserPresident({ orgData, accreditationData }) {
             />
           ) : (
             <div
-              className="bg-white gap-4 flex flex-col justify-center items-center p-6 relative cursor-pointer group border-2 border-dashed border-gray-300 hover:border-indigo-400 transition-all duration-300"
+              className="bg-white gap-4 flex flex-col justify-center items-center p-6 relative cursor-pointer group"
               onClick={handleAdd}
             >
-              <div className="w-32 h-32 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-full flex items-center justify-center border-2 border-indigo-200 group-hover:border-indigo-400 transition-all duration-300 group-hover:scale-105">
-                <Plus
-                  size={48}
-                  className="text-indigo-600 group-hover:text-indigo-700 transition-colors duration-300"
-                />
-              </div>
-              <div className="text-center">
-                <h3 className="text-xl font-semibold text-gray-800 group-hover:text-indigo-700 transition-colors duration-300">
-                  Add Current President
-                </h3>
-                <p className="text-sm text-gray-500 mt-1 group-hover:text-gray-600 transition-colors duration-300">
-                  Click to add a new president
-                </p>
+              <div
+                className="border h-full w-full flex flex-col justify-center items-center gap-4 border-dashed p-4
+              "
+              >
+                <div className="w-32 h-32 bg-yellow-100 rounded-full flex items-center justify-center border-2 border-yellow-400 transition-all duration-300 group-hover:scale-105">
+                  <AlertTriangle
+                    size={48}
+                    className="text-yellow-600 group-hover:text-yellow-700 transition-colors duration-300"
+                  />
+                </div>
+                <div className="text-center">
+                  <h3 className="text-xl font-semibold text-yellow-800 group-hover:text-yellow-700 transition-colors duration-300">
+                    NO CURRENT PRESIDENT FOUND
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-1 group-hover:text-gray-600 transition-colors duration-300">
+                    Click to notify the organization
+                  </p>
+                </div>
               </div>
             </div>
           )}
         </div>
         <div className="col-span-4 flex flex-col gap-4">
-          <h1> PRESIDENT</h1>
           <div className="w-full grid grid-cols-4 gap-4">
             {remainingPresidents.map((president) => (
               <div className="">
+                <h1> PRESIDENT</h1>
                 <PresidentCard
                   president={president}
                   onEdit={handleEdit}
@@ -198,9 +231,82 @@ export function AdviserPresident({ orgData, accreditationData }) {
               </div>
             ))}
           </div>
-        </div>{" "}
-        {/* Previous Presidents (filtered list, excludes current) */}
+        </div>
       </div>
+      {/* Email Modal */}
+      {showEmailModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-lg w-full p-6 relative">
+            <button
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+              onClick={() => setShowEmailModal(false)}
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <h3 className="text-lg font-semibold mb-4">
+              Compose Email – President Notification
+            </h3>
+
+            <div className="flex flex-col gap-4">
+              <label>
+                <p>Organization name:</p>
+                <input
+                  type="email"
+                  placeholder="To"
+                  className="w-full border rounded px-3 py-2 text-sm"
+                  value={emailData.to}
+                  onChange={(e) =>
+                    setEmailData({ ...emailData, to: e.target.value })
+                  }
+                />
+              </label>
+              <label>
+                <p>Subject:</p>
+                <input
+                  type="text"
+                  placeholder="Subject"
+                  className="w-full border rounded px-3 py-2 text-sm"
+                  value={emailData.inquirySubject}
+                  onChange={(e) =>
+                    setEmailData({
+                      ...emailData,
+                      inquirySubject: e.target.value,
+                    })
+                  }
+                />
+              </label>
+              <label>
+                <p>Message:</p>
+                <textarea
+                  placeholder="Message"
+                  rows={5}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                  value={emailData.inquiryText}
+                  onChange={(e) =>
+                    setEmailData({ ...emailData, inquiryText: e.target.value })
+                  }
+                ></textarea>
+              </label>
+            </div>
+
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                className="px-4 py-2 text-sm bg-gray-200 rounded hover:bg-gray-300"
+                onClick={() => setShowEmailModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                onClick={handleSendEmail}
+              >
+                Send Email
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -274,6 +380,7 @@ const CurrentPresidentCard = ({ currentPresident, orgData }) => {
       });
     }
   };
+
   return (
     <div className="bg-white shadow-2xl rounded-xl overflow-hidden">
       {/* Header Section */}

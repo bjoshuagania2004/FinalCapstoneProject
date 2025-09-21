@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { API_ROUTER, DOCU_API_ROUTER } from "../../../../App";
+import { API_ROUTER, DOCU_API_ROUTER } from "../../../../../App";
 import { formatDistanceToNow } from "date-fns";
 import { Users, Clock3, StickyNote, UserSquare } from "lucide-react";
 
-export function SduRoster({ selectedOrg }) {
+export function SduIndividualOrganizationRoster({ selectedOrg }) {
   const [isManageRosterOpen, setManageRosterOpen] = useState(false);
   const [rosterMembers, setRosterMembers] = useState([]);
   const [rosterInfo, setRosterInfo] = useState([]);
@@ -250,43 +250,6 @@ export function SduRoster({ selectedOrg }) {
   );
 }
 
-export function SduRosterOverview() {
-  return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">
-          Member Rosters Overview
-        </h2>
-        <p className="text-gray-600">
-          Statistics for member roster submissions
-        </p>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-indigo-50 p-6 rounded-lg">
-          <h3 className="text-lg font-semibold mb-4">
-            Member Roster Analytics
-          </h3>
-          <div className="h-48 bg-white rounded border flex items-center justify-center">
-            <div className="text-center text-gray-500">
-              <div className="text-4xl mb-2">👥</div>
-              <p>Member analytics</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-pink-50 p-6 rounded-lg">
-          <h3 className="text-lg font-semibold mb-4">Roster Completion</h3>
-          <div className="h-48 bg-white rounded border flex items-center justify-center">
-            <div className="text-center text-gray-500">
-              <div className="text-4xl mb-2">✅</div>
-              <p>Completion status</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function ApprovedRosterLists({ rosterId, setShowPopup }) {
   const [loading, setLoading] = useState(false);
 
@@ -297,7 +260,6 @@ function ApprovedRosterLists({ rosterId, setShowPopup }) {
       setLoading(true);
       await axios.post(`${API_ROUTER}/ApproveRosterList/${rosterId}`);
 
-      alert("Roster approved!");
       setShowPopup({ show: false, type: "", member: null });
     } catch (error) {
       console.error("Error approving roster:", error);

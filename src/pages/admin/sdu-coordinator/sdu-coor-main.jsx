@@ -30,10 +30,10 @@ export function SduCoordinatorPage() {
   const fetchOrganizations = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(
-        `${API_ROUTER}/getOrganizations/${user.deliveryUnit}`
-      );
-
+      const res = await axios.post(`${API_ROUTER}/getOrganizations`, {
+        deliveryUnit: user.deliveryUnit,
+      });
+      console.log(res.data);
       setOrgs(res.data);
     } catch (err) {
       console.error("Error fetching organizations:", err);

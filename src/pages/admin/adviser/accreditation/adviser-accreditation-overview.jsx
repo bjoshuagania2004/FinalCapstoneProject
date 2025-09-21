@@ -11,14 +11,15 @@ import {
   MapPin,
   Award,
   Star,
+  OrigamiIcon,
 } from "lucide-react";
 import axios from "axios";
 import { API_ROUTER, DOCU_API_ROUTER } from "../../../../App";
 import { FileText, Upload, Mail, X } from "lucide-react";
 
-export function AdviserAccreditationMainComponent({ orgId }) {
-  const [accreditationData, setAccreditationData] = useState(null);
+export function AdviserAccreditationMainComponent({ user, orgId }) {
   const [uploadingDocType, setUploadingDocType] = useState(null);
+  const [accreditationData, setAccreditationData] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -69,78 +70,16 @@ export function AdviserAccreditationMainComponent({ orgId }) {
         { withCredentials: true }
       );
 
-      console.log("New accreditation created:", res.data);
       setAccreditationData(res.data);
       setShowResetPopup(false);
     } catch (err) {
       console.error("Error creating new accreditation:", err);
-      alert("Failed to create new accreditation.");
     }
   };
 
-  const handleUploadSubmit = async () => {
-    if (!selectedFile || !uploadingDocType) return;
-
-    setIsUploading(true);
-    setUploadProgress(0);
-
-    const formData = new FormData();
-    formData.append(
-      "organizationProfile",
-      accreditationData.organizationProfile._id
-    );
-    formData.append(
-      "organization",
-      accreditationData.organizationProfile.organization
-    );
-    formData.append("file", selectedFile);
-    formData.append("accreditationId", accreditationData._id);
-    formData.append("docType", uploadingDocType);
-
-    let progressInterval;
-
-    try {
-      progressInterval = setInterval(() => {
-        setUploadProgress((prev) => Math.min(prev + 10, 90));
-      }, 200);
-
-      const response = await axios.post(
-        `${API_ROUTER}/addAccreditationDocument`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      console.log("Upload success:", response.data);
-      setUploadProgress(100);
-
-      setAccreditationData((prev) => ({
-        ...prev,
-        [uploadingDocType]: {
-          fileName: selectedFile.name,
-          status: "Pending",
-          createdAt: new Date().toISOString(),
-        },
-      }));
-
-      setTimeout(() => {
-        setUploadingDocType(null);
-        setSelectedFile(null);
-        setIsUploading(false);
-        setUploadProgress(0);
-      }, 1000);
-    } catch (error) {
-      console.error("Upload error:", error);
-      setIsUploading(false);
-      setUploadProgress(0);
-    } finally {
-      if (progressInterval) clearInterval(progressInterval);
-    }
-  };
-
+  useEffect(() => {
+    handleCreateNewAccreditation();
+  }, []);
   if (isLoading) {
     return <LoadingSkeleton />;
   }
@@ -166,12 +105,12 @@ export function AdviserAccreditationMainComponent({ orgId }) {
 
           <div className="col-span-2">
             <DocumentDisplayCard
+              user={user}
               accreditationData={accreditationData}
               uploadingDocType={uploadingDocType}
               setUploadingDocType={setUploadingDocType}
               selectedFile={selectedFile}
               setSelectedFile={setSelectedFile}
-              handleUploadSubmit={handleUploadSubmit}
               isUploading={isUploading}
               uploadProgress={uploadProgress}
             />
@@ -349,7 +288,6 @@ function ErrorState({ error, onRetry }) {
 
 function OverallStatus({ accreditationData }) {
   const { overallStatus } = accreditationData;
-
   const requirements = [
     {
       name: "Joint Statement",
@@ -371,9 +309,7 @@ function OverallStatus({ accreditationData }) {
     },
     {
       name: "President Profile",
-      status: accreditationData.PresidentProfile
-        ? "Submitted"
-        : "Not Submitted",
+      status: accreditationData.PresidentProfile?.overAllStatus,
     },
     {
       name: "Finacial Report",
@@ -546,7 +482,8 @@ function PresidentInformation({ accreditationData }) {
   );
 }
 
-function DocumentDisplayCard({ accreditationData }) {
+function DocumentDisplayCard({ user, accreditationData }) {
+  console.log(accreditationData);
   const { JointStatement, PledgeAgainstHazing, ConstitutionAndByLaws } =
     accreditationData;
   const [showEmailModal, setShowEmailModal] = useState(false);
@@ -557,6 +494,8 @@ function DocumentDisplayCard({ accreditationData }) {
     inquirySubject: "",
     orgId: accreditationData.organizationProfile._id,
     inquiryText: "",
+    userPosition: user.Adviser,
+    userName: user.name,
   });
   const openEmailModal = (key, label, docId) => {
     setEmailType(label);
@@ -566,15 +505,26 @@ function DocumentDisplayCard({ accreditationData }) {
       inquirySubject: `Regarding ${label}`,
       orgId: accreditationData.organizationProfile._id,
       inquiryText: "",
+      userPosition: user.position,
+      userName: user.name,
     });
     console.log(emailData);
     setShowEmailModal(true);
   };
 
-  const handleSendEmail = () => {
+  const handleSendEmail = async () => {
     console.log("📨 Sending email:", emailData);
-    // TODO: hook up to backend/email service
-    setShowEmailModal(false);
+
+    try {
+      const response = await axios.post(
+        `${API_ROUTER}/accreditationEmailInquiry`,
+        emailData
+      );
+      console.log(response.data);
+      setShowEmailModal(false);
+    } catch (err) {
+      console.error("Failed to fetch roster members:", err);
+    }
   };
 
   const renderDocumentCard = (label, doc, key) => {

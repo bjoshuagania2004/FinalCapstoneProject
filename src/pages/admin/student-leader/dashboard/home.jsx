@@ -1,10 +1,10 @@
 export default function StudentHomePage() {
   return (
-    <div className="flex-1 p-4 bg-gray-50 rounded-lg">
+    <div className="flex-1 p-4 border-12 bg-gray-200 flex flex-col overflow-auto">
       <h1 className="text-2xl font-bold text-gray-800 mb-4">
         Welcome to Student Leader Portal
       </h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="flex flex-wrap  gap-4 ">
         {[
           [
             "Reports & Dashboard",

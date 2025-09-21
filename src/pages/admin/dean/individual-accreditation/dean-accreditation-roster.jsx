@@ -175,6 +175,7 @@ export function DeanRosterData({ selectedOrg }) {
 
     try {
       const payload = { overAllStatus: status };
+      console.log(payload);
       if (revisionNotes && revisionNotes.trim() !== "") {
         payload.revisionNotes = revisionNotes;
       }
@@ -438,7 +439,10 @@ export function DeanRosterData({ selectedOrg }) {
 
             <button
               onClick={() => {
-                handleApproval("Approved By the Dean"); // 👈 call with "Approved"
+                handleApproval({
+                  status: "Approved By the Dean",
+                  revisionNotes: null,
+                }); // 👈 call with "Approved"
                 setApprovalModal(false);
               }}
               className="mt-6 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-sm font-medium shadow-md transition"

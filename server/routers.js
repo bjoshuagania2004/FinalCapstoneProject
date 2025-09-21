@@ -13,7 +13,21 @@ export const upload = multer({ storage });
 **********                                ********** 
 */
 router.post("/getOrganizations", Controller.GetOrganizationsByDeliveryUnit);
+
+router.post(
+  "/updateStatusProposalConduct/:proposalConductId",
+  Controller.updateProposalConductStatus
+);
+router.post(
+  "/updateStatusAccomplishment/:accomplishmentId",
+  Controller.updateAccomplishmentStatus
+);
+
 router.post("/financialReportInquiry", Controller.SendFinancialEmailInquiry);
+router.post(
+  "/accreditationEmailInquiry",
+  Controller.SendAccreditationInquiryEmailInquiry
+);
 router.get("/getAllUser", Controller.GetUsers);
 router.post(
   "/updateOrganizationProfileStatus",
@@ -62,13 +76,9 @@ router.post(
   "/updateStatusPresident/:presidentId",
   Controller.UpdatePresidentProfileStatus
 );
-router.post(
-  "/revisionPresidentProfile/:presidentId",
-  Controller.RevisionPresidentProfile
-);
 
 /* ********** STUDENT DEVELOPMENT ROSTER ********** */
-router.get("/getAllroster", Controller.GetRosterAllMembers);
+router.get("/getAllroster", Controller.GetAllRostersWithMembers);
 router.get(
   "/getRosterByOrg/:orgProfileId",
   Controller.GetRosterMembersByOrganizationIdSDU

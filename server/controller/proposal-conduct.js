@@ -1,4 +1,102 @@
-import { ProposalConduct, Proposal } from "../models/index.js";
+import { NodeEmail } from "../middleware/emailer.js";
+import { ProposalConduct, Proposal, User } from "../models/index.js";
+
+export const updateProposalConductStatus = async (req, res) => {
+  try {
+    const { proposalConductId } = req.params;
+    const {
+      overallStatus,
+      revision,
+      inquiryText,
+      inquirySubject,
+      userName,
+      orgProfileId,
+      orgName,
+      userPosition,
+    } = req.body;
+
+    // 🔎 Find ProposalConduct by ID and populate its linked documents
+    const proposalConduct = await ProposalConduct.findById(
+      proposalConductId
+    ).populate("document");
+
+    if (!proposalConduct) {
+      return res
+        .status(404)
+        .json({ success: false, message: "ProposalConduct not found" });
+    }
+
+    // ✅ Update ProposalConduct
+    if (overallStatus) {
+      proposalConduct.overallStatus = overallStatus;
+    }
+
+    if (inquiryText) {
+      proposalConduct.revision = inquiryText;
+    }
+
+    // ✅ Update linked Documents
+    if (proposalConduct.document?.length > 0) {
+      for (let doc of proposalConduct.document) {
+        if (overallStatus) {
+          doc.status = overallStatus;
+        }
+        if (inquiryText) {
+          doc.revisionNotes = inquiryText;
+        }
+        doc.logs.push(
+          `[${new Date().toISOString()}] Updated by ${userName} (${userPosition}) → Status: ${overallStatus}`
+        );
+
+        await doc.save();
+      }
+    }
+
+    await proposalConduct.save();
+
+    // 📧 Optional: Send email inquiry
+    if (inquiryText && inquirySubject) {
+      const users = await User.find({
+        organizationProfile: orgProfileId,
+        position: { $ne: "Adviser" },
+      }).select("email");
+
+      if (users?.length > 0) {
+        const recipientEmails = users.map((u) => u.email).filter(Boolean);
+
+        if (recipientEmails.length > 0) {
+          const message = `
+Hello ${orgName},
+
+A proposal status update has been submitted.
+
+Details:
+- From: ${userName} || ${userPosition}
+- Status: ${proposalConduct.overallStatus}
+- Message:
+${inquiryText}
+
+Please log in to the system to review.
+
+Thank you,
+Accreditation Support Team
+          `;
+
+          await NodeEmail(recipientEmails, inquirySubject, message);
+        }
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "ProposalConduct and related documents updated successfully",
+      proposalConduct,
+    });
+  } catch (error) {
+    console.error("❌ Error updating ProposalConduct:", error);
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
 
 export const postProposalConduct = async (req, res) => {
   try {

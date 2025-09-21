@@ -48,6 +48,15 @@ export default function App() {
       >
         <Route path="/dean/*" element={<DeanPage />} />
       </Route>
+      <Route
+        element={
+          <ProtectedRoute
+            allowedRoles={["sdu-coordinator", "sdu-local", "SDU-COORDINATOR"]}
+          />
+        }
+      >
+        <Route path="/dean/*" element={<DeanPage />} />
+      </Route>
 
       <Route
         element={

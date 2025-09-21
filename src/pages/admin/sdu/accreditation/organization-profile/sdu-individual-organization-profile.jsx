@@ -2,7 +2,7 @@ import axios from "axios";
 import { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; // If using React Router
 
-import { API_ROUTER, DOCU_API_ROUTER } from "../../../../App";
+import { API_ROUTER, DOCU_API_ROUTER } from "../../../../../App";
 import {
   Briefcase,
   Building2,
@@ -25,7 +25,7 @@ import {
   GraduationCap,
 } from "lucide-react";
 
-export function SduOrganizationInformation({ selectedOrg }) {
+export function SduIndividualOrganizationProfile({ selectedOrg }) {
   const [isManagePresidentProfileOpen, setManagePresidentProfileOpen] =
     useState(false);
   const [AccreditationData, setAccreditationData] = useState(null);

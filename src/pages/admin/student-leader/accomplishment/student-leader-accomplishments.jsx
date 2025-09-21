@@ -6,82 +6,38 @@ import { OrganizationalDevelopmentModal } from "./add-organizational-development
 import { Award, Target, Users, FileText, Heart, Calendar } from "lucide-react";
 import { StudentAccomplishmentDetailed } from "./detailed-accomplishment";
 
-// Category icon mapping
-const getCategoryIcon = (category) => {
-  switch (category) {
-    case "Proposed Action Plan":
-      return <Target className="w-5 h-5" />;
-    case "Organizational Performance":
-      return <Award className="w-5 h-5" />;
-    case "Organizational Development":
-      return <Users className="w-5 h-5" />;
-    case "Meetings & Assemblies":
-      return <FileText className="w-5 h-5" />;
-    case "Service Community":
-      return <Heart className="w-5 h-5" />;
-    default:
-      return <FileText className="w-5 h-5" />;
-  }
-};
-
-// Category color mapping
-const getCategoryColor = (category) => {
-  switch (category) {
-    case "Proposed Action Plan":
-      return "bg-blue-100 text-blue-800 shadow-xl-blue-200";
-    case "Organizational Performance":
-      return "bg-green-100 text-green-800 shadow-xl-green-200";
-    case "Organizational Development":
-      return "bg-purple-100 text-purple-800 shadow-xl-purple-200";
-    case "Meetings & Assemblies":
-      return "bg-orange-100 text-orange-800 shadow-xl-orange-200";
-    case "Service Community":
-      return "bg-pink-100 text-pink-800 shadow-xl-pink-200";
-    default:
-      return "bg-gray-100 text-gray-800 shadow-xl-gray-200";
-  }
-};
-
-const formatDate = (dateString) => {
-  if (!dateString) return "N/A";
-  return new Date(dateString).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
-
 export function StudentLeaderAccomplishmentReport({ orgData }) {
   const [proposals, setProposals] = useState([]);
   const [accomplishmentData, setAccomplishmentData] = useState(null); // ✅ store report object
-  const [accomplishments, setAccomplishments] = useState([]); // ✅ store sub accomplishments
+  const [individualAccomplishment, setIndividualAccomplishment] = useState([]); // ✅ store sub individualAccomplishment
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedAccomplishment, setSelectedAccomplishment] = useState(null);
 
-  const [showModal, setShowModal] = useState(false);
   const [showOrgDevelopmentModal, setShowOrgDevelopmentModal] = useState(false);
-  const [showOrgPerformanceModal, setShowOrgPerformanceModal] = useState(false);
-  const [showServiceCommunityModal, setShowServiceCommunityModal] =
-    useState(false);
 
-  const fetchInformation = async () => {
+  const fetchAccomplishmentInformation = async () => {
     try {
-      // Proposals
-      const res = await axios.get(
-        `${API_ROUTER}/getStudentLeaderAccomplishmentReady/${orgData._id}`
-      );
-
       // Accomplishment Report
       const getAccomplishment = await axios.get(
         `${API_ROUTER}/getAccomplishment/${orgData._id}`
       );
 
-      console.log(getAccomplishment.data);
-
       setAccomplishmentData(getAccomplishment.data); // ✅ full report
-      setAccomplishments(getAccomplishment.data.accomplishments); // ✅ safe list
+      console.log(getAccomplishment.data); // ✅ full report
+      setIndividualAccomplishment(getAccomplishment.data.accomplishments); // ✅ safe list
+    } catch (error) {
+      console.error(error.response || error);
+    }
+  };
+
+  const fetchProposalInformation = async () => {
+    try {
+      // Proposals
+      const res = await axios.get(
+        `${API_ROUTER}/getStudentLeaderAccomplishmentReady/${orgData._id}`
+      );
+      setProposals(res.data);
+
       setProposals(res.data);
     } catch (error) {
       console.error(error.response || error);
@@ -89,39 +45,32 @@ export function StudentLeaderAccomplishmentReport({ orgData }) {
   };
 
   useEffect(() => {
-    fetchInformation();
+    fetchAccomplishmentInformation();
+    fetchProposalInformation();
   }, []);
 
   // ✅ Categories
   const categories = [
     "All",
-    ...new Set(accomplishments.map((acc) => acc.category)),
+    ...new Set(individualAccomplishment.map((acc) => acc.category)),
   ];
 
   // ✅ Filtered
   const filteredAccomplishments =
     selectedCategory === "All"
-      ? accomplishments
-      : accomplishments.filter((acc) => acc.category === selectedCategory);
+      ? individualAccomplishment
+      : individualAccomplishment.filter(
+          (acc) => acc.category === selectedCategory
+        );
 
   // ✅ Stats
-  const categoryStats = accomplishments.reduce((acc, accomplishment) => {
-    acc[accomplishment.category] = (acc[accomplishment.category] || 0) + 1;
-    return acc;
-  }, {});
-
-  const handleSelect = (type) => {
-    console.log("Selected type:", type);
-    setShowModal(false);
-
-    if (type === "Organizational Development") {
-      setShowOrgDevelopmentModal(true);
-    } else if (type === "Organizational Performance") {
-      setShowOrgPerformanceModal(true);
-    } else if (type === "Service Community") {
-      setShowServiceCommunityModal(true);
-    }
-  };
+  const categoryStats = individualAccomplishment.reduce(
+    (acc, accomplishment) => {
+      acc[accomplishment.category] = (acc[accomplishment.category] || 0) + 1;
+      return acc;
+    },
+    {}
+  );
 
   return (
     <div className="h-full w-full overflow-hidden  flex flex-col bg-gray-100">
@@ -139,8 +88,8 @@ export function StudentLeaderAccomplishmentReport({ orgData }) {
           </button>
         </div>
         <p className="text-gray-600">
-          Total Accomplishments: {accomplishments.length} | Grand Total Points:{" "}
-          {accomplishmentData?.grandTotal || 0}
+          Total Accomplishments: {individualAccomplishment.length} | Grand Total
+          Points: {individualAccomplishment?.grandTotal || 0}
         </p>
       </div>
 
@@ -155,14 +104,14 @@ export function StudentLeaderAccomplishmentReport({ orgData }) {
                   Total Accomplishments
                 </p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {accomplishments.length}
+                  {individualAccomplishment.length}
                 </p>
               </div>
               <Award className="w-8 h-8 text-blue-500" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-lg p-4 border border-gray-200">
+          <div className="bg-white  rounded-lg shadow-lg p-4 border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">
@@ -193,10 +142,10 @@ export function StudentLeaderAccomplishmentReport({ orgData }) {
               <div>
                 <p className="text-sm font-medium text-gray-600">Most Recent</p>
                 <p className="text-sm font-bold text-gray-900 ">
-                  {accomplishments.length > 0
+                  {individualAccomplishment.length > 0
                     ? formatDate(
                         Math.max(
-                          ...accomplishments.map(
+                          ...individualAccomplishment.map(
                             (acc) => new Date(acc.createdAt)
                           )
                         )
@@ -204,7 +153,7 @@ export function StudentLeaderAccomplishmentReport({ orgData }) {
                     : "N/A"}
                 </p>
               </div>
-              <Calendar className="w-8 h-8 text-orange-500" />
+              <Calendar className="w-8 h-8 text-amber-500" />
             </div>
           </div>
         </div>
@@ -292,12 +241,12 @@ export function StudentLeaderAccomplishmentReport({ orgData }) {
               <div className="h-full flex flex-col items-center justify-center text-center py-12">
                 <FileText className="w-16 h-16 text-gray-300 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No accomplishments found
+                  No individualAccomplishment found
                 </h3>
                 <p className="text-gray-500 max-w-sm">
                   {selectedCategory === "All"
                     ? "Get started by adding your first accomplishment."
-                    : `No accomplishments match the "${selectedCategory}" category.`}
+                    : `No individualAccomplishment match the "${selectedCategory}" category.`}
                 </p>
               </div>
             )}
@@ -313,14 +262,6 @@ export function StudentLeaderAccomplishmentReport({ orgData }) {
         </div>
       </div>
 
-      {/* Modals */}
-      {showModal && (
-        <AccomplishmentChoiceModal
-          onClose={() => setShowModal(false)}
-          onSelect={handleSelect}
-        />
-      )}
-
       {showOrgDevelopmentModal && (
         <OrganizationalDevelopmentModal
           orgData={orgData}
@@ -333,62 +274,49 @@ export function StudentLeaderAccomplishmentReport({ orgData }) {
   );
 }
 
-function AccomplishmentChoiceModal({ onClose, onSelect }) {
-  return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg">
-        {/* Title */}
-        <h2 className="text-xl font-bold text-gray-800 text-center mb-6">
-          Choose Upload Type
-        </h2>
+// Category icon mapping
+const getCategoryIcon = (category) => {
+  switch (category) {
+    case "Proposed Action Plan":
+      return <Target className="w-5 h-5" />;
+    case "Organizational Performance":
+      return <Award className="w-5 h-5" />;
+    case "Organizational Development":
+      return <Users className="w-5 h-5" />;
+    case "Meetings & Assemblies":
+      return <FileText className="w-5 h-5" />;
+    case "Service Community":
+      return <Heart className="w-5 h-5" />;
+    default:
+      return <FileText className="w-5 h-5" />;
+  }
+};
 
-        {/* Options */}
-        <div className="flex flex-col gap-4">
-          {/* Organizational Development */}
-          <div
-            onClick={() => onSelect("Organizational Development")}
-            className="flex items-center gap-4 bg-gray-50 rounded-xl border border-gray-200 p-4 hover:shadow-md hover:border-blue-400 transition cursor-pointer"
-          >
-            <div className="bg-blue-100 text-blue-600 rounded-full p-3">📊</div>
-            <div className="flex flex-col">
-              <h3 className="text-base font-semibold text-gray-800">
-                Organizational Development
-              </h3>
-              <p className="text-sm text-gray-600">
-                Covers Programs, Projects & Activities (PPAs), Meetings, and
-                Institutional Involvement.
-              </p>
-            </div>
-          </div>
+// Category color mapping
+const getCategoryColor = (category) => {
+  switch (category) {
+    case "Programs, Projects, and Activities (PPAs)":
+      return "bg-rose-100 text-rose-800 shadow-xl-rose-200";
+    case "External Activities":
+      return "bg-indigo-100 text-indigo-800 shadow-xl-indigo-200";
+    case "Institutional Involvement":
+      return "bg-purple-100 text-purple-800 shadow-xl-purple-200";
+    case "Meetings & Assemblies":
+      return "bg-amber-100 text-amber-800 shadow-xl-amber-200";
+    case "Service Community":
+      return "bg-pink-100 text-pink-800 shadow-xl-pink-200";
+    default:
+      return "bg-gray-100 text-gray-800 shadow-xl-gray-200";
+  }
+};
 
-          {/* Organizational Performance */}
-          <div
-            onClick={() => onSelect("Organizational Performance")}
-            className="flex items-center gap-4 bg-gray-50 rounded-xl border border-gray-200 p-4 hover:shadow-md hover:border-emerald-400 transition cursor-pointer"
-          >
-            <div className="bg-emerald-100 text-emerald-600 rounded-full p-3">
-              🏆
-            </div>
-            <div className="flex flex-col">
-              <h3 className="text-base font-semibold text-gray-800">
-                Organizational Performance
-              </h3>
-              <p className="text-sm text-gray-600">
-                Focuses on awards, recognition, and achievements of the
-                organization and its members.
-              </p>
-            </div>
-          </div>
-
-          {/* Cancel */}
-          <button
-            onClick={onClose}
-            className="px-6 py-2 rounded-lg bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 transition"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+const formatDate = (dateString) => {
+  if (!dateString) return "N/A";
+  return new Date(dateString).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};

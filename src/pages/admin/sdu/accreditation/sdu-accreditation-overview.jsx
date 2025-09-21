@@ -466,7 +466,7 @@ export function SduAccreditationOverview({ selectedOrg, onSelectOrg }) {
   );
 }
 
-export function OrganizationAccreditation({ selectedOrg, onSelectOrg }) {
+export function SduAccreditationNavigation({ selectedOrg, onSelectOrg }) {
   const tabs = [
     { to: ".", label: "Overview", end: true },
     { to: "president-information", label: "President's Information Sheet" },

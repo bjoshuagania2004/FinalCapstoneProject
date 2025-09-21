@@ -481,7 +481,7 @@ export function DeanAccreditationDocument({ selectedOrg }) {
             </button>
 
             <h1 className="text-lg font-semibold mb-4">
-              Approval: Roster of Organization
+              Approval: {selectedDocumentDetails.fileName} of Organization
             </h1>
 
             <p className="mb-4 text-gray-700">

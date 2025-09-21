@@ -376,9 +376,8 @@ function OverallStatus({ accreditationData, setUploadingDocType }) {
     },
     {
       name: "President Profile",
-      status: accreditationData.PresidentProfile
-        ? "Submitted"
-        : "Not Submitted",
+      status:
+        accreditationData.PresidentProfile?.overAllStatus || "Not Submitted",
     },
     {
       name: "Finacial Report",

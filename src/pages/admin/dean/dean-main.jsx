@@ -31,7 +31,6 @@ export function DeanPage() {
 
   // Function to fetch organizations
   const fetchOrganizations = async () => {
-    console.log(":waghahagh");
     try {
       setLoading(true);
       const res = await axios.post(`${API_ROUTER}/getOrganizations`, {

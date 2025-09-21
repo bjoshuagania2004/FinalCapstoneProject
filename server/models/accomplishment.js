@@ -16,7 +16,8 @@ export const subAccomplishmentSchema = new Schema(
     level: {
       type: String,
     },
-
+    overallStatus: String,
+    revision: String,
     // Documents
     documents: [{ type: Schema.Types.ObjectId, ref: "Documents" }],
 

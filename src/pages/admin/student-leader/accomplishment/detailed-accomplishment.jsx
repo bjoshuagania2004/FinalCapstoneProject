@@ -325,6 +325,7 @@ export function StudentAccomplishmentDetailed({
     </div>
   );
 }
+
 function UpdateAccomplishmentDocument({
   selectedDoc,
   selectedAccomplishment,

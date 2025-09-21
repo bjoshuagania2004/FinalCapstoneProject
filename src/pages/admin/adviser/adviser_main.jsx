@@ -16,13 +16,15 @@ import {
   LogOut,
 } from "lucide-react";
 
-import { AdviserAccreditationNavigationPage } from "./accreditation.jsx/adviser-accreditation.main";
-import { AdviserFinancialReport } from "./accreditation.jsx/adviser-accreditation-financial-report";
-import { AdviserAccreditationDocument } from "./accreditation.jsx/adviser-accreditation-documents";
-import { AdviserRosterData } from "./accreditation.jsx/adviser-accreditation-roster";
-import { AdviserPresident } from "./accreditation.jsx/adviser-accreditation-president";
-import { AdviserProposal } from "./accreditation.jsx/adviser-accreditation-proposal";
-import { AdviserAccreditationMainComponent } from "./accreditation.jsx/adviser-accreditation-overview";
+import { AdviserAccreditationNavigationPage } from "./accreditation/adviser-accreditation.main";
+import { AdviserFinancialReport } from "./accreditation/adviser-accreditation-financial-report";
+import { AdviserAccreditationDocument } from "./accreditation/adviser-accreditation-documents";
+import { AdviserRosterData } from "./accreditation/adviser-accreditation-roster";
+import { AdviserPresident } from "./accreditation/adviser-accreditation-president";
+import { AdviserProposal } from "./accreditation/adviser-accreditation-proposal";
+import { AdviserAccreditationMainComponent } from "./accreditation/adviser-accreditation-overview";
+import { AdviserProposalConduct } from "./proposal/adviser-proposals";
+import { AdviserAccomplishmentReport } from "./accomplishment/adviser-accomplishment";
 
 export function AdviserPage() {
   const { user } = useOutletContext();
@@ -77,7 +79,7 @@ export function AdviserPage() {
         <div className="flex h-full overflow-auto">
           {/* Sidebar */}
           <div className="w-1/5 h-full flex flex-col bg-cnsc-primary-color">
-            <AdviserNavigation orgData={orgData} />
+            <AdviserNavigation user={user} orgData={orgData} />
           </div>
 
           {/* Main content */}
@@ -87,7 +89,7 @@ export function AdviserPage() {
                 <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-amber-600"></div>
               </div>
             ) : (
-              <AdviserRoutes orgData={orgData} />
+              <AdviserRoutes user={user} orgData={orgData} />
             )}
           </div>
         </div>
@@ -233,7 +235,7 @@ function AdviserNavigation({ orgData }) {
   );
 }
 // AdviserRoutes.jsx
-function AdviserRoutes({ orgData }) {
+function AdviserRoutes({ orgData, user }) {
   return (
     <div className="flex flex-col w-full h-full bg-gray-200 overflow-hidden">
       <Routes>
@@ -251,14 +253,7 @@ function AdviserRoutes({ orgData }) {
 
         <Route
           path="proposal"
-          element={
-            <div className="p-4">
-              <h2 className="text-2xl font-bold mb-4">
-                Welcome to {orgData.orgName}
-              </h2>
-              <p>Main content goes here</p>
-            </div>
-          }
+          element={<AdviserProposalConduct user={user} orgData={orgData} />}
         />
 
         <Route
@@ -267,36 +262,41 @@ function AdviserRoutes({ orgData }) {
         >
           <Route
             index
-            element={<AdviserAccreditationMainComponent orgId={orgData._id} />}
+            element={
+              <AdviserAccreditationMainComponent
+                user={user}
+                orgId={orgData._id}
+              />
+            }
           />
           <Route
             path="financial-report"
-            element={<AdviserFinancialReport orgData={orgData} />}
+            element={<AdviserFinancialReport user={user} orgData={orgData} />}
           />
           <Route
             path="roster-of-members"
-            element={<AdviserRosterData orgData={orgData} />}
+            element={<AdviserRosterData user={user} orgData={orgData} />}
           />
           <Route
             path="president-information"
-            element={<AdviserPresident orgData={orgData} />}
+            element={<AdviserPresident user={user} orgData={orgData} />}
           />
           <Route
             path="documents"
-            element={<AdviserAccreditationDocument orgData={orgData} />}
+            element={
+              <AdviserAccreditationDocument user={user} orgData={orgData} />
+            }
           />
-          <Route path="ppa" element={<AdviserProposal orgData={orgData} />} />
+          <Route
+            path="ppa"
+            element={<AdviserProposal user={user} orgData={orgData} />}
+          />
         </Route>
 
         <Route
           path="accomplishment"
           element={
-            <div className="p-4">
-              <h2 className="text-2xl font-bold mb-4">
-                Welcome to {orgData.orgName}
-              </h2>
-              <p>Main content goes here</p>
-            </div>
+            <AdviserAccomplishmentReport orgData={orgData} user={user} />
           }
         />
 

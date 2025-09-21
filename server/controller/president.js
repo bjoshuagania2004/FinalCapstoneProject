@@ -5,6 +5,45 @@ import {
   PresidentProfile,
 } from "../models/index.js";
 
+export const UpdatePresidentProfileStatus = async (req, res) => {
+  const { presidentId } = req.params;
+  const { overallStatus, revisionNotes } = req.body;
+
+  if (!presidentId) {
+    return res.status(400).json({ message: "President ID is required." });
+  }
+
+  if (!overallStatus) {
+    return res.status(400).json({ message: "Overall status is required." });
+  }
+
+  try {
+    const profile = await PresidentProfile.findById(presidentId);
+
+    if (!profile) {
+      return res.status(404).json({ message: "President profile not found." });
+    }
+
+    // ✅ Update status
+    profile.overAllStatus = overallStatus;
+
+    // ✅ Save revision notes if provided
+    if (revisionNotes && revisionNotes.trim() !== "") {
+      profile.revisionNotes = revisionNotes;
+    }
+
+    await profile.save();
+
+    return res.status(200).json({
+      message: `President profile ${overallStatus.toLowerCase()} successfully.`,
+      updatedProfile: profile,
+    });
+  } catch (error) {
+    console.log("❌ Error updating president profile:", error);
+    return res.status(500).json({ message: "Internal server error." });
+  }
+};
+
 export const AddPresident = async (req, res) => {
   try {
     const {
@@ -97,76 +136,6 @@ export const AddPresident = async (req, res) => {
   } catch (error) {
     console.error("Error in PostStudentProfile:", error);
     res.status(500).json({ message: "Server error", error });
-  }
-};
-
-export const UpdatePresidentProfileStatus = async (req, res) => {
-  const { presidentId } = req.params;
-  const { overallStatus, revisionNotes } = req.body;
-
-  if (!presidentId) {
-    return res.status(400).json({ message: "President ID is required." });
-  }
-
-  if (!overallStatus) {
-    return res.status(400).json({ message: "Overall status is required." });
-  }
-
-  try {
-    const profile = await PresidentProfile.findById(presidentId);
-
-    if (!profile) {
-      return res.status(404).json({ message: "President profile not found." });
-    }
-
-    // ✅ Update status
-    profile.overAllStatus = overallStatus;
-
-    // ✅ Save revision notes if provided
-    if (revisionNotes && revisionNotes.trim() !== "") {
-      profile.revisionNotes = revisionNotes;
-    }
-
-    await profile.save();
-
-    return res.status(200).json({
-      message: `President profile ${overallStatus.toLowerCase()} successfully.`,
-      updatedProfile: profile,
-    });
-  } catch (error) {
-    console.log("❌ Error updating president profile:", error);
-    return res.status(500).json({ message: "Internal server error." });
-  }
-};
-
-export const RevisionPresidentProfile = async (req, res) => {
-  const { presidentId } = req.params;
-  const { revisionNotes, status } = req.body;
-
-  console.log("Revision president profile with ID:", presidentId);
-  if (!presidentId) {
-    return res.status(400).json({ message: "President ID is required." });
-  }
-
-  try {
-    const profile = await PresidentProfile.findById(presidentId);
-
-    if (!profile) {
-      return res.status(404).json({ message: "President profile not found." });
-    }
-
-    profile.overAllStatus = status;
-    profile.revisionNotes = revisionNotes;
-
-    await profile.save();
-
-    return res.status(200).json({
-      message: "President profile approved successfully.",
-      updatedProfile: profile,
-    });
-  } catch (error) {
-    console.log("Error approving president profile:", error);
-    return res.status(500).json({ message: "Internal server error." });
   }
 };
 
