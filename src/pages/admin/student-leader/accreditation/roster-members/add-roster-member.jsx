@@ -362,6 +362,28 @@ export default function AddRosterForm({ onClose, orgData, onMemberAdded }) {
                   </label>
                 </div>
 
+                {/* Role Textbox */}
+                {rosterData.rosterMember.position !== "Member" &&
+                  rosterData.rosterMember.position !== "" && (
+                    <div className="mt-3">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Role <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={
+                          rosterData.rosterMember.position !== "Member"
+                            ? rosterData.rosterMember.position
+                            : ""
+                        }
+                        onChange={(e) =>
+                          updateMember("position", e.target.value)
+                        }
+                        className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                  )}
+
                 {errors.position && (
                   <p className="text-red-500 text-sm mt-1">{errors.position}</p>
                 )}

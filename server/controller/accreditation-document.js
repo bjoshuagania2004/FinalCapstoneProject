@@ -257,6 +257,7 @@ export const GetAccreditationDetails = async (req, res) => {
       ])
       .exec();
 
+    console.log(accreditation);
     res.status(200).json(accreditation);
   } catch (error) {
     console.error("Error handling accreditation request:", error);

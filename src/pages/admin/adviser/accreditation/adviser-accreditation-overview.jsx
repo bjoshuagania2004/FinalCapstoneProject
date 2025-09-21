@@ -44,7 +44,7 @@ export function AdviserAccreditationMainComponent({ user, orgId }) {
           `${API_ROUTER}/getAccreditationInfo/${orgId}`,
           { withCredentials: true }
         );
-
+        console.log(`${API_ROUTER}/getAccreditationInfo/${orgId}`);
         setAccreditationData(response.data);
 
         // If inactive → show reset popup
@@ -530,16 +530,27 @@ function DocumentDisplayCard({ user, accreditationData }) {
   const renderDocumentCard = (label, doc, key) => {
     if (doc && doc.fileName) {
       return (
-        <div className="border border-gray-200 p-4 hover:bg-gray-50 transition-colors">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <FileText className="w-8 h-8 text-blue-600" />
-              <div>
-                <h3 className="font-medium text-gray-900">{label}</h3>
-                <p className="text-sm text-gray-500">{doc.fileName}</p>
-                <p className="text-xs text-gray-400">
-                  Uploaded: {new Date(doc.createdAt).toLocaleDateString()}
-                </p>
+        <div className="border border-gray-200 p-4 shadow-sm hover:bg-gray-50 transition-colors">
+          <div className="flex items-start gap-3 min-w-0">
+            <FileText className="w-8 h-8 text-blue-600" />
+            <div className="flex-1 min-w-0">
+              <h3 className="font-medium text-gray-900">{label}</h3>
+              <p
+                className="text-sm text-gray-500 truncate"
+                title={doc.fileName}
+              >
+                {doc.fileName}
+              </p>
+              <p className="text-xs text-gray-400">
+                Uploaded: {new Date(doc.createdAt).toLocaleDateString()}
+              </p>
+
+              {/* Status Footer */}
+              <div
+                className={`mt-3 w-fit px-3 py-1 rounded-md text-xs flex ml-18 gap-1 bg-gray-100 text-gray-600`}
+              >
+                {getStatusIcon(doc.status)}
+                <span>{doc.status}</span>
               </div>
             </div>
           </div>
@@ -562,12 +573,11 @@ function DocumentDisplayCard({ user, accreditationData }) {
   };
 
   return (
-    <div className="bg-white border border-gray-400 p-6 h-full">
+    <div className="flex  flex-col  w-full  bg-white  border border-gray-400 p-6 h-full">
       <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
         <FileText className="w-5 h-5" />
-        Required Documents / Email
+        Required DocumentDisplayCard
       </h2>
-
       <div className="space-y-4">
         {renderDocumentCard(
           "Joint Statement",

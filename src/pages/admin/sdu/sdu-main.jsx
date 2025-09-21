@@ -148,6 +148,11 @@ function StudentDevMainNavigation() {
             <span>{item.label}</span>
           </button>
         ))}
+
+        {/* Push logout to bottom */}
+        <div className="mt-auto">
+          <LogoutButton />
+        </div>
       </nav>
 
       {/* Logout */}
@@ -274,7 +279,6 @@ function StudentDevUnitComponent({ selectedOrg, onSelectOrg }) {
     </div>
   );
 }
-
 // Dashboard Overview Components
 function DashboardOverview() {
   return (
