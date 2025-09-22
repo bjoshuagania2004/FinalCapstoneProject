@@ -73,7 +73,11 @@ export function AdviserPage() {
     <div>
       <div className="flex flex-col h-screen w-screen overflow-hidden">
         {/* Header */}
-        <div className="flex min-h-12 bg-amber-600" />
+        <div className="flex items-center justify-center bg-cnsc-secondary-color h-16 shadow-lg">
+          <span className="font-bold text-xl text-cnsc-primary-color">
+            CNSC CODEX
+          </span>
+        </div>
 
         {/* Main content area */}
         <div className="flex h-full overflow-auto">
