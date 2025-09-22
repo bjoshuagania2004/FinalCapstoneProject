@@ -2,7 +2,6 @@ import { RosterMember, Accreditation, Roster, User } from "../models/index.js";
 import { NodeEmail } from "../middleware/emailer.js";
 
 export const ApprovedRosterList = async (req, res) => {
-  console.log("Updating roster list...", req.params, req.body);
   try {
     const { rosterId } = req.params;
     const { overAllStatus, revisionNotes, isComplete } = req.body;

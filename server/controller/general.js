@@ -251,19 +251,13 @@ export const CheckSession = (req, res) => {
 export const Login = async (req, res) => {
   const { email, password } = req.body;
 
-  console.log(req.body);
   try {
     // Find the user by email
     const user = await User.findOne({ email });
 
-    console.log("Stored:", user.password, "len:", user.password.length);
-    console.log("Input:", password, "len:", password.length);
-
     if (!user || user.password !== password) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
-
-    console.log(user);
 
     // Set session (name is optional)
     req.session.user = {
@@ -274,8 +268,6 @@ export const Login = async (req, res) => {
       deliveryUnit: user.deliveryUnit,
       organizationProfile: user.organizationProfile,
     };
-
-    console.log("Session:", req.session);
 
     return res.json({
       user: req.session.user,

@@ -107,7 +107,6 @@ Accreditation Support Team
 export const getAccomplishmentReport = async (req, res) => {
   try {
     const { OrgProfileId } = req.params;
-    console.log(OrgProfileId);
 
     if (!OrgProfileId) {
       return res.status(400).json({ error: "Missing organizationProfile ID." });

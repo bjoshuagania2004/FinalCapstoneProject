@@ -17,7 +17,6 @@ const initialPassword = nanoid();
 // controllers/userController.js
 
 export const UpdateUser = async (req, res) => {
-  console.log(req.body);
   try {
     const { id } = req.params; // get user ID from request URL
     const {
@@ -62,7 +61,6 @@ export const UpdateUser = async (req, res) => {
 };
 
 export const PostUser = async (req, res) => {
-  console.log(req.body);
   try {
     const { name, email, position, deliveryUnit, password, organizationId } =
       req.body;
@@ -609,13 +607,11 @@ export const ReRegisterOrganizationProfile = async (req, res) => {
 
 export const SendRegistrationConfirmationCode = async (req, res) => {
   const { email } = req.body;
-  console.log("Received email for OTP:", email);
 
   try {
     // Check if the email already exists in the database
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      console.log(`Email ${email} already exists in the system.`);
       return res.status(400).json({
         message: "Email already exists. Please use a different email.",
       });
@@ -637,7 +633,6 @@ export const SendRegistrationConfirmationCode = async (req, res) => {
     );
 
     if (emailResult?.success) {
-      console.log(`Email sent successfully to ${email}`);
       return res.status(200).json({ otp: otpInt, otpString });
     } else {
       console.error(`Failed to send email to ${email}`, emailResult);
@@ -654,7 +649,6 @@ export const SendRegistrationConfirmationCode = async (req, res) => {
 };
 
 export const ConfirmRegistration = async (req, res, next) => {
-  console.log(req.body);
   const { email, code } = req.body;
   const storedCode = verificationStore[email];
   if (storedCode && storedCode === code) {

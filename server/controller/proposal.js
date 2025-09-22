@@ -217,7 +217,6 @@ export const getStudentPpaByAccreditationId = async (req, res) => {
       accreditation: accreditationId,
     }); // Collaborating org profiles
 
-    console.log(proposals);
     if (!proposals || proposals.length === 0) {
       return res.status(404).json({ error: "No proposals found" });
     }

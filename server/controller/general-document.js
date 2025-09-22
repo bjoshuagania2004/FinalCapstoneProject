@@ -72,6 +72,60 @@ export const uploadFileAndAddDocument = async (req, res, next) => {
   });
 };
 
+export const uploadFilesAndAddDocuments = async (req, res, next) => {
+  upload.array("files", 10)(req, res, async (err) => {
+    if (err) {
+      return res
+        .status(500)
+        .json({ error: "File upload failed", details: err.message });
+    }
+
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: "At least one file is required" });
+    }
+
+    try {
+      const {
+        organizationProfile,
+        label,
+        revisionNotes,
+        isPinned,
+        logs,
+        status,
+      } = req.body;
+
+      // Create multiple documents (one per file)
+      const documents = await Promise.all(
+        req.files.map((file) => {
+          const document = new Document({
+            organizationProfile,
+            label,
+            fileName: file.filename,
+            revisionNotes,
+            isPinned: isPinned === "true" || isPinned === true,
+            logs: Array.isArray(logs) ? logs : logs ? [logs] : [],
+            status: status || "Pending",
+          });
+
+          return document.save();
+        })
+      );
+
+      res.locals.documentIds = documents.map((doc) => doc._id);
+      res.locals.fileNames = req.files.map((file) => file.filename);
+
+      console.log(res.locals.documentIds);
+      console.log(res.locals.fileNames);
+
+      console.log("there's no error here");
+      next();
+    } catch (error) {
+      console.log(error);
+      return res.status(400).json({ error: error.message });
+    }
+  });
+};
+
 export const getDocumentById = async (req, res) => {
   const { id } = req.params;
 

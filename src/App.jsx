@@ -32,7 +32,7 @@ export default function App() {
         <Route path="/student-leader/*" element={<StudentLeaderMainPage />} />
       </Route>
 
-      <Route element={<ProtectedRoute allowedRoles={["SDU", "sdu"]} />}>
+      <Route element={<ProtectedRoute allowedRoles={["SDU", "sdu", "Sdu"]} />}>
         <Route path="/SDU/*" element={<StudentDevMainLayout />} />
       </Route>
 
@@ -45,15 +45,6 @@ export default function App() {
       </Route>
       <Route
         element={<ProtectedRoute allowedRoles={["dean", "Dean", "DEAN"]} />}
-      >
-        <Route path="/dean/*" element={<DeanPage />} />
-      </Route>
-      <Route
-        element={
-          <ProtectedRoute
-            allowedRoles={["sdu-coordinator", "sdu-local", "SDU-COORDINATOR"]}
-          />
-        }
       >
         <Route path="/dean/*" element={<DeanPage />} />
       </Route>

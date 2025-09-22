@@ -19,6 +19,7 @@ import {
 } from "./accomplishment.js";
 import { presidentProfileSchema } from "./president_profile.js";
 import { ReceiptSchema, financialReportSchema } from "./financial_report.js";
+import { postSchema } from "./post.js";
 // Compile models
 const User = mongoose.model("Users", userSchema);
 const Adviser = mongoose.model("Advisers", AdviserSchema);
@@ -37,6 +38,7 @@ const RosterMember = mongoose.model("RosterMembers", rosterMembersSchema);
 const Organization = mongoose.model("Organizations", organizationSchema);
 const Accreditation = mongoose.model("Accreditations", accreditationSchema);
 const Accomplishment = mongoose.model("Accomplishments", accomplishmentSchema);
+const Post = mongoose.model("Posts", postSchema);
 const SubAccomplishment = mongoose.model(
   "SubAccomplishment",
   subAccomplishmentSchema
@@ -63,6 +65,7 @@ const FinancialReport = mongoose.model(
 export {
   User,
   Adviser,
+  Post,
   Proposal,
   Receipt,
   Document,

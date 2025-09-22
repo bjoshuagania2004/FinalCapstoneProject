@@ -1,18 +1,25 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 // ----------------- Post Schema -----------------
-const postSchema = new Schema(
+export const postSchema = new Schema(
   {
     organization: { type: Schema.Types.ObjectId, ref: "Organization" },
     organizationProfile: {
       type: Schema.Types.ObjectId,
       ref: "OrganizationProfile",
     },
-    status: { type: String },
+    status: { type: String, default: "Pending" }, // ✅ fixed syntax for default
     tags: [String],
     title: String,
     caption: String,
-    content: Schema.Types.Mixed,
+
+    content: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Documents", // ✅ matches your model registration
+      },
+    ],
+
     revisionNotes: String,
   },
   { timestamps: true }

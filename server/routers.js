@@ -13,6 +13,8 @@ export const upload = multer({ storage });
 **********                                ********** 
 */
 router.post("/getOrganizations", Controller.GetOrganizationsByDeliveryUnit);
+router.get("/getPublicPosts", Controller.getPostForPublic);
+router.get("/getOrgProfilePosts/:orgProfileId", Controller.getPostByOrgProfile);
 
 router.post(
   "/updateStatusProposalConduct/:proposalConductId",
@@ -24,6 +26,11 @@ router.post(
 );
 
 router.post("/financialReportInquiry", Controller.SendFinancialEmailInquiry);
+router.post(
+  "/postPublicInformation",
+  Controller.uploadFilesAndAddDocuments,
+  Controller.addDocumentsToPost
+);
 router.post(
   "/accreditationEmailInquiry",
   Controller.SendAccreditationInquiryEmailInquiry

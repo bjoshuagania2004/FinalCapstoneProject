@@ -304,7 +304,6 @@ export const GetOrganizationProfileInformation = async (req, res) => {
 };
 
 export const GetOrganizationsByDeliveryUnit = async (req, res) => {
-  console.log(req.body);
   try {
     const { deliveryUnit } = req.body;
     const { search, orgDepartment, orgCourse, orgSpecialization, orgClass } =
