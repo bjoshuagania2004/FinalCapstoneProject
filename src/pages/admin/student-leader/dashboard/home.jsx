@@ -1,6 +1,6 @@
 export default function StudentHomePage() {
   return (
-    <div className="flex-1 p-4 border-12 bg-gray-200 flex flex-col overflow-auto">
+    <div className="flex-1 p-4  bg-gray-200 flex flex-col overflow-auto">
       <h1 className="text-2xl font-bold text-gray-800 mb-4">
         Welcome to Student Leader Portal
       </h1>

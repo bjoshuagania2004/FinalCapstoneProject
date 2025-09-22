@@ -73,7 +73,11 @@ export function AdviserPage() {
     <div>
       <div className="flex flex-col h-screen w-screen overflow-hidden">
         {/* Header */}
-        <div className="flex min-h-12 bg-amber-600" />
+        <div className="flex items-center justify-center bg-cnsc-secondary-color h-20 shadow-lg">
+          <span className="font-bold text-xl text-cnsc-primary-color">
+            CNSC CODEX
+          </span>
+        </div>
 
         {/* Main content area */}
         <div className="flex h-full overflow-auto">
@@ -140,7 +144,12 @@ function AdviserNavigation({ orgData }) {
     <div className="h-full w-full flex flex-col">
       {/* Header with Org Logo + Name */}
       <div className="text-white mt-2 mb-4 font-bold flex items-center space-x-4 hover:cursor-pointer">
-        <div className="my-1 ml-3 w-15 aspect-square rounded-full bg-cnsc-secondary-color flex items-center justify-center cursor-pointer overflow-hidden group relative">
+        {/* Logo */}
+        <div
+          className="my-1 ml-3 w-15 aspect-square rounded-full bg-cnsc-secondary-color 
+                    flex items-center justify-center cursor-pointer overflow-hidden 
+                    group relative"
+        >
           {imageSrc ? (
             <img
               src={imageSrc}
@@ -163,7 +172,14 @@ function AdviserNavigation({ orgData }) {
             />
           </span>
         </div>
-        <h1>{orgData.orgName || "Organization"}</h1>
+
+        {/* Welcome message */}
+        <div className="flex flex-col">
+          <span className="text-white/80 text-sm font-medium">Welcome!</span>
+          <h1 className="text-white font-extrabold text-lg tracking-wide drop-shadow-sm">
+            {orgData.orgName || "Organization"} Adviser
+          </h1>
+        </div>
       </div>
 
       {/* Navigation + Logout */}
@@ -641,7 +657,7 @@ function LogoutButton() {
       {/* Logout Button */}
       <div
         onClick={handleLogoutClick}
-        className="flex gap-2 items-center justify-center text-xl text-cnsc-primary-color font-bold px-4 w-full bg-white border-12 border-cnsc-primary-color py-2  hover:text-cnsc-secondary-color transition-all duration-500 cursor-pointer  hover:border-white"
+        className=" rounded-2xl flex gap-2 items-center justify-center text-2xl text-white font-bold px-4 w-full   border-cnsc-primary-color py-2  hover:text-cnsc-secondary-color transition-all duration-500 cursor-pointer  hover:bg-red-700 "
       >
         <LogOut size={16} />
         Logout

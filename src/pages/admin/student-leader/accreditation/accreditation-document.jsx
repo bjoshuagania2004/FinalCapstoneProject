@@ -218,7 +218,7 @@ export function AccreditationDocuments({ orgData }) {
           <div className="h-6 bg-gray-200 rounded w-1/4 mb-6"></div>
           <div className="grid grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-96 bg-gray-200 rounded-xl"></div>
+              <div key={i} classNadme="h-96 bg-gray-200 rounded-xl"></div>
             ))}
           </div>
         </div>

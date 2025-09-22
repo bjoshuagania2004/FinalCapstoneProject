@@ -122,14 +122,19 @@ function StudentDevMainNavigation() {
   ];
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Logo/Header */}
-      <div className="h-20 bg-cnsc-secondary-color flex items-center justify-center">
-        <h1 className="text-white font-bold text-lg">SDU</h1>
+    <div className="w-full h-full flex flex-col">
+      {/* Top header with welcome text */}
+      <div className="h-28 bg-cnsc-secondary-color flex flex-col items-center justify-center shadow-md">
+        <h1 className="text-white text-xl font-bold tracking-wide">
+          Welcome SDU Admin
+        </h1>
+        <p className="text-amber-300 text-sm font-medium">
+          Manage your dashboard
+        </p>
       </div>
 
-      {/* Navigation Links */}
-      <nav className="flex-1 flex flex-col py-2">
+      {/* Navigation */}
+      <nav className="flex flex-col gap-2 w-full flex-grow mt-5 px-2">
         {navigationItems.map((item) => (
           <button
             key={item.key}
@@ -137,26 +142,20 @@ function StudentDevMainNavigation() {
               setActiveKey(item.key);
               navigate(item.path);
             }}
-            className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors
-              ${
-                activeKey === item.key
-                  ? "bg-white text-cnsc-primary-color"
-                  : "text-white hover:bg-amber-700 hover:text-black"
-              }`}
+            className={`flex items-center rounded-xl py-4 px-6 text-base font-medium transition-all duration-300 shadow-sm ${
+              activeKey === item.key
+                ? "bg-white text-cnsc-primary-color shadow-md"
+                : "text-white hover:bg-amber-500/90 hover:pl-8"
+            }`}
           >
-            {item.icon}
-            <span>{item.label}</span>
+            <span className="mr-3 w-5 h-5">{item.icon}</span>
+            <span className="tracking-wide">{item.label}</span>
           </button>
         ))}
-
-        {/* Push logout to bottom */}
-        <div className="mt-auto">
-          <LogoutButton />
-        </div>
       </nav>
 
-      {/* Logout */}
-      <div className="p-4">
+      {/* Logout at bottom */}
+      <div className="px-2 mb-4">
         <LogoutButton />
       </div>
     </div>
@@ -876,7 +875,7 @@ function LogoutButton() {
       {/* Logout Button */}
       <div
         onClick={handleLogoutClick}
-        className="flex gap-2 items-center justify-evenly text-xl text-cnsc-primary-color font-bold px-4 w-full bg-white border-12 border-cnsc-primary-color py-2  hover:text-cnsc-secondary-color transition-all duration-500 cursor-pointer  hover:border-white"
+        className=" rounded-2xl flex gap-2 items-center justify-center text-2xl text-white font-bold px-4 w-full   border-cnsc-primary-color py-2  hover:text-cnsc-secondary-color transition-all duration-500 cursor-pointer  hover:bg-red-700 "
       >
         <LogOut size={16} />
         Logout
