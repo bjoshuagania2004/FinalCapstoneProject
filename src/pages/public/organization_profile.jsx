@@ -88,7 +88,7 @@ export function OrganzationComponent() {
   }
 
   return (
-    <div className="min-h-screen bg-indigo-100 p-6">
+    <div className="min-h-screen bg-cnsc-primary-color p-6">
       <div className="w-fit">
         {/* Header */}
         <div className="text-center mb-8">

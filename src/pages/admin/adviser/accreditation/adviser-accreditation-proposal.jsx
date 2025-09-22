@@ -276,13 +276,6 @@ export function AdviserProposal({ orgData }) {
                 There are currently no proposed action plans for this
                 organization. Create your first proposal to get started.
               </p>
-              <button
-                onClick={() => setShowManageModal(true)}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 rounded-xl flex items-center gap-3 transition-all duration-200 mx-auto shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-              >
-                <Plus size={20} />
-                Create First Proposal
-              </button>
             </div>
           </div>
         )}

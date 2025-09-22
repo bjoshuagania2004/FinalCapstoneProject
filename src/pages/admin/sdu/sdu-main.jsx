@@ -875,7 +875,7 @@ function LogoutButton() {
       {/* Logout Button */}
       <div
         onClick={handleLogoutClick}
-        className="flex gap-2 items-center justify-evenly text-xl text-cnsc-primary-color font-bold px-4 w-full bg-white border-12 border-cnsc-primary-color py-2  hover:text-cnsc-secondary-color transition-all duration-500 cursor-pointer  hover:border-white"
+        className=" rounded-2xl flex gap-2 items-center justify-center text-2xl text-white font-bold px-4 w-full   border-cnsc-primary-color py-2  hover:text-cnsc-secondary-color transition-all duration-500 cursor-pointer  hover:bg-red-700 "
       >
         <LogOut size={16} />
         Logout
