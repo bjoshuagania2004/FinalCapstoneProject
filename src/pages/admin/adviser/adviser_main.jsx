@@ -324,15 +324,68 @@ function AdviserRoutes({ orgData, user }) {
   );
 }
 
+import { Eye, EyeOff, Lock } from "lucide-react";
+
 function InitialSignInAdviser({ user, orgData, onFinish }) {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showPopup, setShowPopup] = useState(false); // ✅ state for DonePopUp
+  const [showPopup, setShowPopup] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  // Password validation
+  const validatePassword = (password) => {
+    const errors = {};
+    if (password.length < 8) {
+      errors.length = "Password must be at least 8 characters long";
+    }
+    if (!/(?=.*[a-z])/.test(password)) {
+      errors.lowercase = "Password must contain at least one lowercase letter";
+    }
+    if (!/(?=.*[A-Z])/.test(password)) {
+      errors.uppercase = "Password must contain at least one uppercase letter";
+    }
+    if (!/(?=.*\d)/.test(password)) {
+      errors.number = "Password must contain at least one number";
+    }
+    if (!/(?=.*[!@#$%^&*(),.?":{}|<>])/.test(password)) {
+      errors.special = "Password must contain at least one special character";
+    }
+    return errors;
+  };
+
+  const getPasswordStrength = (password) => {
+    const validationErrors = validatePassword(password);
+    const errorCount = Object.keys(validationErrors).length;
+
+    if (password.length === 0) return { strength: 0, label: "", color: "" };
+    if (errorCount >= 4)
+      return { strength: 1, label: "Very Weak", color: "bg-red-500" };
+    if (errorCount >= 3)
+      return { strength: 2, label: "Weak", color: "bg-orange-500" };
+    if (errorCount >= 2)
+      return { strength: 3, label: "Fair", color: "bg-yellow-500" };
+    if (errorCount === 1)
+      return { strength: 4, label: "Good", color: "bg-blue-500" };
+    return { strength: 5, label: "Strong", color: "bg-green-500" };
+  };
 
   const handlePasswordChange = async () => {
+    // Clear previous errors
+    setErrors({});
+
+    // Validate passwords
+
     if (newPassword !== confirmPassword) {
+      setErrors({ confirm: "Passwords do not match" });
       setShowPopup({ type: "error", message: "Passwords do not match!" });
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setErrors({ password: "Password must be at least 8 characters long" });
       return;
     }
 
@@ -347,59 +400,199 @@ function InitialSignInAdviser({ user, orgData, onFinish }) {
         { withCredentials: true }
       );
 
-      // ✅ show success popup instead of alert
       setShowPopup({
         type: "success",
         message: "Password updated successfully!",
       });
     } catch (error) {
       console.error(error.response || error);
-      setShowPopup({ type: "error", message: "Failed to update password" });
+      const errorMessage =
+        error.response?.data?.message || "Failed to update password";
+      setShowPopup({ type: "error", message: errorMessage });
     } finally {
       setLoading(false);
     }
   };
 
+  const passwordStrength = getPasswordStrength(newPassword);
+  const isFormValid =
+    newPassword && confirmPassword && newPassword === confirmPassword;
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
-        <h2 className="text-xl font-bold mb-4">Change Password</h2>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          Change Password
+        </h2>
 
-        <div className="space-y-3">
-          <input
-            type="password"
-            placeholder="New Password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            className="w-full p-2 border rounded-lg"
-          />
-          <input
-            type="password"
-            placeholder="Confirm New Password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            className="w-full p-2 border rounded-lg"
-          />
+        <div className="space-y-5">
+          {/* New Password Field */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              New Password
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Lock className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type={showNewPassword ? "text" : "password"}
+                placeholder="Enter new password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                  errors.password
+                    ? "border-red-300 bg-red-50"
+                    : "border-gray-300"
+                }`}
+              />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                onClick={() => setShowNewPassword(!showNewPassword)}
+              >
+                {showNewPassword ? (
+                  <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                ) : (
+                  <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                )}
+              </button>
+            </div>
+
+            {/* Password Strength Indicator */}
+            {newPassword && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 bg-gray-200 rounded-full h-2">
+                    <div
+                      className={`h-full rounded-full transition-all duration-300 ${passwordStrength.color}`}
+                      style={{
+                        width: `${(passwordStrength.strength / 5) * 100}%`,
+                      }}
+                    />
+                  </div>
+                  <span
+                    className={`text-xs font-medium ${
+                      passwordStrength.strength <= 2
+                        ? "text-red-600"
+                        : passwordStrength.strength <= 3
+                        ? "text-yellow-600"
+                        : passwordStrength.strength <= 4
+                        ? "text-blue-600"
+                        : "text-green-600"
+                    }`}
+                  >
+                    {passwordStrength.label}
+                  </span>
+                </div>
+
+                {/* Password Requirements */}
+              </div>
+            )}
+
+            {errors.password && (
+              <p className="text-sm text-red-600 flex items-center gap-1">
+                <div className="w-1 h-1 bg-red-600 rounded-full" />
+                {errors.password}
+              </p>
+            )}
+          </div>
+
+          {/* Confirm Password Field */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Confirm New Password
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Lock className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="Confirm new password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                  errors.confirm
+                    ? "border-red-300 bg-red-50"
+                    : "border-gray-300"
+                }`}
+              />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                {showConfirmPassword ? (
+                  <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                ) : (
+                  <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                )}
+              </button>
+            </div>
+
+            {/* Password Match Indicator */}
+            {confirmPassword && newPassword && (
+              <div
+                className={`text-xs flex items-center gap-1 ${
+                  newPassword === confirmPassword
+                    ? "text-green-600"
+                    : "text-red-600"
+                }`}
+              >
+                <div
+                  className={`w-1 h-1 rounded-full ${
+                    newPassword === confirmPassword
+                      ? "bg-green-600"
+                      : "bg-red-600"
+                  }`}
+                />
+                {newPassword === confirmPassword
+                  ? "Passwords match"
+                  : "Passwords do not match"}
+              </div>
+            )}
+
+            {errors.confirm && (
+              <p className="text-sm text-red-600 flex items-center gap-1">
+                <div className="w-1 h-1 bg-red-600 rounded-full" />
+                {errors.confirm}
+              </p>
+            )}
+          </div>
         </div>
 
-        <div className="mt-5 flex justify-end gap-3">
+        {/* Action Buttons */}
+        <div className="mt-8 flex flex-col-reverse sm:flex-row justify-end gap-3">
           <button
-            className="px-4 py-2 rounded-lg bg-gray-300 hover:bg-gray-400"
+            className="px-6 py-3 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium transition-colors"
             onClick={onFinish}
+            disabled={loading}
           >
             Cancel
           </button>
           <button
-            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+            className={`px-6 py-3 rounded-lg font-medium transition-all ${
+              isFormValid && !loading
+                ? "bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow-md"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+            }`}
             onClick={handlePasswordChange}
-            disabled={loading}
+            disabled={!isFormValid || loading}
           >
-            {loading ? "Saving..." : "Save"}
+            {loading ? (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Updating...
+              </div>
+            ) : (
+              "Update Password"
+            )}
           </button>
         </div>
       </div>
 
-      {/* ✅ Show popup if state is set */}
+      {/* Success/Error Popup */}
       {showPopup && (
         <DonePopUp
           type={showPopup.type}
@@ -407,7 +600,7 @@ function InitialSignInAdviser({ user, orgData, onFinish }) {
           onClose={() => {
             setShowPopup(false);
             if (showPopup.type === "success") {
-              onFinish(); // close modal after success
+              onFinish();
             }
           }}
         />

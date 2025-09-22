@@ -161,9 +161,6 @@ export function RegistrationForm({ onShowRegistration, onBackToLogin }) {
               className="w-2 h-2 bg-cnsc-primary-color rounded-full animate-bounce"
               style={{ animationDelay: "0.2s" }}
             ></div>
-            <p className="text-sm text-gray-500 ml-3 font-medium">
-              Logging in...
-            </p>
           </div>
         </div>
       </div>

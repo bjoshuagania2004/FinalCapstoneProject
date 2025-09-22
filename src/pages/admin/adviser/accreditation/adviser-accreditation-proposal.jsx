@@ -22,6 +22,7 @@ import { DonePopUp } from "../../../../components/components";
 
 export function AdviserProposal({ orgData }) {
   const [proposals, setProposals] = useState([]);
+  const [alertModal, setAlertModal] = useState([]);
   const [selectedProposal, setSelectedProposal] = useState(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showRevisionModal, setShowRevisionModal] = useState(false);
@@ -266,8 +267,8 @@ export function AdviserProposal({ orgData }) {
         {!loading && !error && proposals.length === 0 && (
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-12">
             <div className="text-center">
-              <div className="bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full p-6 w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-                <Plus size={48} className="text-blue-600" />
+              <div className="bg-amber-100 rounded-full p-6 w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+                <AlertTriangle size={48} className="text-amber-600" />
               </div>
               <h3 className="text-xl font-semibold text-slate-800 mb-3">
                 No Proposals Found
@@ -277,10 +278,10 @@ export function AdviserProposal({ orgData }) {
                 organization. Create your first proposal to get started.
               </p>
               <button
-                onClick={() => setShowManageModal(true)}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 rounded-xl flex items-center gap-3 transition-all duration-200 mx-auto shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                onClick={() => setAlertModal(true)}
+                className="bg-amber-500 text-white px-8 py-4 rounded-xl flex items-center gap-3 transition-all duration-200 mx-auto shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               >
-                <Plus size={20} />
+                <AlertTriangle size={24} />
                 Create First Proposal
               </button>
             </div>
@@ -715,6 +716,61 @@ export function AdviserProposal({ orgData }) {
             onClose={() => setPopup({ ...popup, open: false })}
           />
         )}
+      </div>
+      <AlertModal
+        open={alertModal}
+        title="Create First Proposal"
+        message="Are you sure you want to create your first proposal for this organization?"
+        onClose={() => setAlertModal(false)}
+        onConfirm={() => {
+          // 👉 Place your create proposal logic here
+          console.log("Proposal creation confirmed!");
+        }}
+      />
+    </div>
+  );
+}
+
+function AlertModal({ open, title, message, onClose, onConfirm }) {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-4 text-white flex justify-between items-center">
+          <h3 className="text-lg font-semibold">{title || "Alert"}</h3>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="p-6">
+          <p className="text-slate-700">{message}</p>
+        </div>
+
+        {/* Actions */}
+        <div className="flex justify-end gap-3 px-6 pb-6">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-slate-600 border-2 border-slate-300 hover:border-slate-400 rounded-xl hover:bg-slate-50 transition-colors font-medium"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => {
+              if (onConfirm) onConfirm();
+              onClose();
+            }}
+            className="px-4 py-2 bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition-colors font-medium"
+          >
+            Confirm
+          </button>
+        </div>
       </div>
     </div>
   );

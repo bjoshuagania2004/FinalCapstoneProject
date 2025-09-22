@@ -18,17 +18,19 @@ import {
 
 import axios from "axios";
 import { DonePopUp } from "../../../../components/components";
+import { EmailModal } from "../../../../components/accreditation-email";
 
-export function AdviserAccreditationDocument({ orgData }) {
+export function AdviserAccreditationDocument({ orgData, user }) {
   const [accreditationDocumentData, setAccreditationDocumentData] =
     useState(null);
-  const [showDetailsPopup, setShowDetailsPopup] = useState(false);
-  const [selectedDocumentDetails, setSelectedDocumentDetails] = useState(null);
-  const [revisionModal, setRevisionModal] = useState(false);
-  const [message, setMessage] = useState(false);
-  const [popup, setPopup] = useState(null);
 
+  const [showDetailsPopup, setShowDetailsPopup] = useState(false);
+  const [emailModal, setEmailModal] = useState({ open: false, subject: "" });
+  const [selectedDocumentDetails, setSelectedDocumentDetails] = useState(null);
+  const [popup, setPopup] = useState(null);
   const [approvalModal, setApprovalModal] = useState(false);
+  const [emailLoading, setEmailLoading] = useState(false);
+
   useEffect(() => {
     const fetchAccreditationInfo = async () => {
       if (!orgData._id) return;
@@ -39,8 +41,6 @@ export function AdviserAccreditationDocument({ orgData }) {
             withCredentials: true,
           }
         );
-        console.log("+++++++++++");
-        console.log(data);
         setAccreditationDocumentData(data);
       } catch (err) {
         console.error("Error fetching accreditation info:", err);
@@ -48,19 +48,6 @@ export function AdviserAccreditationDocument({ orgData }) {
     };
     fetchAccreditationInfo();
   }, [orgData._id]);
-
-  const getStatusStyle = (status) => {
-    switch (status?.toLowerCase()) {
-      case "approved":
-        return "bg-green-100 text-green-800";
-      case "pending":
-        return "bg-yellow-100 text-yellow-800";
-      case "rejected":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
 
   const handleApproval = async ({ status, revisionNotes }) => {
     try {
@@ -82,6 +69,19 @@ export function AdviserAccreditationDocument({ orgData }) {
         type: "error",
         message: "Something went wrong while processing your request.",
       });
+    }
+  };
+
+  const getStatusStyle = (status) => {
+    switch (status?.toLowerCase()) {
+      case "approved":
+        return "bg-green-100 text-green-800";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "rejected":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -109,13 +109,10 @@ export function AdviserAccreditationDocument({ orgData }) {
     });
     setShowDetailsPopup(true);
   };
+
   const closeDetailsPopup = () => {
     setShowDetailsPopup(false);
     setSelectedDocumentDetails(null);
-  };
-  const openUpload = (docKey) => {
-    console.log("Opening upload for:", docKey);
-    // Add your upload logic here
   };
 
   const DocumentCard = ({ label, doc, docKey }) => {
@@ -175,7 +172,12 @@ export function AdviserAccreditationDocument({ orgData }) {
     ) : (
       <div className="flex-1 h-full min-h-0">
         <div
-          onClick={() => openUpload(docKey)}
+          onClick={() =>
+            setEmailModal({
+              open: true,
+              subject: `Inquiry about ${label}`, // 👈 dynamic subject
+            })
+          }
           className="bg-white border-2 border-dashed border-gray-300 rounded-xl h-full flex flex-col justify-center items-center p-8 cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 transition-all duration-300 group"
         >
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-blue-100 transition-colors">
@@ -392,21 +394,28 @@ export function AdviserAccreditationDocument({ orgData }) {
                       Download Document
                     </a>
                   </div>
+
                   <div className="flex gap-4 ">
                     <button
                       onClick={() => {
                         setApprovalModal(true);
                       }}
-                      className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center justify-center gap-2"
+                      className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center justify-center gap-2"
                     >
                       <CircleCheck className="w-4 h-4" />
                       Approve Document
                     </button>
                     <button
                       onClick={() => {
-                        setRevisionModal(true);
+                        setEmailData({
+                          ...emailData,
+                          inquirySubject: "Revision Request",
+                          inquiryText:
+                            "Please revise the submitted document as per the adviser's notes.",
+                        });
+                        setEmailModal(true); // ✅ use email modal instead
                       }}
-                      className="w-full bg-amber-500 text-white px-4 py-2 rounded-lg hover:bg-amber-700 transition-colors font-medium flex items-center justify-center gap-2"
+                      className="w-full bg-amber-500 text-white px-4 py-2 rounded-lg hover:bg-amber-700 flex items-center justify-center gap-2"
                     >
                       <Pen className="w-4 h-4" />
                       Revision Document
@@ -431,50 +440,42 @@ export function AdviserAccreditationDocument({ orgData }) {
       )}
 
       {/* Revision Modal */}
-      {revisionModal && (
-        <div className="absolute bg-black/10 backdrop-blur-xs inset-0 flex justify-center items-center z-100">
-          <div className="h-fit bg-white w-1/3 flex flex-col px-6 py-6 rounded-2xl shadow-xl relative">
-            {/* Close Button */}
-            <button
-              onClick={() => setRevisionModal(false)}
-              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
-            >
-              ✕
-            </button>
+      <EmailModal
+        open={emailModal.open}
+        onClose={() => setEmailModal(false)}
+        loading={emailLoading}
+        route="accreditationEmailInquiry"
+        title="Compose Email – Revision Notice"
+        description="Send a revision request to the organization."
+        sendButtonLabel="Send Revision Request"
+        orgData={orgData}
+        user={user}
+        onSuccess={() =>
+          setPopup({ type: "success", message: "Revision email sent!" })
+        }
+        onError={() =>
+          setPopup({ type: "error", message: "Failed to send revision email" })
+        }
+      />
 
-            <h1 className="text-lg font-semibold mb-4">Revision:</h1>
+      <EmailModal
+        open={emailModal.open} // 👈 boolean
+        onClose={() => setEmailModal({ open: false, subject: "" })}
+        loading={emailLoading}
+        route="accreditationEmailInquiry"
+        title={`Document Not Found – ${emailModal.subject}`} // 👈 safe subject
+        sendButtonLabel="Send Intent"
+        Subject={emailModal.subject} // 👈 pass subject
+        orgData={orgData}
+        user={user}
+        onSuccess={() =>
+          setPopup({ type: "success", message: "Email sent successfully!" })
+        }
+        onError={() =>
+          setPopup({ type: "error", message: "Failed to send email" })
+        }
+      />
 
-            <div className="flex flex-col gap-4 w-full">
-              {/* Message */}
-              <div className="flex flex-col gap-1 w-full">
-                <label className="text-sm font-medium text-gray-700">
-                  Message
-                </label>
-                <textarea
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  className="border rounded-lg w-full h-28 p-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                />
-              </div>
-            </div>
-
-            <button
-              onClick={() => {
-                handleApproval({
-                  status: "Revision From the Adviser",
-                  revisionNotes: message,
-                }); // 👈 call with "Revision"
-                setRevisionModal(false);
-              }}
-              className="mt-6 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-sm font-medium shadow-md transition"
-            >
-              Send
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Approval Modal */}
       {approvalModal && (
         <div className="absolute bg-black/10 backdrop-blur-xs inset-0 flex justify-center items-center z-100">
           <div className="h-fit bg-white w-1/4 flex flex-col px-6 py-6 rounded-2xl shadow-xl relative">
