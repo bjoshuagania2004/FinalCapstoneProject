@@ -159,9 +159,9 @@ export function StudentProposedPlan({ orgData, accreditationData }) {
             </p>
             <button
               onClick={() => setShowManageModal(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors mx-auto"
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 rounded-xl flex items-center gap-3 transition-all duration-200 mx-auto shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
-              <Plus size={16} />
+              <Plus size={20} />
               Create First Proposal
             </button>
           </div>

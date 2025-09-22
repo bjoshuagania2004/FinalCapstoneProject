@@ -35,6 +35,8 @@ import { StudentLeaderProposal } from "./proposal/student-leader-proposals";
 import { StudentLeaderAccomplishmentReport } from "./accomplishment/student-leader-accomplishments";
 import backgroundImage from "./../../../assets/cnsc-codex-2.svg";
 
+import { StudentPost } from "./posts/student-post";
+
 export default function StudentLeaderMainPage() {
   // User and organization data
   const { user } = useOutletContext();
@@ -50,6 +52,10 @@ export default function StudentLeaderMainPage() {
   // Loading and navigation states
   const [isLoading, setIsLoading] = useState(true);
   const location = useLocation();
+  const navigate = useNavigate();
+  const isPosting = location.pathname === "/student-leader/post";
+
+  console.log(isPosting);
 
   // Update userId when user changes
   useEffect(() => {
@@ -128,9 +134,22 @@ export default function StudentLeaderMainPage() {
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden">
       {/* Header */}
+
       <div className="flex items-center justify-center bg-cnsc-secondary-color h-fit w-full px-4 shadow-2xl">
         {/* Left: Logo + Title */}
-        <div className="flex items-center space-x-2 p-4">
+        <div className="w-full h-full flex justify-start items-center">
+          {isPosting && (
+            <svg
+              onClick={() => navigate("/student-leader")}
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 640 640"
+              className="w-10 cursor-pointer"
+            >
+              <path d="M341.8 72.6C329.5 61.2 310.5 61.2 298.3 72.6L74.3 280.6C64.7 289.6 61.5 303.5 66.3 315.7C71.1 327.9 82.8 336 96 336L112 336L112 512C112 547.3 140.7 576 176 576L464 576C499.3 576 528 547.3 528 512L528 336L544 336C557.2 336 569 327.9 573.8 315.7C578.6 303.5 575.4 289.5 565.8 280.6L341.8 72.6zM304 384L336 384C362.5 384 384 405.5 384 432L384 528L256 528L256 432C256 405.5 277.5 384 304 384z" />
+            </svg>
+          )}
+        </div>
+        <div className="flex min-w-fit items-center space-x-2 p-4">
           <img
             src={backgroundImage} // replace with your actual logo path
             alt="CNSC Codex Logo"
@@ -140,6 +159,7 @@ export default function StudentLeaderMainPage() {
             CNSC CODEX
           </span>
         </div>
+        <div className="w-full h-full" />
 
         {/* Right: Manual + Icons */}
         {/* <div className="flex items-center space-x-4">
@@ -158,11 +178,12 @@ export default function StudentLeaderMainPage() {
       {/* Main content area */}
       <div className="flex h-full overflow-auto">
         {/* Sidebar */}
-        <div className="w-1/5 h-full flex flex-col bg-cnsc-primary-color">
-          <StudentNavigation orgData={orgData} />
-          <LogoutButton />
-        </div>
-
+        {!isPosting && (
+          <div className="w-1/5 h-full flex flex-col bg-cnsc-primary-color">
+            <StudentNavigation orgData={orgData} />
+            <LogoutButton />
+          </div>
+        )}
         {/* Main content */}
         <div className="flex-1 h-full overflow-y-auto">
           <StudentRoutes
@@ -256,15 +277,7 @@ function StudentRoutes({ orgData, accreditationData }) {
           element={<StudentLeaderAccomplishmentReport orgData={orgData} />}
         />
 
-        <Route
-          path="post"
-          element={
-            <div className="p-4">
-              <h1 className="text-2xl font-bold">Posts</h1>
-              <p>Student post section content</p>
-            </div>
-          }
-        />
+        <Route path="Post" element={<StudentPost />} />
 
         <Route
           path="log"
@@ -296,6 +309,7 @@ function StudentNavigation({ orgData }) {
   const [croppedData, setCroppedData] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const cropRef = useRef();
+  const navigate = useNavigate();
 
   const handleUploadClick = () => {
     setIsUploadingLogo(true);
@@ -372,9 +386,15 @@ function StudentNavigation({ orgData }) {
 
   return (
     <>
-      <div className=" h-full w-full flex-col">
-        <div className="text-white mt-2 mb-4 font-bold flex items-center space-x-4 hover:cursor-pointer">
-          <div className="my-1 ml-3 w-15 aspect-square rounded-full bg-cnsc-secondary-color flex items-center justify-center cursor-pointer overflow-hidden group relative">
+      <div className="h-full w-full flex-col">
+        <div className="mt-2 mb-4 flex items-center space-x-4 cursor-pointer group">
+          {/* Logo container */}
+          <div
+            className="relative my-1 ml-3 w-16 aspect-square rounded-full 
+                    bg-cnsc-secondary-color flex items-center justify-center 
+                    overflow-hidden shadow-md ring-2 ring-white/40 
+                    transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg"
+          >
             {imageSrc ? (
               <img
                 src={imageSrc}
@@ -382,23 +402,38 @@ function StudentNavigation({ orgData }) {
                 className="w-full h-full object-cover rounded-full"
               />
             ) : (
-              <div onClick={handleUploadClick}>
+              <div
+                onClick={handleUploadClick}
+                className="w-full h-full relative"
+              >
                 {/* Background image */}
                 <img
                   src={backgroundImage}
                   alt="Organization Logo"
                   className="w-full h-full object-cover rounded-full"
                 />
-                {/* Plus icon, visible only on hover */}
+                {/* Plus icon on hover */}
                 <Plus
-                  size={48}
-                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  size={44}
+                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
+                       text-white drop-shadow-md opacity-0 
+                       group-hover:opacity-100 transition-opacity duration-300"
                 />
               </div>
             )}
           </div>
 
-          <h1>{orgData.orgName}</h1>
+          {/* Welcome + Org name */}
+          <div className="flex flex-col">
+            <span className="text-white/80 text-sm font-medium">Welcome!</span>
+            <h1
+              onClick={() => navigate("/student-leader/post")}
+              className="text-white font-extrabold text-lg tracking-wide drop-shadow-sm 
+                     transition-colors duration-300 group-hover:text-cnsc-secondary-color"
+            >
+              {orgData.orgName} Organization
+            </h1>
+          </div>
         </div>
 
         {/* Navigation */}
@@ -428,12 +463,12 @@ function StudentNavigation({ orgData }) {
               label: "Proposals",
               path: "/student-leader/proposal",
             },
-            {
-              key: "post",
-              icon: <PenSquare className="mr-3 w-5 h-5" />,
-              label: "Post",
-              path: "/student-leader/post",
-            },
+            // {
+            //   key: "post",
+            //   icon: <PenSquare className="mr-3 w-5 h-5" />,
+            //   label: "Post",
+            //   path: "/student-leader/post",
+            // },
             {
               key: "logs",
               icon: <Clock className="mr-3 w-5 h-5" />,
@@ -542,7 +577,7 @@ function LogoutButton() {
       {/* Logout Button */}
       <div
         onClick={handleLogoutClick}
-        className="flex gap-2 items-center justify-center text-xl text-cnsc-primary-color font-bold px-4 w-full bg-white border-12 border-cnsc-primary-color py-2  hover:text-cnsc-secondary-color transition-all duration-500 cursor-pointer  hover:border-white"
+        className=" rounded-2xl flex gap-2 items-center justify-center text-2xl text-white font-bold px-4 w-full   border-cnsc-primary-color py-2  hover:text-cnsc-secondary-color transition-all duration-500 cursor-pointer  hover:bg-red-700 "
       >
         <LogOut size={16} />
         Logout
