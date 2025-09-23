@@ -285,54 +285,54 @@ export const Logout = (req, res) => {
   });
 };
 
-import OpenAI from "openai";
-import PdfParse from "pdf-parse";
+// import OpenAI from "openai";
+// import PdfParse from "pdf-parse";
 
-export const getAIFeedback = async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: "No file uploaded" });
-    }
+// export const getAIFeedback = async (req, res) => {
+//   try {
+//     if (!req.file) {
+//       return res.status(400).json({ error: "No file uploaded" });
+//     }
 
-    // 👇 Use buffer from multer
-    const pdfBuffer = req.file.buffer;
-    const pdfData = await PdfParse(pdfBuffer);
-    const documentText = pdfData.text;
+//     // 👇 Use buffer from multer
+//     const pdfBuffer = req.file.buffer;
+//     const pdfData = await PdfParse(pdfBuffer);
+//     const documentText = pdfData.text;
 
-    const prompt = `
-You are an AI text detector. 
-Analyze the following document and provide structured JSON feedback.
+//     const prompt = `
+// You are an AI text detector.
+// Analyze the following document and provide structured JSON feedback.
 
-Document content:
----
-${documentText}
----
+// Document content:
+// ---
+// ${documentText}
+// ---
 
-Return ONLY valid JSON in this exact format:
+// Return ONLY valid JSON in this exact format:
 
-{
-  "feedback": "Short explanation whether the content seems AI-generated or human-written.",
-  "aiGenerated": true or false, // true if majority seems AI generated
-  "aiProbability": number // percentage (0-100) of how likely the text is AI-generated
-}
-`;
+// {
+//   "feedback": "Short explanation whether the content seems AI-generated or human-written.",
+//   "aiGenerated": true or false, // true if majority seems AI generated
+//   "aiProbability": number // percentage (0-100) of how likely the text is AI-generated
+// }
+// `;
 
-    const client = new OpenAI({
-      apiKey: process.env.OPEN_AI_API_KEY,
-      dangerouslyAllowBrowser: true, // ⚠️ only for demo, move to backend later!
-    });
+//     const client = new OpenAI({
+//       apiKey: process.env.OPEN_AI_API_KEY,
+//       dangerouslyAllowBrowser: true, // ⚠️ only for demo, move to backend later!
+//     });
 
-    const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      response_format: { type: "json_object" }, // force JSON
-    });
+//     const response = await client.chat.completions.create({
+//       model: "gpt-4o-mini",
+//       messages: [{ role: "user", content: prompt }],
+//       response_format: { type: "json_object" }, // force JSON
+//     });
 
-    const aiResult = JSON.parse(response.choices[0].message.content);
+//     const aiResult = JSON.parse(response.choices[0].message.content);
 
-    res.json(aiResult);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to get AI feedback" });
-  }
-};
+//     res.json(aiResult);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: "Failed to get AI feedback" });
+//   }
+// };
