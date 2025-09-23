@@ -73,9 +73,7 @@ const activityMiddleware = (req, res, next) => {
     if (inactiveTime > INACTIVITY_GRACE + INACTIVITY_TIMEOUT) {
       req.session.destroy((err) => {
         if (err) return next(err);
-        return res
-          .status(440)
-          .json({ message: "Session expired due to inactivity" });
+        return res.json({ message: "Session expired due to inactivity" });
       });
       return; // Prevent further response
     }

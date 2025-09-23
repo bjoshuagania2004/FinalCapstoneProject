@@ -10,18 +10,16 @@ import {
   Clock, // 📌 missing
   Badge, // 📌 missing
 } from "lucide-react";
-
-import { StudentLeaderAddPost } from "./add-post";
-import { API_ROUTER, DOCU_API_ROUTER } from "../../../../App";
+import { useLocation, useParams } from "react-router-dom";
+import { API_ROUTER, DOCU_API_ROUTER } from "../../App";
 import axios from "axios";
 
-export function StudentPost({ orgData }) {
-  const [posts, setPosts] = useState([]);
-  const [addNewPost, setAddNewPost] = useState(false);
-  const [likedPosts, setLikedPosts] = useState(new Set());
-  const [bookmarkedPosts, setBookmarkedPosts] = useState(new Set());
+export function PublicProfile() {
+  const location = useLocation();
+  const { orgData } = location.state || {}; // safely get the data
 
-  // Fetch accreditation data when organization profile ID changes
+  const [posts, setPosts] = useState([]);
+
   useEffect(() => {
     const fetchPublicPost = async () => {
       if (!orgData._id) return;
@@ -31,7 +29,6 @@ export function StudentPost({ orgData }) {
           `${API_ROUTER}/getOrgProfilePosts/${orgData._id}`,
           { withCredentials: true }
         );
-        console.log(response.data);
         setPosts(response.data);
       } catch (error) {
         console.error("Error fetching accreditation info:", error);
@@ -51,21 +48,10 @@ export function StudentPost({ orgData }) {
     return `${Math.floor(diffInMinutes / 1440)}d`;
   };
 
-  const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case "pending":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "approved":
-        return "bg-green-100 text-green-800 border-green-200";
-      case "rejected":
-        return "bg-red-100 text-red-800 border-red-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
-    }
-  };
+  console.log(orgData);
 
   return (
-    <div className="w-full h-full flex flex-col bg-gradient-to-br from-gray-50 to-gray-100 overflow-auto">
+    <div className="w-screen h-screen  flex flex-col bg-gray-300 overflow-auto">
       {/* Enhanced Header */}
       <div className="flex flex-col mx-24 gap-4">
         <div className="w-full bg-white shadow">
@@ -186,38 +172,6 @@ export function StudentPost({ orgData }) {
 
           {/* Main Content */}
           <div className="flex flex-col gap-4 w-full ">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-              <div
-                onClick={() => setAddNewPost(true)}
-                className="p-6 cursor-pointer hover:bg-gray-50 transition-colors"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
-                    {orgData?.orgAcronym?.[0] || "O"}
-                  </div>
-                  <div className="flex-1">
-                    <div className="bg-gray-100 rounded-full px-4 py-3 text-gray-500 hover:bg-gray-200 transition-colors">
-                      What would you like to share with the community?
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-                  <div className="flex gap-4">
-                    <button className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors">
-                      <Camera className="w-5 h-5" />
-                      <span className="text-sm font-medium">Photo</span>
-                    </button>
-                    <button className="flex items-center gap-2 text-gray-600 hover:text-green-600 transition-colors">
-                      <Calendar className="w-5 h-5" />
-                      <span className="text-sm font-medium">Event</span>
-                    </button>
-                  </div>
-                  <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium">
-                    Create Post
-                  </button>
-                </div>
-              </div>
-            </div>
             {posts.length === 0 ? (
               <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -237,7 +191,6 @@ export function StudentPost({ orgData }) {
                     post={post}
                     DOCU_API_ROUTER={DOCU_API_ROUTER}
                     orgData={orgData}
-                    getStatusColor={getStatusColor}
                     formatTimeAgo={formatTimeAgo}
                   />
                 </div>
@@ -246,13 +199,6 @@ export function StudentPost({ orgData }) {
           </div>
         </div>
       </div>
-
-      {addNewPost && (
-        <StudentLeaderAddPost
-          orgData={orgData}
-          Modal={() => setAddNewPost(false)}
-        />
-      )}
     </div>
   );
 }

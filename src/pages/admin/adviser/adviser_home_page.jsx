@@ -13,14 +13,19 @@ import {
   DollarSign,
   Users,
 } from "lucide-react";
-import { API_ROUTER, DOCU_API_ROUTER } from "../../../../App";
+import { API_ROUTER, DOCU_API_ROUTER } from "../../../App";
+import { useNavigate } from "react-router-dom";
 
-export default function StudentHomePage({ orgData, accreditationData }) {
+export default function AdviserHomePage({ orgData, accreditationData, user }) {
+  const navigate = useNavigate();
+
   return (
     <div className="bg-gray-100 min-h-screen space-y-4 overflow-auto">
       {/* Header */}
       <header className="bg-white rounded-lg shadow p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <h1 className="text-2xl font-bold text-gray-800">Welcome, Student !</h1>
+        <h1 className="text-2xl font-bold text-gray-800">
+          Welcome, Adviser {user.name}
+        </h1>
         <div className="text-gray-600 text-right">
           <p className="font-medium">{orgData?.orgName}</p>
           <p className="text-sm">{orgData?.orgClass}</p>
@@ -30,25 +35,59 @@ export default function StudentHomePage({ orgData, accreditationData }) {
       {/* Main Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 ">
         {/* Accreditation Status */}
-        <div className="lg:col-span-1 ">
-          <AccreditationComponent accreditationData={accreditationData} />
+        <div
+          onClick={() => navigate("./accreditation")}
+          className="lg:col-span-1 cursor-pointer"
+        >
+          <AccreditationComponent orgId={orgData._id} />
         </div>
 
-        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200  ">
+        <div
+          onClick={() => navigate("./proposal")}
+          className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 cursor-pointer"
+        >
           <ProposalsComponent orgData={orgData} />
         </div>
       </div>
 
       {/* Posts Section */}
-      <div className="rounded-lg shadow ">
+      <div
+        onClick={() => navigate("./post")}
+        className="rounded-lg shadow cursor-pointer"
+      >
         <PostComponent orgData={orgData} />
       </div>
     </div>
   );
 }
 
-function AccreditationComponent({ accreditationData }) {
-  const { overallStatus } = accreditationData;
+function AccreditationComponent({ orgId }) {
+  const [accreditationData, setAccreditationData] = useState(null);
+  const [showResetPopup, setShowResetPopup] = useState(false);
+
+  useEffect(() => {
+    const GetAccreditationInformation = async () => {
+      if (!orgId) return;
+
+      try {
+        const response = await axios.get(
+          `${API_ROUTER}/getAccreditationInfo/${orgId}`,
+          { withCredentials: true }
+        );
+        setAccreditationData(response.data);
+
+        if (response.data?.isActive === false) {
+          setShowResetPopup(true);
+        }
+      } catch (err) {
+        console.error("Error fetching accreditation info:", err);
+      }
+    };
+
+    GetAccreditationInformation();
+  }, [orgId]);
+
+  if (!accreditationData) return null;
 
   const requirements = [
     {
@@ -108,6 +147,8 @@ function AccreditationComponent({ accreditationData }) {
     }
     return <AlertCircle className="w-4 h-4 text-slate-500" />;
   };
+
+  const overallStatus = accreditationData?.overallStatus || "Pending";
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 h-fit">

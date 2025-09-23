@@ -3,11 +3,9 @@ import { Link, useNavigate } from "react-router-dom";
 import Login from "./login_form";
 import { RegistrationForm } from "./registration_form";
 import backgroundImage from "./../../assets/cnscsch.jpg";
-import { API_ROUTER, DOCU_API_ROUTER } from "../../App";
-import axios from "axios";
-import { Calendar, CheckCircle, Clock, XCircle, Building2 } from "lucide-react";
 import { OrganzationComponent } from "./organization_profile";
-import { PostComponent } from "./proposal_calendar";
+import { CalendarComponent } from "./proposal_calendar";
+import { EventComponent } from "./public_post";
 
 export default function HomePage() {
   const [scrollY, setScrollY] = useState(0);
@@ -43,19 +41,6 @@ export default function HomePage() {
         alt="Background"
         className="absolute inset-0 w-full h-full object-cover brightness-50 z-0"
       />
-    </div>
-  );
-}
-
-function EventCalendarComponent() {
-  return (
-    <div className="text-center min-h-screen bg-amber-100 p-8">
-      <h2 className="text-3xl font-bold text-amber-800 mb-4">
-        Latest Posts & Updates
-      </h2>
-      <p className="text-base text-amber-600">
-        Stay updated with the latest news and announcements.
-      </p>
     </div>
   );
 }
@@ -139,11 +124,11 @@ function DekstopNavigation({ scrollToSection }) {
       </div>
 
       <div id="section2">
-        <EventCalendarComponent />
+        <EventComponent />
       </div>
 
       <div id="section3">
-        <PostComponent />
+        <CalendarComponent />
       </div>
     </div>
   );
@@ -230,12 +215,12 @@ function CellphoneNavigation() {
 
         {/* Posts Section */}
         <div id="posts" className="min-h-screen pt-20 bg-green-100 z-100">
-          <PostComponent />
+          <CalendarComponent />
         </div>
 
         {/* Calendar Section */}
         <div id="calendar" className="min-h-screen bg-violet-100 ">
-          <EventCalendarComponent />
+          <EventComponent />
         </div>
       </div>
 

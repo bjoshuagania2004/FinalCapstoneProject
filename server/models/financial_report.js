@@ -36,6 +36,13 @@ export const financialReportSchema = new mongoose.Schema(
     endingBalance: Number,
     isActive: Boolean,
 
+    collections: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Receipts",
+      },
+    ],
+
     reimbursements: [
       {
         type: Schema.Types.ObjectId,

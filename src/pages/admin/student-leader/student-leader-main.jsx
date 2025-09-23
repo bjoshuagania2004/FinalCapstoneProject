@@ -210,7 +210,15 @@ function StudentRoutes({ orgData, accreditationData }) {
   return (
     <div className="flex flex-col w-full h-full bg-gray-200 overflow-hidden">
       <Routes>
-        <Route index element={<StudentHomePage />} />
+        <Route
+          index
+          element={
+            <StudentHomePage
+              orgData={orgData}
+              accreditationData={accreditationData}
+            />
+          }
+        />
 
         <Route
           path="proposal"

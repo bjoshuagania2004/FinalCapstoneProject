@@ -548,7 +548,7 @@ function DocumentDisplayCard({ accreditationData, setUploadingDocType }) {
   const renderDocumentCard = (label, doc) => {
     if (doc && doc.fileName) {
       return (
-        <div className="flex flex-col gap-4 border-2 border-gray-400 bg-white shadow-md p-4 justify-between">
+        <div className="flex flex-col  gap-4 border-2 border-gray-400 bg-white shadow-md p-4 justify-between">
           <div className="flex items-center gap-3">
             <FileText className="min-w-8 min-h-8 text-blue-600" />
             <div className="flex-1 min-w-0">
@@ -579,13 +579,16 @@ function DocumentDisplayCard({ accreditationData, setUploadingDocType }) {
     }
 
     return (
-      <div className="border-2 border-dashed border-gray-300 p-8 bg-gray-50 cursor-not-allowed">
+      <a
+        href="./accreditation/documents"
+        className="border-2 border-dashed border-gray-300 p-8 bg-gray-50 cursor-pointer"
+      >
         <div className="text-center">
           <Upload className="w-8 h-8 mx-auto text-gray-400 mb-2" />
           <p className="text-gray-600 font-medium">{label} Placeholder</p>
           <p className="text-sm text-gray-500">No file uploaded</p>
         </div>
-      </div>
+      </a>
     );
   };
 
@@ -593,7 +596,7 @@ function DocumentDisplayCard({ accreditationData, setUploadingDocType }) {
     <div className="flex  flex-col  w-full  bg-white  border border-gray-400 p-6 h-full">
       <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
         <FileText className="w-5 h-5" />
-        Required DocumentDisplayCard
+        Required Documents
       </h2>
 
       <div className="flex  flex-col space-y-4">

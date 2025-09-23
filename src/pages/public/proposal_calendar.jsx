@@ -1,13 +1,21 @@
 import { useState, useEffect } from "react";
 import { API_ROUTER } from "../../App";
 import axios from "axios";
-import { ChevronLeft, ChevronRight, Calendar, MapPin, X } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
+  MapPin,
+  X,
+  ArrowLeft,
+} from "lucide-react";
 
-export function PostComponent() {
+export function CalendarComponent() {
   const [proposalCalendar, setProposalCalendar] = useState([]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [selectedDayEvents, setSelectedDayEvents] = useState(null); // New state for multiple events
+  const [selectedDayEvents, setSelectedDayEvents] = useState(null);
+  const [panelOpen, setPanelOpen] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -18,7 +26,6 @@ export function PostComponent() {
             withCredentials: true,
           }
         );
-        console.log(response.data);
         setProposalCalendar(response.data);
       } catch (error) {}
     };
@@ -35,14 +42,12 @@ export function PostComponent() {
   };
 
   const getEventsForDate = (date) => {
-    // Convert the date to YYYY-MM-DD format to match API data
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
     const dateStr = `${year}-${month}-${day}`;
 
     return proposalCalendar.filter((event) => {
-      // Extract date from ISO string (2025-09-26T00:00:00.000Z -> 2025-09-26)
       const eventDate =
         event.ProposedIndividualActionPlan.proposedDate.split("T")[0];
       return eventDate === dateStr;
@@ -79,7 +84,6 @@ export function PostComponent() {
     });
   };
 
-  // Updated function to handle day clicks with multiple events
   const handleDayClick = (events, date) => {
     if (events.length === 0) return;
 
@@ -95,6 +99,26 @@ export function PostComponent() {
       });
       setSelectedEvent(null);
     }
+    setPanelOpen(true);
+  };
+
+  const closePanel = () => {
+    setPanelOpen(false);
+    // Delay clearing the content until animation is complete
+    setTimeout(() => {
+      setSelectedEvent(null);
+      setSelectedDayEvents(null);
+    }, 300);
+  };
+
+  const selectEventFromDay = (event) => {
+    setSelectedEvent(event);
+    setSelectedDayEvents(null);
+  };
+
+  const goBackToDayEvents = () => {
+    setSelectedEvent(null);
+    // selectedDayEvents should still be set, so it will show the day events view
   };
 
   const renderCalendarGrid = () => {
@@ -103,7 +127,6 @@ export function PostComponent() {
     const days = [];
     const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-    // Add day headers
     dayNames.forEach((day) => {
       days.push(
         <div
@@ -115,12 +138,10 @@ export function PostComponent() {
       );
     });
 
-    // Add empty cells for days before the first day of the month
     for (let i = 0; i < firstDay; i++) {
       days.push(<div key={`empty-${i}`} className="p-3 bg-gray-50"></div>);
     }
 
-    // Add days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(
         currentDate.getFullYear(),
@@ -133,7 +154,7 @@ export function PostComponent() {
       days.push(
         <div
           key={day}
-          className={`p-2 min-h-[120px] border border-gray-200 cursor-pointer hover:bg-gray-100 ${
+          className={`p-2 min-h-[120px] border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors ${
             isToday ? "bg-gray-200 border-gray-400" : "bg-white"
           }`}
           onClick={() => handleDayClick(events, date)}
@@ -146,7 +167,6 @@ export function PostComponent() {
             {day}
           </div>
 
-          {/* Display all events for the day */}
           <div className="space-y-1 overflow-y-auto max-h-[80px]">
             {events.map((event, index) => (
               <div
@@ -160,7 +180,6 @@ export function PostComponent() {
               </div>
             ))}
 
-            {/* Show count if there are more events than can fit */}
             {events.length > 3 && (
               <div className="text-xs text-gray-600 text-center bg-gray-100 rounded px-1">
                 +{events.length - 3} more
@@ -175,16 +194,14 @@ export function PostComponent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <div className="max-w-6xl mx-auto">
-        <h2 className="text-3xl font-bold text-gray-900 mb-4 text-center">
-          Event Calendar
-        </h2>
-        <p className="text-base text-gray-600 text-center mb-8">
-          View upcoming events and important dates.
-        </p>
-
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+    <div className="min-h-screen  bg-gray-300 flex flex-col gap-4 ">
+      {/* Main Calendar Content */}
+      <h2 className="text-3xl  font-bold text-gray-900 mb-4 text-center">
+        Event Calendar
+      </h2>
+      {/* Sliding Panel */}
+      <div className="h-full mx-auto container flex gap-4  p-12">
+        <div className="bg-white flex-1 rounded-lg shadow-lg overflow-hidden">
           {/* Calendar Header */}
           <div className="bg-gray-800 text-white p-4 flex justify-between items-center">
             <button
@@ -210,199 +227,207 @@ export function PostComponent() {
           {/* Calendar Grid */}
           <div className="grid grid-cols-7 gap-0">{renderCalendarGrid()}</div>
         </div>
+        {/* Multiple Events View */}
+        {selectedDayEvents && !selectedEvent && (
+          <div className="flex flex-col bg-white rounded-xl shadow-md">
+            {/* Header */}
+            <div className="flex justify-between items-center p-6 border-b rounded-xl border-gray-200 bg-gray-50">
+              <h3 className="text-lg font-bold text-gray-800">
+                Events on {selectedDayEvents.date}
+              </h3>
+              <button
+                onClick={closePanel}
+                className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
 
-        {/* Multiple Events Modal for Same Day */}
-        {selectedDayEvents && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white relative rounded-lg max-w-4xl w-full max-h-[80vh] overflow-y-auto">
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-xl font-bold text-gray-800">
-                    Events on {selectedDayEvents.date}
-                  </h3>
-                  <X
-                    onClick={() => setSelectedDayEvents(null)}
-                    size={24}
-                    className="text-gray-500 absolute top-4 right-4 hover:text-gray-900 cursor-pointer"
-                  />
-                </div>
-
-                <div className="grid gap-4">
-                  {selectedDayEvents.events.map((event, index) => (
-                    <div
-                      key={event._id}
-                      className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer"
-                      onClick={() => {
-                        setSelectedEvent(event);
-                        setSelectedDayEvents(null);
-                      }}
+            {/* Events List */}
+            <div className="w-fit overflow-y-auto p-6 space-y-4">
+              {selectedDayEvents.events.map((event, index) => (
+                <div
+                  key={event._id}
+                  className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                  onClick={() => selectEventFromDay(event)}
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <h4 className="font-bold text-gray-800 text-sm leading-tight">
+                      {event.ProposedIndividualActionPlan.activityTitle}
+                    </h4>
+                    <span
+                      className={`px-2 py-1 rounded text-xs text-white ml-2 ${getStatusColor(
+                        event.overallStatus
+                      )}`}
                     >
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-bold text-gray-800">
-                          {event.ProposedIndividualActionPlan.activityTitle}
-                        </h4>
-                        <span
-                          className={`px-2 py-1 rounded text-xs text-white ${getStatusColor(
-                            event.overallStatus
-                          )}`}
-                        >
-                          {event.overallStatus}
-                        </span>
-                      </div>
+                      {event.overallStatus}
+                    </span>
+                  </div>
 
-                      <div className="space-y-1 text-sm text-gray-600">
-                        <div className="flex items-center gap-2">
-                          <MapPin size={14} />
-                          <span>
-                            {event.ProposedIndividualActionPlan.venue}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">Budget:</span>
-                          <span>
-                            ₱
-                            {event.ProposedIndividualActionPlan.budgetaryRequirements.toLocaleString()}
-                          </span>
-                        </div>
-                        <p className="text-gray-600 mt-2">
-                          {event.ProposedIndividualActionPlan.briefDetails}
-                        </p>
-                      </div>
+                  <div className="space-y-1 text-xs text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <MapPin size={12} />
+                      <span>{event.ProposedIndividualActionPlan.venue}</span>
                     </div>
-                  ))}
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Budget:</span>
+                      <span>
+                        ₱
+                        {event.ProposedIndividualActionPlan.budgetaryRequirements.toLocaleString()}
+                      </span>
+                    </div>
+                    <p className="text-gray-600 mt-2 line-clamp-2">
+                      {event.ProposedIndividualActionPlan.briefDetails}
+                    </p>
+                  </div>
                 </div>
-
-                <div className="mt-4 text-center">
-                  <p className="text-sm text-gray-500">
-                    Click on any event above to view full details
-                  </p>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         )}
-        {/* Single Event Details Modal */}
+
+        {/* Single Event View */}
         {selectedEvent && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-            <div className="relative w-full max-w-3xl max-h-[85vh] overflow-y-auto rounded-2xl bg-white shadow-xl">
-              {/* Header */}
-              <div className="sticky top-0 flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
-                <h2 className="text-2xl font-semibold text-gray-800">
-                  {selectedEvent.ProposedIndividualActionPlan.activityTitle}
+          <div className="flex flex-col bg-white shadow-md rounded-xl ">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-300">
+              <div className="flex items-center gap-3">
+                {selectedDayEvents && (
+                  <button
+                    onClick={goBackToDayEvents}
+                    className="p-1 hover:bg-gray-200 rounded-full transition-colors"
+                  >
+                    <ArrowLeft size={18} />
+                  </button>
+                )}
+                <h2 className="text-lg font-semibold text-gray-800 leading-tight">
+                  Event Details
                 </h2>
-                <button
-                  onClick={() => setSelectedEvent(null)}
-                  className="rounded-full p-1 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900"
-                  aria-label="Close"
-                >
-                  <X size={22} />
-                </button>
+              </div>
+              <button
+                onClick={closePanel}
+                className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Event Content */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              {/* Title */}
+              <div>
+                <h3 className="text-xl font-bold text-gray-800 leading-tight">
+                  {selectedEvent.ProposedIndividualActionPlan.activityTitle}
+                </h3>
               </div>
 
-              {/* Content */}
-              <div className="space-y-6 p-6">
-                {/* Organization */}
-                <div>
-                  <p className="text-sm text-gray-500">
-                    Proponent Organization
-                  </p>
-                  <p className="font-medium text-gray-800">
-                    {selectedEvent.organizationProfile.orgName}
-                  </p>
-                </div>
+              {/* Organization */}
+              <div>
+                <p className="text-sm text-gray-500 mb-1">
+                  Proponent Organization
+                </p>
+                <p className="font-medium text-gray-800">
+                  {selectedEvent.organizationProfile.orgName}
+                </p>
+              </div>
 
-                {/* Date, Venue, Budget */}
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="flex items-center gap-2 text-gray-700">
-                    <Calendar size={16} />
-                    <span>
-                      {formatDateForDisplay(
-                        selectedEvent.ProposedIndividualActionPlan.proposedDate
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-gray-700">
-                    <MapPin size={16} />
-                    <span>
-                      {selectedEvent.ProposedIndividualActionPlan.venue}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-gray-700">
-                    <span className="font-medium">Budget:</span>
-                    <span>
-                      ₱
-                      {selectedEvent.ProposedIndividualActionPlan.budgetaryRequirements.toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-gray-700">
-                    <span className="font-medium">Status:</span>
-                    <span
-                      className={`ml-2 rounded px-2 py-1 text-xs font-medium text-white ${getStatusColor(
-                        selectedEvent.overallStatus
-                      )}`}
-                    >
-                      {selectedEvent.overallStatus}
-                    </span>
-                  </div>
-                </div>
-
-                {/* SDGs */}
-                <div>
-                  <p className="font-medium text-gray-700">Aligned SDGs</p>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {selectedEvent.ProposedIndividualActionPlan.alignedSDG.map(
-                      (sdg, index) => {
-                        try {
-                          if (typeof sdg === "string" && sdg.startsWith("[")) {
-                            const parsed = JSON.parse(sdg);
-                            return parsed.map((parsedSdg, subIndex) => (
-                              <span
-                                key={`${index}-${subIndex}`}
-                                className="rounded bg-gray-100 px-3 py-1 text-xs text-gray-800"
-                              >
-                                {parsedSdg}
-                              </span>
-                            ));
-                          }
-                        } catch {
-                          // fallback to string
-                        }
-                        return (
-                          <span
-                            key={index}
-                            className="rounded bg-gray-100 px-3 py-1 text-xs text-gray-800"
-                          >
-                            {sdg}
-                          </span>
-                        );
-                      }
+              {/* Date, Venue, Budget, Status */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-gray-700">
+                  <Calendar size={16} />
+                  <span className="text-sm">
+                    {formatDateForDisplay(
+                      selectedEvent.ProposedIndividualActionPlan.proposedDate
                     )}
-                  </div>
+                  </span>
                 </div>
-
-                {/* Brief Details */}
-                <div>
-                  <p className="font-medium text-gray-700">Brief Details</p>
-                  <p className="mt-1 text-gray-600">
-                    {selectedEvent.ProposedIndividualActionPlan.briefDetails}
-                  </p>
+                <div className="flex items-center gap-2 text-gray-700">
+                  <MapPin size={16} />
+                  <span className="text-sm">
+                    {selectedEvent.ProposedIndividualActionPlan.venue}
+                  </span>
                 </div>
+                <div className="flex items-center gap-2 text-gray-700">
+                  <span className="font-medium text-sm">Budget:</span>
+                  <span className="text-sm">
+                    ₱
+                    {selectedEvent.ProposedIndividualActionPlan.budgetaryRequirements.toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-700">
+                  <span className="font-medium text-sm">Status:</span>
+                  <span
+                    className={`rounded px-2 py-1 text-xs font-medium text-white ${getStatusColor(
+                      selectedEvent.overallStatus
+                    )}`}
+                  >
+                    {selectedEvent.overallStatus}
+                  </span>
+                </div>
+              </div>
 
-                {/* Objective */}
-                <div>
-                  <p className="font-medium text-gray-700">Aligned Objective</p>
-                  <p className="mt-1 text-gray-600">
-                    {
-                      selectedEvent.ProposedIndividualActionPlan
-                        .AlignedObjective
+              {/* SDGs */}
+              <div>
+                <p className="font-medium text-gray-700 mb-2">Aligned SDGs</p>
+                <div className="flex flex-wrap gap-2">
+                  {selectedEvent.ProposedIndividualActionPlan.alignedSDG.map(
+                    (sdg, index) => {
+                      try {
+                        if (typeof sdg === "string" && sdg.startsWith("[")) {
+                          const parsed = JSON.parse(sdg);
+                          return parsed.map((parsedSdg, subIndex) => (
+                            <span
+                              key={`${index}-${subIndex}`}
+                              className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-800"
+                            >
+                              {parsedSdg}
+                            </span>
+                          ));
+                        }
+                      } catch {
+                        // fallback to string
+                      }
+                      return (
+                        <span
+                          key={index}
+                          className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-800"
+                        >
+                          {sdg}
+                        </span>
+                      );
                     }
-                  </p>
+                  )}
                 </div>
+              </div>
+
+              {/* Brief Details */}
+              <div>
+                <p className="font-medium text-gray-700 mb-2">Brief Details</p>
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  {selectedEvent.ProposedIndividualActionPlan.briefDetails}
+                </p>
+              </div>
+
+              {/* Objective */}
+              <div>
+                <p className="font-medium text-gray-700 mb-2">
+                  Aligned Objective
+                </p>
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  {selectedEvent.ProposedIndividualActionPlan.AlignedObjective}
+                </p>
               </div>
             </div>
           </div>
         )}
       </div>
+
+      {panelOpen && (
+        <div
+          className=" bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={closePanel}
+        />
+      )}
     </div>
   );
 }

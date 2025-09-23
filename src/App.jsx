@@ -17,6 +17,10 @@ import StudentDevMainLayout from "./pages/admin/sdu/sdu-main";
 import { AdviserPage } from "./pages/admin/adviser/adviser_main";
 import { DeanPage } from "./pages/admin/dean/dean-main";
 import { SduCoordinatorPage } from "./pages/admin/sdu-coordinator/sdu-coor-main";
+import { StudentPost } from "./pages/admin/student-leader/posts/student-post";
+import { PublicPostFeed } from "./pages/public/public_post";
+import { PublicProfile } from "./pages/public/public_profile";
+
 const MAIN_API_ROUTER = import.meta.env.VITE_API_ROUTER;
 
 export const API_ROUTER = `${MAIN_API_ROUTER}/api`;
@@ -66,6 +70,9 @@ export default function App() {
       </Route>
 
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
+      <Route path="/post/:orgName" element={<PublicPostFeed />} />
+      <Route path="/profile/:orgName" element={<PublicProfile />} />
+
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );

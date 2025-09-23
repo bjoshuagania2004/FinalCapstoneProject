@@ -257,14 +257,7 @@ function AdviserRoutes({ orgData, user }) {
       <Routes>
         <Route
           index
-          element={
-            <div className="p-4">
-              <h2 className="text-2xl font-bold mb-4">
-                Welcome to {orgData.orgName}
-              </h2>
-              <p>Main content goes here</p>
-            </div>
-          }
+          element={<AdviserHomePage orgData={orgData} user={user} />}
         />
 
         <Route
@@ -341,6 +334,7 @@ function AdviserRoutes({ orgData, user }) {
 }
 
 import { Eye, EyeOff, Lock } from "lucide-react";
+import AdviserHomePage from "./adviser_home_page";
 
 function InitialSignInAdviser({ user, orgData, onFinish }) {
   const [newPassword, setNewPassword] = useState("");

@@ -19,6 +19,10 @@ export const getFinancialReport = async (req, res) => {
       .populate({
         path: "disbursements",
         populate: { path: "document" }, // populate document inside disbursements
+      })
+      .populate({
+        path: "collections",
+        populate: { path: "document" }, // populate document inside disbursements
       });
 
     if (!report) {
@@ -73,7 +77,7 @@ export const AddReceipt = async (req, res) => {
       expenseType,
       date,
       organizationProfile,
-      type, // "reimbursement" or "disbursement"
+      type, // "reimbursement", "disbursement", or "collection"
       financialReportId, // may or may not exist
     } = req.body;
 
@@ -88,16 +92,31 @@ export const AddReceipt = async (req, res) => {
       date,
       organizationProfile,
       document: documentId,
+      type,
     });
 
     await newReceipt.save();
-
+    console.log(type);
     // Determine which field to update and balance adjustment
-    const updateField =
-      type === "reimbursement" ? "reimbursements" : "disbursements";
+    let updateField;
+    let balanceAdjustment = 0;
 
-    // Calculate balance adjustment: reimbursement adds, disbursement subtracts
-    const balanceAdjustment = type === "reimbursement" ? amount : -amount;
+    switch (type) {
+      case "reimbursement":
+        updateField = "reimbursements";
+        balanceAdjustment = amount; // reimbursement increases balance
+        break;
+      case "disbursement":
+        updateField = "disbursements";
+        balanceAdjustment = -amount; // disbursement decreases balance
+        break;
+      case "collection":
+        updateField = "collections";
+        balanceAdjustment = amount; // collection increases balance
+        break;
+      default:
+        return res.status(400).json({ error: "Invalid transaction type." });
+    }
 
     let updatedFinancialReport;
 

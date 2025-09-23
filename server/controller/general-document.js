@@ -114,10 +114,6 @@ export const uploadFilesAndAddDocuments = async (req, res, next) => {
       res.locals.documentIds = documents.map((doc) => doc._id);
       res.locals.fileNames = req.files.map((file) => file.filename);
 
-      console.log(res.locals.documentIds);
-      console.log(res.locals.fileNames);
-
-      console.log("there's no error here");
       next();
     } catch (error) {
       console.log(error);

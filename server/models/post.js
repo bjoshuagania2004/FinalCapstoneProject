@@ -3,7 +3,6 @@ const { Schema } = mongoose;
 // ----------------- Post Schema -----------------
 export const postSchema = new Schema(
   {
-    organization: { type: Schema.Types.ObjectId, ref: "Organization" },
     organizationProfile: {
       type: Schema.Types.ObjectId,
       ref: "OrganizationProfile",

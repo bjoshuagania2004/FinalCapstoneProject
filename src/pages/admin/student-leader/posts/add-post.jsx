@@ -72,6 +72,9 @@ export function StudentLeaderAddPost({ orgData, Modal }) {
     try {
       const formData = new FormData();
       formData.append("postType", postType);
+      formData.append("organization", orgData.organization);
+      formData.append("organizationProfile", orgData._id);
+
       formData.append("caption", caption);
       formData.append("label", "posts");
       formData.append("tags", JSON.stringify(selectedTags)); // ✅ send tags as JSON
