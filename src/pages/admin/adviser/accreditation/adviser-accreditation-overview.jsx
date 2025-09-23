@@ -739,9 +739,9 @@ function RosterLists({ accreditationData }) {
           </p>
           <a
             href="./accreditation/roster-of-members"
-            className="bg-blue-600 text-white px-6 py-2 hover:bg-blue-700 transition-colors"
+            className="bg-yellow-500 text-white px-6 py-2 hover:bg-blue-700 transition-colors"
           >
-            Upload Roster
+            Notify organization
           </a>
         </div>
       )}

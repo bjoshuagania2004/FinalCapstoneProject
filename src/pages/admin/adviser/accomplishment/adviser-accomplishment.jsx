@@ -121,12 +121,6 @@ export function AdviserAccomplishmentReport({ orgData, user }) {
           <h1 className="text-3xl font-bold text-gray-900">
             Accomplishment Reports Analytics
           </h1>
-          <button
-            onClick={() => setShowOrgDevelopmentModal(true)}
-            className="bg-amber-700 py-2 px-4  text-white font-semibold hover:bg-amber-600 transition-colors"
-          >
-            Add Accomplishment
-          </button>
         </div>
         <p className="text-gray-600">
           Total Accomplishments: {accomplishments.length} | Grand Total Points:{" "}

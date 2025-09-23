@@ -209,7 +209,7 @@ export function OrganzationComponent() {
           </div>
         )}
         <div className="text-center">
-          <button className="px-8 py-3 border-2 border-orange-400 text-orange-400 font-semibold hover:bg-orange-400 hover:text-white transition-all duration-300 rounded-none">
+          <button className="px-8 py-3 border-2 border-cnsc-primary-color text-cnsc-primary-color font-semibold hover:bg-cnsc-primary-color hover:text-white transition-all duration-300 rounded-none">
             SEE MORE
           </button>
         </div>
