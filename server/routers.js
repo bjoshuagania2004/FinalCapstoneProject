@@ -115,7 +115,6 @@ router.post("/RevisionRosterList/:rosterId", Controller.revisionNoteRosterList);
 /* **********  ADVISER GENERAL ********** */
 
 router.post("/adviserChangePassword/:userId", Controller.ChangePasswordAdviser);
-router.post("/adviserChangePassword/:userId", Controller.ChangePasswordAdviser);
 
 /* **********  ADVISER ACCREDITATION ********** */
 router.get("/getAdviserProposals/:orgId", Controller.getAdviserProposal);
@@ -140,11 +139,6 @@ router.get(
 
 router.get("/getFinancialReport/:OrgProfileId", Controller.getFinancialReport);
 router.get("/getApprovedPPA/:orgId", Controller.getApprovedPPA);
-router.post(
-  "/addReciept",
-  Controller.uploadFileAndAddDocument,
-  Controller.AddReceipt
-);
 router.post(
   "/addReciept",
   Controller.uploadFileAndAddDocument,
@@ -278,10 +272,7 @@ router.post(
 );
 router.post("/initialRegistration", Controller.PostInitialOrganizationProfile);
 router.post("/reRegistration", Controller.ReRegisterOrganizationProfile);
-router.get("/documents/:id", Controller.getDocumentById);
 router.get("/getAllProposalConduct", Controller.getAllProposalConduct);
 router.get("/documents/:id", Controller.getDocumentById);
-
-router.post("/CheckUsingAI", upload.single("file"), Controller.getAIFeedback);
 
 export default router;
