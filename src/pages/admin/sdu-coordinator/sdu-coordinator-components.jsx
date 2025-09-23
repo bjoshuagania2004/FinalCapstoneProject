@@ -11,6 +11,7 @@ import { SduCoorProposedPlan } from "./individual-accreditation/sdu-coor-propose
 import { SduCoorAccreditationDocument } from "./individual-accreditation/sdu-coor-accreditation-document";
 import { SduCoorProposalConduct } from "./proposals/sdu-coor-proposal";
 import { SduCoorAccomplishmentReport } from "./accomplishment/sdu-coor-accomplishment";
+import { School2 } from "lucide-react"; // you used <School2 /> but didn’t import it
 
 export function SduCoordinatorComponent({
   selectedOrg,
