@@ -14,7 +14,7 @@ export function AddCollectionFees({
   console.log(financialReport);
   return (
     <div className="bg-white border overflow-hidden border-gray-100 flex-1 flex flex-col">
-      <div className="sticky flex justify-between w-full top-0 z-10 bg-white p-6 border-b border-gray-400 items-center gap-3">
+      <div className="sticky flex justify-between h-16  w-full top-0 z-10 bg-white p-6 border-b border-gray-400 items-center gap-3">
         <div className="flex gap-2 items-center">
           <div className="p-2.5 bg-amber-100 rounded-lg">
             <BriefcaseBusiness className="w-5 h-5 text-amber-600" />

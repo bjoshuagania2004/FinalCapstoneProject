@@ -10,7 +10,7 @@ export function StudentDisbursement({
 }) {
   return (
     <div className="bg-white shadow-lg border border-gray-100 flex-1 flex flex-col overflow-hidden">
-      <div className="sticky justify-between top-0 z-10 bg-white p-4 border-b border-gray-400 flex items-center">
+      <div className="sticky justify-between top-0 h-16 z-10 bg-white p-4 border-b border-gray-400 flex items-center">
         <div className="flex items-center gap-2">
           <div className="p-2.5 bg-red-100 rounded-lg">
             <TrendingDown className="w-5 h-5 text-red-600" />
