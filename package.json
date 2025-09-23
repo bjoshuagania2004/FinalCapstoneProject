@@ -7,8 +7,6 @@
     "dev": "vite --host",
     "postinstall": "npm install @tailwindcss/oxide",
     "build": "vite build",
-      "start": "serve -s dist -l $PORT",
-
     "lint": "eslint .",
     "preview": "vite preview"
   },
