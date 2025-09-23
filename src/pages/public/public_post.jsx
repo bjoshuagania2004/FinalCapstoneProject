@@ -33,7 +33,13 @@ export function PublicPostFeed() {
         const response = await axios.get(`${API_ROUTER}/getPublicPosts`, {
           withCredentials: true,
         });
-        setPosts(response.data.slice(0, 4)); // Only show first 4 posts to match layout
+
+        // Sort newest first
+        const sortedPosts = response.data.sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+
+        setPosts(sortedPosts.slice(0, 4)); // Only show first 4 posts
       } catch (error) {
         console.error("Error fetching public posts:", error);
       } finally {
@@ -42,6 +48,10 @@ export function PublicPostFeed() {
     };
 
     fetchPublicPosts();
+
+    // Auto-refresh every 30s
+    const interval = setInterval(fetchPublicPosts, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const formatTimeAgo = (dateString) => {
@@ -96,7 +106,7 @@ export function PublicPostFeed() {
   return (
     <div className="bg-gray-100 min-h-screen py-16">
       <div className="max-w-6xl mx-auto px-8">
-        {/* Header Section - Exact match to image */}
+        {/* Header Section */}
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-800 mb-2">
             LATEST POSTS
@@ -104,7 +114,7 @@ export function PublicPostFeed() {
           <div className="w-16 h-1 bg-orange-400 mx-auto"></div>
         </div>
 
-        {/* Posts Grid - Exact 4-column layout */}
+        {/* Posts Grid */}
         <div className="grid grid-cols-4 gap-6 mb-12">
           {posts.length === 0 ? (
             <div className="col-span-4 text-center py-12">
@@ -123,7 +133,7 @@ export function PublicPostFeed() {
                   key={post._id}
                   className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300"
                 >
-                  {/* Image Section - Matches the gray rectangles in design */}
+                  {/* Image Section */}
                   <div className="h-40 bg-gray-200 relative overflow-hidden">
                     {imageUrl ? (
                       <img
@@ -143,19 +153,19 @@ export function PublicPostFeed() {
                     )}
                   </div>
 
-                  {/* Footer Section - Matches the bottom gray section with circle */}
+                  {/* Footer Section */}
                   <div className="h-16 bg-gray-300 p-4 flex items-center">
                     <div className="flex items-center space-x-3">
-                      {/* Circle avatar - matches design */}
+                      {/* Circle avatar */}
                       <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
                         <span className="text-xs font-medium text-gray-600">
                           {post.organizationProfile?.orgAcronym || "ORG"}
                         </span>
                       </div>
 
-                      {/* Post title - truncated to fit design */}
+                      {/* Post title */}
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-700 truncate">
+                        <p className="text-sm font-medium text-gray-700 line-clamp-2">
                           {post.caption || "Untitled Post"}
                         </p>
                       </div>
@@ -167,7 +177,7 @@ export function PublicPostFeed() {
           )}
         </div>
 
-        {/* See More Button - Exact match to image styling */}
+        {/* See More Button */}
         <div className="text-center">
           <button className="px-8 py-3 border-2 border-orange-400 text-orange-400 font-semibold hover:bg-orange-400 hover:text-white transition-all duration-300 rounded-none">
             SEE MORE
@@ -188,7 +198,13 @@ export function EventComponent() {
         const response = await axios.get(`${API_ROUTER}/getPublicPosts`, {
           withCredentials: true,
         });
-        setPosts(response.data.slice(0, 4)); // Only show first 4 posts to match layout
+
+        // Sort newest first
+        const sortedPosts = response.data.sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+
+        setPosts(sortedPosts.slice(0, 4)); // Only show first 4 posts
       } catch (error) {
         console.error("Error fetching public posts:", error);
       } finally {
@@ -197,6 +213,10 @@ export function EventComponent() {
     };
 
     fetchPublicPosts();
+
+    // Auto-refresh every 30s
+    const interval = setInterval(fetchPublicPosts, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const getFirstImage = (content, orgId) => {
@@ -263,7 +283,7 @@ export function EventComponent() {
   return (
     <div className="bg-gray-200 min-h-screen py-16">
       <div className="max-w-6xl mx-auto px-8">
-        {/* Header Section - Changed from "News and Updates" to match image */}
+        {/* Header Section */}
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-800 mb-2">
             LATEST POSTS AND UPDATE
@@ -271,7 +291,7 @@ export function EventComponent() {
           <div className="w-16 h-1 bg-orange-400 mx-auto"></div>
         </div>
 
-        {/* Posts Grid - Exact 4-column layout matching the image */}
+        {/* Posts Grid */}
         <div className="grid grid-cols-4 gap-6 mb-12">
           {posts.length === 0 ? (
             <div className="col-span-4 text-center py-12">
@@ -296,7 +316,7 @@ export function EventComponent() {
                   key={post._id}
                   className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300"
                 >
-                  {/* Image Section - Matches the gray rectangles in design */}
+                  {/* Image Section */}
                   <div className="relative overflow-hidden">
                     {firstContent ? (
                       renderContentPreview(post, imageUrl, firstContent)
@@ -307,19 +327,19 @@ export function EventComponent() {
                     )}
                   </div>
 
-                  {/* Footer Section - Matches the bottom gray section with circle */}
+                  {/* Footer Section */}
                   <div className="h-16 bg-gray-300 p-4 flex items-center">
                     <div className="flex items-center space-x-3">
-                      {/* Circle avatar - matches design */}
+                      {/* Circle avatar */}
                       <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
                         <span className="text-xs font-medium text-gray-600">
                           {post.organizationProfile?.orgAcronym || "ORG"}
                         </span>
                       </div>
 
-                      {/* Post title - truncated to fit design */}
+                      {/* Post title */}
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-700 truncate">
+                        <p className="text-sm font-medium text-gray-700 line-clamp-2">
                           {hasContent ? post.caption : "Untitled Post"}
                         </p>
                       </div>
@@ -331,7 +351,7 @@ export function EventComponent() {
           )}
         </div>
 
-        {/* See More Button - Exact match to image styling */}
+        {/* See More Button */}
         <div className="text-center">
           <button className="px-8 py-3 border-2 border-orange-400 text-orange-400 font-semibold hover:bg-orange-400 hover:text-white transition-all duration-300 rounded-none">
             SEE MORE

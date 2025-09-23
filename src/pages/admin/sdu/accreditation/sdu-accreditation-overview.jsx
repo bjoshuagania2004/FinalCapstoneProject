@@ -481,6 +481,7 @@ export function SduAccreditationNavigation({ selectedOrg, onSelectOrg }) {
     { to: "settings", label: "Settings" },
   ];
 
+  console.log("what");
   const [isTabsOpen, setTabsOpen] = useState(false);
   const [isManageRosterOpen, setManageRosterOpen] = useState(false);
   const [accreditationStatus, setAccreditationStatus] = useState(null);
@@ -492,7 +493,7 @@ export function SduAccreditationNavigation({ selectedOrg, onSelectOrg }) {
         `${API_ROUTER}/checkAccreditationApprovalStatuses/${selectedOrg._id}`
       );
 
-      console.log(res.data);
+      console.log(res);
       setAccreditationStatus(res.data);
 
       if (res.data.isEverythingApproved) {

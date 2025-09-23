@@ -5,10 +5,10 @@ import {
   GraduationCap,
   Users,
   Calendar,
-  Camera, // 📌 missing
-  MessageCircle, // 📌 missing
-  Clock, // 📌 missing
-  Badge, // 📌 missing
+  MessageCircle,
+  Clock,
+  Badge,
+  Pencil, // 🔹 for Edit
 } from "lucide-react";
 
 import { StudentLeaderAddPost } from "./add-post";
@@ -18,10 +18,8 @@ import axios from "axios";
 export function StudentPost({ orgData }) {
   const [posts, setPosts] = useState([]);
   const [addNewPost, setAddNewPost] = useState(false);
-  const [likedPosts, setLikedPosts] = useState(new Set());
-  const [bookmarkedPosts, setBookmarkedPosts] = useState(new Set());
+  const [editPost, setEditPost] = useState(null); // 🔹 track post to edit
 
-  // Fetch accreditation data when organization profile ID changes
   useEffect(() => {
     const fetchPublicPost = async () => {
       if (!orgData._id) return;
@@ -31,8 +29,13 @@ export function StudentPost({ orgData }) {
           `${API_ROUTER}/getOrgProfilePosts/${orgData._id}`,
           { withCredentials: true }
         );
-        console.log(response.data);
-        setPosts(response.data);
+
+        // 🔹 sort newest first
+        const sortedPosts = response.data.sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+
+        setPosts(sortedPosts);
       } catch (error) {
         console.error("Error fetching accreditation info:", error);
       }
@@ -66,14 +69,12 @@ export function StudentPost({ orgData }) {
 
   return (
     <div className="w-full h-full flex flex-col bg-gradient-to-br from-gray-50 to-gray-100 overflow-auto">
-      {/* Enhanced Header */}
       <div className="flex flex-col mx-24 gap-4">
+        {/* Org Header */}
         <div className="w-full bg-white shadow">
-          {/* Cover Photo */}
-          <div className="relative w-full h-32 bg-gradient-to-r  from-cnsc-primary-color via-amber-500 to-yellow-500 ">
-            {/* Profile Avatar (overlapping bottom) */}
+          <div className="relative w-full h-32 bg-gradient-to-r from-cnsc-primary-color via-amber-500 to-yellow-500 ">
             <div className="absolute -bottom-16 left-6">
-              <div className="w-32 h-32 rounded-full  ring-white overflow-hidden shadow-lg bg-gray-200 flex items-center justify-center text-white font-bold text-2xl">
+              <div className="w-32 h-32 rounded-full ring-white overflow-hidden shadow-lg bg-gray-200 flex items-center justify-center text-white font-bold text-2xl">
                 {orgData?.orgLogo ? (
                   <img
                     src={`${DOCU_API_ROUTER}/${orgData._id}/${orgData.orgLogo}`}
@@ -87,7 +88,6 @@ export function StudentPost({ orgData }) {
             </div>
           </div>
 
-          {/* Org Info */}
           <div className="mt-20 px-6 pb-4">
             <h1 className="text-2xl font-bold text-gray-900">
               {orgData?.orgName || "Organization Name"}
@@ -96,17 +96,14 @@ export function StudentPost({ orgData }) {
         </div>
 
         <div className="flex gap-4">
-          {/* Left Sidebar - Enhanced Organization Info */}
-
+          {/* Left Column */}
           <div className="flex flex-col gap-4">
             <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
               <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <Badge className="w-5 h-5 text-blue-600" />
                 About Organization
               </h3>
-
               <div className="space-y-4 text-sm">
-                {/* Course / Academic Focus */}
                 {orgData?.orgCourse && (
                   <div className="flex items-start space-x-3">
                     <GraduationCap className="w-4 h-4 text-gray-500 mt-0.5" />
@@ -116,8 +113,6 @@ export function StudentPost({ orgData }) {
                     </div>
                   </div>
                 )}
-
-                {/* Department */}
                 {orgData?.orgDepartment && (
                   <div className="flex items-start space-x-3">
                     <MapPin className="w-4 h-4 text-gray-500 mt-0.5" />
@@ -127,8 +122,6 @@ export function StudentPost({ orgData }) {
                     </div>
                   </div>
                 )}
-
-                {/* Classification */}
                 {orgData?.orgClass && (
                   <div className="flex items-start space-x-3">
                     <Users className="w-4 h-4 text-gray-500 mt-0.5" />
@@ -138,8 +131,6 @@ export function StudentPost({ orgData }) {
                     </div>
                   </div>
                 )}
-
-                {/* Acronym */}
                 {orgData?.orgAcronym && (
                   <div className="flex items-start space-x-3">
                     <Users className="w-4 h-4 text-gray-500 mt-0.5" />
@@ -149,8 +140,6 @@ export function StudentPost({ orgData }) {
                     </div>
                   </div>
                 )}
-
-                {/* Specialization */}
                 {orgData?.orgSpecialization && (
                   <div className="flex items-start space-x-3">
                     <MoreHorizontal className="w-4 h-4 text-gray-500 mt-0.5" />
@@ -160,8 +149,6 @@ export function StudentPost({ orgData }) {
                     </div>
                   </div>
                 )}
-
-                {/* Established (using createdAt if you want) */}
                 {orgData?.createdAt && (
                   <div className="flex items-start space-x-3">
                     <Calendar className="w-4 h-4 text-gray-500 mt-0.5" />
@@ -169,11 +156,7 @@ export function StudentPost({ orgData }) {
                       <p className="font-medium">
                         {new Date(orgData.createdAt).toLocaleDateString(
                           "en-US",
-                          {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                          }
+                          { year: "numeric", month: "long", day: "numeric" }
                         )}
                       </p>
                       <p className="text-gray-500">Established</p>
@@ -184,7 +167,7 @@ export function StudentPost({ orgData }) {
             </div>
           </div>
 
-          {/* Main Content */}
+          {/* Right Column */}
           <div className="flex flex-col gap-4 w-full ">
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
               <div
@@ -201,23 +184,9 @@ export function StudentPost({ orgData }) {
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-                  <div className="flex gap-4">
-                    <button className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors">
-                      <Camera className="w-5 h-5" />
-                      <span className="text-sm font-medium">Photo</span>
-                    </button>
-                    <button className="flex items-center gap-2 text-gray-600 hover:text-green-600 transition-colors">
-                      <Calendar className="w-5 h-5" />
-                      <span className="text-sm font-medium">Event</span>
-                    </button>
-                  </div>
-                  <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium">
-                    Create Post
-                  </button>
-                </div>
               </div>
             </div>
+
             {posts.length === 0 ? (
               <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -231,14 +200,14 @@ export function StudentPost({ orgData }) {
               posts.map((post) => (
                 <div
                   key={post._id}
-                  className="bg-white rounded-xl p-4shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow"
+                  className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow"
                 >
                   <PostCard
                     post={post}
                     DOCU_API_ROUTER={DOCU_API_ROUTER}
                     orgData={orgData}
-                    getStatusColor={getStatusColor}
                     formatTimeAgo={formatTimeAgo}
+                    onEdit={() => setEditPost(post)} // 🔹 pass edit handler
                   />
                 </div>
               ))
@@ -247,18 +216,34 @@ export function StudentPost({ orgData }) {
         </div>
       </div>
 
+      {/* 🔹 Add Post Modal */}
       {addNewPost && (
         <StudentLeaderAddPost
           orgData={orgData}
           Modal={() => setAddNewPost(false)}
         />
       )}
+
+      {/* 🔹 Edit Post Modal */}
+      {editPost && (
+        <StudentLeaderAddPost
+          orgData={orgData}
+          Modal={() => setEditPost(null)}
+        />
+      )}
     </div>
   );
 }
 
-export function PostCard({ post, DOCU_API_ROUTER, formatTimeAgo, orgData }) {
-  // Helper function to check if file is a document
+export function PostCard({
+  post,
+  DOCU_API_ROUTER,
+  formatTimeAgo,
+  orgData,
+  onEdit,
+}) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   const isDocument = (fileName) => {
     const documentExtensions = [
       ".pdf",
@@ -277,7 +262,6 @@ export function PostCard({ post, DOCU_API_ROUTER, formatTimeAgo, orgData }) {
     );
   };
 
-  // Helper function to check if file is an image
   const isImage = (fileName) => {
     const imageExtensions = [
       ".jpg",
@@ -292,11 +276,9 @@ export function PostCard({ post, DOCU_API_ROUTER, formatTimeAgo, orgData }) {
   };
 
   return (
-    <div className="p-8">
-      {/* Post Header */}
+    <div className="p-8 relative">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-3">
-          {/* Org Logo / Acronym */}
           <div className="w-16 aspect-square bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
             {orgData?.orgLogo ? (
               <img
@@ -308,16 +290,12 @@ export function PostCard({ post, DOCU_API_ROUTER, formatTimeAgo, orgData }) {
               orgData?.orgAcronym || "ORG"
             )}
           </div>
-
           <div>
-            {/* Org Name + Status */}
             <div className="flex items-center gap-2">
               <h3 className="font-semibold text-gray-900">
                 {post.organizationProfile?.orgName || "Organization"}
               </h3>
             </div>
-
-            {/* Time + Department */}
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <Clock className="w-3 h-3" />
               <span>{formatTimeAgo(post.createdAt)}</span>
@@ -331,74 +309,73 @@ export function PostCard({ post, DOCU_API_ROUTER, formatTimeAgo, orgData }) {
           </div>
         </div>
 
-        {/* More Options Button */}
-        <button className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100">
-          <MoreHorizontal className="w-5 h-5" />
-        </button>
+        {/* 3 Dots with Edit */}
+        <div className="relative">
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100"
+          >
+            <MoreHorizontal className="w-5 h-5" />
+          </button>
+          {menuOpen && (
+            <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+              <button
+                className="flex items-center gap-2 px-4 py-2 w-full text-sm text-gray-700 hover:bg-gray-100"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onEdit(post); // 🔹 open edit modal
+                }}
+              >
+                <Pencil className="w-4 h-4" /> Edit
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Post Content */}
+      {/* Caption */}
       <div className="mb-4">
         <p className="text-gray-900 leading-relaxed">{post.caption}</p>
       </div>
 
-      {/* Post Images and Documents */}
+      {/* Files */}
       {post.content && post.content.length > 0 && (
-        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-          {post.content.map((content, index) => {
+        <div className="flex gap-4 overflow-x-auto pb-2">
+          {post.content.map((content) => {
             const fileUrl = `${DOCU_API_ROUTER}/${content.organizationProfile}/${content.fileName}`;
 
             if (isDocument(content.fileName)) {
-              // Render document as iframe
               return (
-                <div key={content._id} className="flex flex-col w-full">
-                  <iframe
+                <iframe
+                  key={content._id}
+                  src={fileUrl}
+                  className="w-full h-60 border rounded-lg"
+                  title={content.fileName}
+                />
+              );
+            } else if (isImage(content.fileName)) {
+              return (
+                <div key={content._id} className="flex-shrink-0">
+                  <img
                     src={fileUrl}
-                    className="w-full h-300 "
-                    title={content.fileName}
-                    loading="lazy"
+                    className="h-60 rounded-lg object-cover"
+                    alt={content.fileName}
                   />
                 </div>
               );
-            } else if (isImage(content.fileName)) {
-              // Render image with flexible aspect ratio
-              return (
-                <div key={content._id} className="flex-shrink-0 relative group">
-                  <div className="w-auto h-80 bg-gray-200 rounded-lg overflow-hidden">
-                    <img
-                      src={fileUrl}
-                      className="h-full w-auto object-cover text-gray-400"
-                      alt={content.fileName}
-                      loading="lazy"
-                    />
-                  </div>
-                  {index === 3 && post.content.length > 4 && (
-                    <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">
-                      <span className="text-white font-bold text-lg">
-                        +{post.content.length - 4}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              );
             } else {
-              // Render other file types as downloadable links
               return (
-                <div
+                <a
                   key={content._id}
-                  className="flex-shrink-0 w-64 h-32 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center hover:bg-gray-200 transition-colors"
+                  href={fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-shrink-0 w-64 h-32 bg-gray-100 rounded-lg border flex items-center justify-center hover:bg-gray-200"
                 >
-                  <a
-                    href={fileUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-center p-4"
-                  >
-                    <p className="text-sm text-gray-700 font-medium truncate">
-                      {content.fileName}
-                    </p>
-                  </a>
-                </div>
+                  <p className="text-sm text-gray-700 truncate">
+                    {content.fileName}
+                  </p>
+                </a>
               );
             }
           })}
