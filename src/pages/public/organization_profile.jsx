@@ -15,6 +15,7 @@ export function OrganzationComponent() {
   const [organizations, setOrganizations] = useState([]);
   const [filteredOrgs, setFilteredOrgs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showAll, setShowAll] = useState(false);
   const navigate = useNavigate();
 
   const fetchData = async () => {
@@ -52,105 +53,98 @@ export function OrganzationComponent() {
     });
   };
 
+  const handleSeeMore = () => {
+    setShowAll(!showAll);
+  };
+
+  // Show only first 4 organizations initially, or all if showAll is true
+  const displayedOrgs = showAll ? filteredOrgs : filteredOrgs.slice(0, 4);
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
+      <div className="bg-gray-100 min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-800">Loading organizations...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-400 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading organizations...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-cnsc-primary-color p-4 sm:p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2">
-            Student Organizations
-          </h1>
+    <div className="bg-gray-400 min-h-screen py-16">
+      <div className="max-w-6xl mx-auto px-8">
+        {/* Header Section - Exact match to image */}
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-800 mb-2">
+            STUDENT ORGANIZATIONS
+          </h2>
+          <div className="w-16 h-1 bg-orange-400 mx-auto"></div>
         </div>
 
-        {/* Organizations Grid */}
-        {filteredOrgs.length === 0 ? (
-          <div className="text-center py-12">
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              No organizations found
-            </h3>
-            <p className="text-gray-800">
-              Try adjusting your search or filter criteria
-            </p>
-          </div>
-        ) : (
-          <div className="flex flex-col sm:grid sm:grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-            {filteredOrgs.map((org) => (
+        {/* Organizations Grid - Exact 4-column layout */}
+        <div className="grid grid-cols-4 gap-6 mb-12">
+          {displayedOrgs.length === 0 ? (
+            <div className="col-span-4 text-center py-12">
+              <Building2 className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+              <p className="text-gray-500">No organizations available</p>
+            </div>
+          ) : (
+            displayedOrgs.map((org) => (
               <div
                 key={org._id}
                 onClick={() => {
-                  handleOrgClick(org), console.log(org);
+                  handleOrgClick(org);
+                  console.log(org);
                 }}
-                className="bg-white flex flex-col sm:flex-row p-4 sm:p-6 gap-4 sm:gap-6 items-start sm:items-center rounded-xl shadow-md border-2 border-gray-300 cursor-pointer hover:shadow-lg hover:border-blue-400 transition-all duration-200"
+                className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300 cursor-pointer"
               >
-                {/* Logo Section */}
-                <div className="h-16 w-16 sm:h-20 sm:w-20 lg:h-24 lg:w-24 flex-shrink-0 mx-auto sm:mx-0">
+                {/* Image/Logo Section - Matches the gray rectangles in design */}
+                <div className="h-40 bg-gray-200 relative overflow-hidden flex items-center justify-center">
                   {org.orgLogo ? (
-                    <div className="relative">
-                      <img
-                        src={`${DOCU_API_ROUTER}/${org._id}/${org.orgLogo}`}
-                        alt={`${org.orgName} Logo`}
-                        className="object-cover rounded-full w-full h-full"
-                      />
-                    </div>
+                    <img
+                      src={`${DOCU_API_ROUTER}/${org._id}/${org.orgLogo}`}
+                      alt={`${org.orgName} Logo`}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.style.display = "none";
+                        e.target.parentNode.innerHTML =
+                          '<div class="w-full h-full bg-gray-200 flex items-center justify-center"><div class="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center"><svg class="w-8 h-8 text-gray-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div></div>';
+                      }}
+                    />
                   ) : (
-                    <div className="w-full h-full bg-white bg-opacity-20 rounded-full border-4 border-white flex items-center justify-center">
-                      <Building2 className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 text-black" />
+                    <div className="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center">
+                      <Building2 className="w-8 h-8 text-gray-500" />
                     </div>
                   )}
                 </div>
 
-                {/* Content Section */}
-                <div className="flex-1 min-w-0 w-full text-center sm:text-left">
-                  <div className="mb-3">
-                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 break-words">
-                      {org.orgName}
-                    </h3>
-                    <p className="text-sm text-blue-600 font-medium">
-                      Acronym: {org.orgAcronym}
-                    </p>
-                  </div>
-
-                  <div className="space-y-1 sm:space-y-2">
-                    <div className="text-sm text-gray-800">
-                      <span className="font-bold">Department: </span>
-                      <span className="break-words">{org.orgDepartment}</span>
+                {/* Footer Section - Matches the bottom gray section with circle */}
+                <div className="h-16 bg-gray-300 p-4 flex items-center">
+                  <div className="flex items-center space-x-3 w-full">
+                    {/* Circle avatar with acronym - matches design */}
+                    <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="text-xs font-medium text-gray-600">
+                        {org.orgAcronym ||
+                          org.orgName?.substring(0, 3).toUpperCase() ||
+                          "ORG"}
+                      </span>
                     </div>
 
-                    {org.orgCourse && (
-                      <div className="text-sm text-gray-800">
-                        <span className="font-bold">Course: </span>
-                        <span className="break-words">{org.orgCourse}</span>
-                      </div>
-                    )}
+                    {/* Organization name - truncated to fit design */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-700 truncate">
+                        {org.orgName}
+                      </p>
+                      <p className="text-xs text-gray-600 truncate">
+                        {org.orgDepartment}
+                      </p>
+                    </div>
 
-                    {org.orgSpecialization && (
-                      <div className="text-sm text-gray-800">
-                        <span className="font-bold">Specialization: </span>
-                        <span className="break-words">
-                          {org.orgSpecialization}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Footer Section */}
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs text-gray-500 pt-2 mt-3 border-t border-gray-100 gap-2 sm:gap-0">
-                      <div className="flex items-center justify-center sm:justify-start">
-                        <Calendar className="w-3 h-3 mr-1" />
-                        Created: {formatDate(org.createdAt)}
-                      </div>
+                    {/* Status badge */}
+                    <div className="flex-shrink-0">
                       <span
-                        className={`px-2 py-1 rounded text-xs font-medium self-center sm:self-auto ${
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${
                           org.orgClass === "System-wide"
                             ? "bg-amber-100 text-amber-700"
                             : org.orgClass === "Local"
@@ -164,9 +158,61 @@ export function OrganzationComponent() {
                   </div>
                 </div>
               </div>
-            ))}
+            ))
+          )}
+        </div>
+
+        {/* See More/Less Button - Exact match to image styling */}
+        {filteredOrgs.length > 4 && (
+          <div className="text-center">
+            <button
+              onClick={handleSeeMore}
+              className="px-8 py-3 border-2 border-orange-400 text-orange-400 font-semibold hover:bg-orange-400 hover:text-white transition-all duration-300 rounded-none"
+            >
+              {showAll ? "SHOW LESS" : "SEE MORE"}
+            </button>
           </div>
         )}
+
+        {/* Additional Info Section (if showing all) */}
+        {showAll && (
+          <div className="mt-12 bg-white rounded-lg shadow-sm p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              Organization Statistics
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-2xl font-bold text-blue-600">
+                  {filteredOrgs.length}
+                </div>
+                <div className="text-sm text-gray-600">Total Organizations</div>
+              </div>
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-2xl font-bold text-green-600">
+                  {
+                    filteredOrgs.filter((org) => org.orgClass === "System-wide")
+                      .length
+                  }
+                </div>
+                <div className="text-sm text-gray-600">System-wide</div>
+              </div>
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-2xl font-bold text-red-600">
+                  {
+                    filteredOrgs.filter((org) => org.orgClass === "Local")
+                      .length
+                  }
+                </div>
+                <div className="text-sm text-gray-600">Local</div>
+              </div>
+            </div>
+          </div>
+        )}
+        <div className="text-center">
+          <button className="px-8 py-3 border-2 border-orange-400 text-orange-400 font-semibold hover:bg-orange-400 hover:text-white transition-all duration-300 rounded-none">
+            SEE MORE
+          </button>
+        </div>
       </div>
     </div>
   );

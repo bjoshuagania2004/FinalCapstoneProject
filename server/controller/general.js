@@ -123,11 +123,30 @@ export const CheckAccreditationApprovalStatus = async (req, res) => {
       jointStatementStatus === "Approved" &&
       hazingPledgeStatus === "Approved";
 
+    // ✅ If everything is approved, update Accreditation's overallStatus
+    if (allApproved) {
+      accreditation.overallStatus = "Approved";
+
+      await accreditation.save();
+
+      return res.status(200).json({
+        message:
+          "Everything is approved and complete! Accreditation marked as Approved.",
+        isEverythingApproved: true,
+        statuses: {
+          roster: rosterStatus,
+          presidentProfile: presidentStatus,
+          organizationProfile: orgStatus,
+          jointStatement: jointStatementStatus,
+          pledgeAgainstHazing: hazingPledgeStatus,
+        },
+      });
+    }
+
+    // Otherwise, return current status
     return res.status(200).json({
-      message: allApproved
-        ? "Everything is approved and complete!"
-        : "Some parts are still pending or need revision.",
-      isEverythingApproved: allApproved,
+      message: "Some parts are still pending or need revision.",
+      isEverythingApproved: false,
       statuses: {
         roster: rosterStatus,
         presidentProfile: presidentStatus,

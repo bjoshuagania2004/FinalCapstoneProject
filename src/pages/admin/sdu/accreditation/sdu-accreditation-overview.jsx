@@ -492,6 +492,7 @@ export function SduAccreditationNavigation({ selectedOrg, onSelectOrg }) {
         `${API_ROUTER}/checkAccreditationApprovalStatuses/${selectedOrg._id}`
       );
 
+      console.log(res.data);
       setAccreditationStatus(res.data);
 
       if (res.data.isEverythingApproved) {

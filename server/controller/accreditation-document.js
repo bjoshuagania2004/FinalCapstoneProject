@@ -221,6 +221,8 @@ export const GetAccreditationDetails = async (req, res) => {
       organizationProfile: orgProfileId,
     });
 
+    console.log(accreditation);
+
     // If not found → create new
     if (!accreditation) {
       accreditation = new Accreditation({
@@ -235,14 +237,16 @@ export const GetAccreditationDetails = async (req, res) => {
       });
 
       await accreditation.save();
-    } else if (!accreditation.isActive) {
-      // If found but inactive → return inactive response
-      return res.status(200).json({
-        message: "This accreditation is inactive",
-        accreditationId: accreditation._id,
-        isActive: false,
-      });
     }
+
+    // else if (!accreditation.isActive) {
+    //   // If found but inactive → return inactive response
+    //   return res.status(200).json({
+    //     message: "This accreditation is inactive",
+    //     accreditationId: accreditation._id,
+    //     isActive: false,
+    //   });
+    // }
 
     // If active → populate and return
     accreditation = await Accreditation.findById(accreditation._id)
@@ -256,6 +260,8 @@ export const GetAccreditationDetails = async (req, res) => {
         "PresidentProfile",
       ])
       .exec();
+
+    console.log({ accreditation });
 
     res.status(200).json(accreditation);
   } catch (error) {

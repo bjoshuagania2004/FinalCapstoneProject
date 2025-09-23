@@ -258,8 +258,11 @@ function ApprovedRosterLists({ rosterId, setShowPopup }) {
   const handleApprove = async () => {
     try {
       setLoading(true);
-      await axios.post(`${API_ROUTER}/ApproveRosterList/${rosterId}`);
-
+      const res = await axios.post(
+        `${API_ROUTER}/ApproveRosterList/${rosterId}`,
+        { overAllStatus: "Approved" }
+      );
+      console.log(res.data);
       setShowPopup({ show: false, type: "", member: null });
     } catch (error) {
       console.error("Error approving roster:", error);
@@ -345,8 +348,6 @@ function RevisionNotesLists({ rosterId, setShowPopup }) {
 }
 
 function ViewRostersStatistics({ roster, rosterMembers }) {
-  const [loading, setLoading] = useState(true);
-
   const totalMembers = rosterMembers.length;
   const activeCount = rosterMembers.filter((m) => m.status === "Active").length;
   const inactiveCount = totalMembers - activeCount;

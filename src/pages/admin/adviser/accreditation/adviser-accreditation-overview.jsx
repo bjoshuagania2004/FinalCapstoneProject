@@ -44,7 +44,8 @@ export function AdviserAccreditationMainComponent({ user, orgId }) {
           `${API_ROUTER}/getAccreditationInfo/${orgId}`,
           { withCredentials: true }
         );
-        console.log(`${API_ROUTER}/getAccreditationInfo/${orgId}`);
+        console.log(response);
+
         setAccreditationData(response.data);
 
         // If inactive → show reset popup
@@ -62,24 +63,6 @@ export function AdviserAccreditationMainComponent({ user, orgId }) {
     GetAccreditationInformation();
   }, [orgId]);
 
-  // Create new accreditation for this org
-  const handleCreateNewAccreditation = async () => {
-    try {
-      const res = await axios.get(
-        `${API_ROUTER}/getAccreditationInfo/${orgId}`,
-        { withCredentials: true }
-      );
-
-      setAccreditationData(res.data);
-      setShowResetPopup(false);
-    } catch (err) {
-      console.error("Error creating new accreditation:", err);
-    }
-  };
-
-  useEffect(() => {
-    handleCreateNewAccreditation();
-  }, []);
   if (isLoading) {
     return <LoadingSkeleton />;
   }
@@ -155,10 +138,7 @@ export function AdviserAccreditationMainComponent({ user, orgId }) {
               >
                 Close
               </button>
-              <button
-                onClick={handleCreateNewAccreditation}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              >
+              <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
                 Create New Accreditation
               </button>
             </div>
@@ -483,7 +463,6 @@ function PresidentInformation({ accreditationData }) {
 }
 
 function DocumentDisplayCard({ user, accreditationData }) {
-  console.log(accreditationData);
   const { JointStatement, PledgeAgainstHazing, ConstitutionAndByLaws } =
     accreditationData;
   const [showEmailModal, setShowEmailModal] = useState(false);

@@ -22,7 +22,7 @@ import { DonePopUp } from "../../../../components/components";
 
 export function AdviserProposal({ orgData }) {
   const [proposals, setProposals] = useState([]);
-  const [alertModal, setAlertModal] = useState([]);
+  const [alertModal, setAlertModal] = useState(false);
   const [selectedProposal, setSelectedProposal] = useState(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showRevisionModal, setShowRevisionModal] = useState(false);
@@ -282,7 +282,7 @@ export function AdviserProposal({ orgData }) {
                 className="bg-amber-500 text-white px-8 py-4 rounded-xl flex items-center gap-3 transition-all duration-200 mx-auto shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               >
                 <AlertTriangle size={24} />
-                Create First Proposal
+                Notify Organization
               </button>
             </div>
           </div>
