@@ -23,7 +23,7 @@ export const financialReportSchema = new mongoose.Schema(
   {
     organizationProfile: {
       type: Schema.Types.ObjectId,
-      ref: "organizationProfile",
+      ref: "OrganizationProfile",
       require: true,
     },
 

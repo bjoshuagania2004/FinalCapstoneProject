@@ -12,11 +12,10 @@ import {
   User,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Routes, Route } from "react-router-dom";
 import { API_ROUTER, DOCU_API_ROUTER } from "./../../../App";
 import { SduAccreditationSettings } from "./accreditation/sdu-accreditation-settings";
-import { SduAccreditationHistoryOverview } from "./accreditation/sdu-accreditation-history";
 import { SduAccreditationNavigation } from "./accreditation/sdu-accreditation-overview";
 
 import { SduRosterOverview } from "./accreditation/roster/sdu-overall-roster";
@@ -26,17 +25,18 @@ import {
   SduAccreditationDocumentOverview,
 } from "./accreditation/sdu-accreditation-documents";
 
-import {
-  SduProposedActionPlanOrganization,
-  SduProposedActionPlanOverview,
-} from "./accreditation/sdu-accreditation-proposed-action-plan";
-import { FinancialReportOverview } from "./accreditation/sdu-accreditation-financial-report";
 import { SduUserManagement } from "./user-management/sdu-user-management";
 import { SduIndividualOrganizationPresident } from "./accreditation/president/sdu-individual-president";
 import { SduOverallPresident } from "./accreditation/president/sdu-overall-president";
 import { SduIndividualOrganizationProfile } from "./accreditation/organization-profile/sdu-individual-organization-profile";
 import { SduOverallOrganizationProfile } from "./accreditation/organization-profile/sdu-overall-organization-profile";
 import { SduIndividualOrganizationRoster } from "./accreditation/roster/sdu-individual-roster";
+import { SduFinancialReport } from "./accreditation/financial-report/individual-financial-report";
+import SduOverallFinancialReport from "./accreditation/financial-report/overall-financial-report";
+import { SduOverallProposedActioPlan } from "./accreditation/proposed-action-plan/overall-proposed-action-plan";
+import { SduProposedActionPlanOrganization } from "./accreditation/proposed-action-plan/individual-proposed-action-plan";
+import { SduAccomplishmentMain } from "./accomplishment/sdu-accomplishment-main";
+import { SduAccomplishmentOrganization } from "./accomplishment/sdu-individual-accomplishment";
 
 // ✅ Main Layout Wrapper
 export default function StudentDevMainLayout() {
@@ -209,7 +209,10 @@ function StudentDevUnitComponent({ selectedOrg, onSelectOrg }) {
           />
           <Route
             path="financial-report"
-            element={<FinancialReportOverview />}
+            element={renderRoute(
+              <SduFinancialReport selectedOrg={selectedOrg} />,
+              <SduOverallFinancialReport onSelectOrg={onSelectOrg} />
+            )}
           />
           <Route
             path="roster-of-members"
@@ -231,7 +234,7 @@ function StudentDevUnitComponent({ selectedOrg, onSelectOrg }) {
             path="proposed-action-plan"
             element={renderRoute(
               <SduProposedActionPlanOrganization selectedOrg={selectedOrg} />,
-              <SduProposedActionPlanOverview
+              <SduOverallProposedActioPlan
                 selectedOrg={selectedOrg}
                 onSelectOrg={onSelectOrg}
               />
@@ -245,21 +248,14 @@ function StudentDevUnitComponent({ selectedOrg, onSelectOrg }) {
             )}
           />
           <Route path="settings" element={<SduAccreditationSettings />} />
-          <Route
-            path="history"
-            element={renderRoute(
-              <OrganizationAccreditationHistory selectedOrg={selectedOrg} />,
-              <SduAccreditationHistoryOverview />
-            )}
-          />
         </Route>
 
         {/* Accomplishments */}
         <Route
           path="/accomplishment"
           element={renderRoute(
-            <OrganizationAccomplishments selectedOrg={selectedOrg} />,
-            <AccomplishmentsOverview />
+            <SduAccomplishmentOrganization selectedOrg={selectedOrg} />,
+            <SduAccomplishmentMain onSelectOrg={onSelectOrg} />
           )}
         />
 

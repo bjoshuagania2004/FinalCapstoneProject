@@ -138,7 +138,11 @@ router.get(
   Controller.GetAllOrganizationProfileStudent
 );
 
-router.get("/getFinancialReport/:OrgProfileId", Controller.getFinancialReport);
+router.get(
+  "/getFinancialReport/:OrgProfileId",
+  Controller.getFinancialReportByOrg
+);
+router.get("/getFinancialReport", Controller.getFinancialReportAll);
 router.get("/getApprovedPPA/:orgId", Controller.getApprovedPPA);
 router.post(
   "/addReciept",
@@ -158,8 +162,9 @@ router.get(
 );
 router.get(
   "/getAccomplishment/:OrgProfileId",
-  Controller.getAccomplishmentReport
+  Controller.getAccomplishmentReportByOrg
 );
+router.get("/getAccomplishmentAll", Controller.getAccomplishmentReportAll);
 router.get(
   "/getAccreditatationDocuments/:orgProfileId",
   Controller.GetAccreditationDocuments

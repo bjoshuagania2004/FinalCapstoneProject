@@ -1,6 +1,33 @@
 import { Receipt, FinancialReport, Accreditation } from "../models/index.js";
 
-export const getFinancialReport = async (req, res) => {
+export const getFinancialReportAll = async (req, res) => {
+  try {
+    // 1️⃣ Fetch all Financial Reports with nested population
+    const reports = await FinancialReport.find()
+      .populate({
+        path: "reimbursements",
+        populate: { path: "document" }, // populate document inside reimbursements
+      })
+      .populate({
+        path: "disbursements",
+        populate: { path: "document" }, // populate document inside disbursements
+      })
+      .populate({
+        path: "collections",
+        populate: { path: "document" }, // populate document inside collections
+      })
+      .populate("organizationProfile");
+
+    return res.status(200).json(reports);
+  } catch (error) {
+    console.error("❌ Error fetching financial reports:", error);
+    return res.status(500).json({
+      error: "Failed to retrieve financial reports.",
+    });
+  }
+};
+
+export const getFinancialReportByOrg = async (req, res) => {
   try {
     const { OrgProfileId } = req.params;
 

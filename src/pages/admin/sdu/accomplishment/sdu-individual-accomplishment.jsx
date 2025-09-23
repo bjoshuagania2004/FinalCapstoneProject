@@ -3,7 +3,7 @@ import { API_ROUTER } from "../../../../App";
 
 import { useState, useEffect } from "react";
 import { Award, Target, Users, FileText, Heart, Calendar } from "lucide-react";
-import { AdviserAccomplishmentReportDetailed } from "./adviser-detailed-accomplishment";
+import { SduAccomplishmentReportDetailed } from "./sdu-indivudual-accomplishment-detailed";
 
 // Category icon mapping
 const getCategoryIcon = (category) => {
@@ -52,21 +52,19 @@ const formatDate = (dateString) => {
   });
 };
 
-export function AdviserAccomplishmentReport({ orgData, user }) {
-  const [proposals, setProposals] = useState([]);
+export function SduAccomplishmentOrganization({ selectedOrg, user }) {
   const [accomplishmentData, setAccomplishmentData] = useState(null); // ✅ store report object
   const [accomplishments, setAccomplishments] = useState([]); // ✅ store sub accomplishments
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedAccomplishment, setSelectedAccomplishment] = useState(null);
 
-  const [showOrgDevelopmentModal, setShowOrgDevelopmentModal] = useState(false);
   useState(false);
 
   const fetchAccomplishmentInformation = async () => {
     try {
       // Accomplishment Report
       const getAccomplishment = await axios.get(
-        `${API_ROUTER}/getAccomplishment/${orgData._id}`
+        `${API_ROUTER}/getAccomplishment/${selectedOrg._id}`
       );
 
       setAccomplishmentData(getAccomplishment.data); // ✅ full report
@@ -77,24 +75,10 @@ export function AdviserAccomplishmentReport({ orgData, user }) {
     }
   };
 
-  const fetchProposalInformation = async () => {
-    try {
-      // Proposals
-      const res = await axios.get(
-        `${API_ROUTER}/getStudentLeaderAccomplishmentReady/${orgData._id}`
-      );
-      setProposals(res.data);
-
-      setProposals(res.data);
-    } catch (error) {
-      console.error(error.response || error);
-    }
-  };
-
   useEffect(() => {
     fetchAccomplishmentInformation();
-    fetchProposalInformation();
   }, []);
+
   // ✅ Categories
   const categories = [
     "All",
@@ -287,10 +271,10 @@ export function AdviserAccomplishmentReport({ orgData, user }) {
             )}
           </div>
           <div className="col-span-4 overflow-auto">
-            <AdviserAccomplishmentReportDetailed
+            <SduAccomplishmentReportDetailed
               getCategoryIcon={getCategoryIcon}
               formatDate={formatDate}
-              orgData={orgData}
+              selectedOrg={selectedOrg}
               user={user}
               getCategoryColor={getCategoryColor}
               selectedAccomplishment={selectedAccomplishment}
@@ -298,15 +282,6 @@ export function AdviserAccomplishmentReport({ orgData, user }) {
           </div>
         </div>
       </div>
-
-      {showOrgDevelopmentModal && (
-        <OrganizationalDevelopmentModal
-          orgData={orgData}
-          accomplishmentId={accomplishmentData?._id}
-          proposals={proposals}
-          onClose={() => setShowOrgDevelopmentModal(false)}
-        />
-      )}
     </div>
   );
 }

@@ -195,7 +195,7 @@ export function SduRosterOverview({ onSelectOrg }) {
   }
 
   return (
-    <div className="flex flex-col gap-4 overflow-auto bg-gray-300 p-4 border-12">
+    <div className="flex flex-col gap-4 overflow-auto bg-gray-300 p-4 ">
       {/* Header */}
       <div className="flex justify-between items-start ">
         <h1 className="text-4xl font-bold text-gray-900 mb-2">

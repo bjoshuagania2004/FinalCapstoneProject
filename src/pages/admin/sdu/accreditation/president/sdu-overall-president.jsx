@@ -1,7 +1,17 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { API_ROUTER, DOCU_API_ROUTER } from "../../../../../App";
-import { Users, Calendar, MapPin, Phone, Award, BarChart3 } from "lucide-react";
+import {
+  Users,
+  Calendar,
+  MapPin,
+  Phone,
+  Award,
+  BarChart3,
+  UserMinus,
+  CircleSlash,
+  CircleOff,
+} from "lucide-react";
 import {
   PieChart,
   Pie,
@@ -91,11 +101,9 @@ export function SduOverallPresident({ onSelectOrg }) {
 
   if (presidentList.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading president data...</p>
-        </div>
+      <div className="min-h-screen  bg-gray-50 flex flex-col items-center justify-center">
+        <CircleOff size={32} />
+        <p className="mt-4 text-gray-600">No President Complied</p>
       </div>
     );
   }

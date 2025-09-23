@@ -5,6 +5,60 @@ import {
   User,
 } from "../models/index.js";
 
+export const getAccomplishmentReportAll = async (req, res) => {
+  try {
+    const report = await Accomplishment.find()
+      .populate("organizationProfile")
+      .populate({
+        path: "accomplishments",
+        select:
+          "category title description awardedPoints organization organizationProfile documents",
+        populate: {
+          path: "documents",
+          select: "label fileName status",
+        },
+      })
+      .select("accomplishments grandTotal organizationProfile");
+
+    // Map to clean the response: we remove organizationProfile from sub-accomplishments
+    const cleanedReport = report.map((item) => {
+      const accomplishments = item.accomplishments.map((acc) => {
+        // Keep documents but remove redundant org profile inside them
+        const documents = acc.documents.map((doc) => ({
+          _id: doc._id,
+          label: doc.label,
+          fileName: doc.fileName,
+          status: doc.status,
+        }));
+
+        return {
+          _id: acc._id,
+          category: acc.category,
+          title: acc.title,
+          description: acc.description,
+          awardedPoints: acc.awardedPoints,
+          organization: acc.organization,
+          documents,
+        };
+      });
+
+      return {
+        _id: item._id,
+        accomplishments,
+        organizationProfile: item.organizationProfile, // only once here
+        grandTotal: item.grandTotal,
+      };
+    });
+
+    return res.status(200).json(cleanedReport);
+  } catch (error) {
+    console.error("❌ Error fetching accomplishment report:", error);
+    return res.status(500).json({
+      error: "Failed to retrieve accomplishment report.",
+    });
+  }
+};
+
 // ✅ Update Accomplishment status (similar to ProposalConduct)
 export const updateAccomplishmentStatus = async (req, res) => {
   try {
@@ -104,7 +158,7 @@ Accreditation Support Team
   }
 };
 
-export const getAccomplishmentReport = async (req, res) => {
+export const getAccomplishmentReportByOrg = async (req, res) => {
   try {
     const { OrgProfileId } = req.params;
 

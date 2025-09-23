@@ -25,7 +25,7 @@ export const subAccomplishmentSchema = new Schema(
     // Scoring    organization: { type: Schema.Types.ObjectId, ref: "Organization" },
     organizationProfile: {
       type: Schema.Types.ObjectId,
-      ref: "OrganizationProfile",
+      ref: "OrganizationProfile", // ✅ exact match
     },
 
     awardedPoints: { type: Number, default: 0 },
@@ -39,7 +39,7 @@ export const accomplishmentSchema = new Schema(
     organization: { type: Schema.Types.ObjectId, ref: "Organization" },
     organizationProfile: {
       type: Schema.Types.ObjectId,
-      ref: "OrganizationProfile",
+      ref: "OrganizationProfile", // ✅ exact match
     },
 
     academicYear: String, // e.g., "2024-2025"
