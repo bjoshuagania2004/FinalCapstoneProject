@@ -1,3 +1,4 @@
+import axios from "axios";
 import {
   Award,
   FileText,
@@ -7,16 +8,17 @@ import {
   XCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-
+import { API_ROUTER, DOCU_API_ROUTER } from "../../../../App";
 export function SduAccomplishmentReportDetailed({
   getCategoryIcon,
-  selectedOrg,
   user,
   formatDate,
   getCategoryColor,
   selectedAccomplishment,
 }) {
   const [selectedDoc, setSelectedDoc] = useState(null);
+  const [selectedDocFile, setSelectedDocFile] = useState(null);
+  const [showDocModal, setShowDocModal] = useState(false);
   const [showGradingModal, setShowGradingModal] = useState(false);
   const [gradingData, setGradingData] = useState({
     totalPoints: 0,
@@ -155,7 +157,14 @@ export function SduAccomplishmentReportDetailed({
       0
     );
   };
-
+  const handleOpenDocument = (doc) => {
+    console.log(doc);
+    setSelectedDocFile(
+      `${DOCU_API_ROUTER}/${doc.organizationProfile}/${doc.fileName}`
+    ); // use actual file URL from your backend
+    setSelectedDoc(doc);
+    setShowDocModal(true);
+  };
   const getGradeStatus = (points, maxPoints) => {
     const percentage = (points / maxPoints) * 100;
     if (percentage >= 90)
@@ -184,6 +193,38 @@ export function SduAccomplishmentReportDetailed({
   };
 
   const currentGrading = gradingCriteria[selectedAccomplishment?.category];
+
+  const saveGrade = async () => {
+    if (!selectedAccomplishment) return;
+
+    const finalGrading = {
+      ...gradingData,
+      totalPoints: calculateTotalPoints(),
+      maxPoints: currentGrading.maxPoints,
+      gradedAt: new Date().toISOString(),
+      gradedBy: user?.name || "Current User",
+    };
+
+    try {
+      const payload = {
+        accomplishmentId: selectedAccomplishment._id,
+        organizationProfile: selectedAccomplishment.organizationProfile,
+        grading: finalGrading,
+      };
+
+      const response = await axios.post(
+        `${API_ROUTER}/gradeAccomplishment`, // replace with your backend endpoint
+        payload
+      );
+
+      console.log("Grade saved successfully:", response.data);
+      setGradingData(finalGrading);
+      setShowGradingModal(false);
+    } catch (error) {
+      console.error("Failed to save grade:", error);
+      // Optionally: show a notification to the user
+    }
+  };
 
   return (
     <div className="flex flex-col h-full bg-white shadow-sm border border-gray-200 overflow-hidden">
@@ -246,7 +287,7 @@ export function SduAccomplishmentReportDetailed({
                 {showDropdown && (
                   <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-20">
                     <button
-                      className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition flex items-center gap-2"
+                      className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition items-center gap-2"
                       onClick={() => {
                         handleGrading();
                         setShowDropdown(false);
@@ -305,7 +346,7 @@ export function SduAccomplishmentReportDetailed({
                     {selectedAccomplishment.documents.map((doc, index) => (
                       <div
                         key={doc._id || index}
-                        onClick={() => console.log(doc)}
+                        onClick={() => handleOpenDocument(doc)}
                         className="flex items-center gap-3 p-3 bg-gray-50 rounded border border-gray-200 hover:bg-gray-100 transition-colors cursor-pointer"
                       >
                         <FileText className="w-4 h-4 text-blue-600 flex-shrink-0" />
@@ -313,17 +354,6 @@ export function SduAccomplishmentReportDetailed({
                           <div className="flex items-center gap-2 mb-1">
                             <span className="text-sm font-medium text-gray-900 truncate">
                               {doc.label}
-                            </span>
-                            <span
-                              className={`text-xs px-2 py-1 rounded-full ${
-                                doc.status === "Pending"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : doc.status === "Approved"
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-gray-100 text-gray-800"
-                              }`}
-                            >
-                              {doc.status}
                             </span>
                           </div>
                           <p className="text-xs text-gray-500 truncate">
@@ -353,7 +383,7 @@ export function SduAccomplishmentReportDetailed({
                     {missingRequiredDocs.map((doc, index) => (
                       <div
                         key={index}
-                        onClick={() => setSelectedDoc(doc.label)}
+                        onClick={() => handleOpenDocument(doc)}
                         className="flex items-center gap-2 p-2 rounded border bg-red-50 border-red-200 cursor-pointer hover:bg-red-100 transition-colors"
                       >
                         <FileText className="w-4 h-4 text-red-600" />
@@ -563,22 +593,36 @@ export function SduAccomplishmentReportDetailed({
                 Cancel
               </button>
               <button
-                onClick={() => {
-                  const finalGrading = {
-                    ...gradingData,
-                    totalPoints: calculateTotalPoints(),
-                    maxPoints: currentGrading.maxPoints,
-                    gradedAt: new Date().toISOString(),
-                    gradedBy: user?.name || "Current User",
-                  };
-                  setGradingData(finalGrading);
-                  console.log("Saving grade:", finalGrading);
-                  setShowGradingModal(false);
-                }}
+                onClick={() => saveGrade()}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
               >
                 Save Grade
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showDocModal && selectedDocFile && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-auto">
+            <div className="flex justify-between items-center p-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Document Preview - {selectedDoc?.label || "Selected Document"}
+              </h3>
+              <button
+                onClick={() => setShowDocModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-4">
+              <iframe
+                src={selectedDocFile}
+                className="w-full h-[70vh]"
+                title="Document Preview"
+              />
+              <p className="mt-2 text-sm text-gray-600"></p>
             </div>
           </div>
         </div>

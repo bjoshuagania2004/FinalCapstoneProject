@@ -59,6 +59,64 @@ export const getAccomplishmentReportAll = async (req, res) => {
   }
 };
 
+export const gradeAccomplishment = async (req, res) => {
+  try {
+    const { accomplishmentId, grading } = req.body;
+
+    if (!accomplishmentId || !grading) {
+      return res
+        .status(400)
+        .json({ message: "Missing accomplishment ID or grading data" });
+    }
+
+    // Find the sub-accomplishment and update its grading
+    const subAccomplishment = await SubAccomplishment.findByIdAndUpdate(
+      accomplishmentId,
+      {
+        $set: {
+          grading: grading,
+          awardedPoints: grading.totalPoints, // update awardedPoints for the sub-accomplishment
+        },
+      },
+      { new: true }
+    );
+
+    if (!subAccomplishment) {
+      return res.status(404).json({ message: "Sub-accomplishment not found" });
+    }
+
+    // Optionally, update aggregated totals in parent accomplishment
+    if (subAccomplishment.organizationProfile) {
+      const parent = await Accomplishment.findOne({
+        organizationProfile: subAccomplishment.organizationProfile,
+        accomplishments: accomplishmentId,
+      });
+
+      if (parent) {
+        // Example: recalculate grandTotal (sum of all awardedPoints)
+        const subAccomplishments = await SubAccomplishment.find({
+          _id: { $in: parent.accomplishments },
+        });
+
+        const grandTotal = subAccomplishments.reduce(
+          (sum, sub) => sum + (sub.awardedPoints || 0),
+          0
+        );
+
+        parent.grandTotal = grandTotal;
+        await parent.save();
+      }
+    }
+
+    return res.status(200).json({
+      message: "Grading saved successfully",
+      subAccomplishment,
+    });
+  } catch (error) {
+    console.error("Error grading accomplishment:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
 // ✅ Update Accomplishment status (similar to ProposalConduct)
 export const updateAccomplishmentStatus = async (req, res) => {
   try {

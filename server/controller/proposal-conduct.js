@@ -304,6 +304,37 @@ export const deleteProposalConduct = async (req, res) => {
   }
 };
 
+export const getAllSystemWideProposal = async (req, res) => {
+  try {
+    const conducts = await ProposalConduct.find({ isActive: true })
+      .populate({
+        path: "organizationProfile",
+        match: { orgClass: "System-wide", isActive: true }, // only system-wide orgs
+        select:
+          "orgName orgAcronym orgStatus orgPresident adviser orgLogo orgClass",
+      })
+      .populate("document")
+      .populate("ProposedIndividualActionPlan");
+
+    // Filter out proposals where the organizationProfile didn't match
+    const filteredConducts = conducts.filter(
+      (c) => c.organizationProfile !== null
+    );
+
+    if (!filteredConducts || filteredConducts.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No system-wide proposals found.",
+      });
+    }
+
+    res.json(filteredConducts);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
 export const getProposalConductByOrgProfile = async (req, res) => {
   try {
     const { orgProfileId } = req.params;

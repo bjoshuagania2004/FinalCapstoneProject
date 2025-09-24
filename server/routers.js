@@ -93,6 +93,7 @@ router.get(
 router.post("/CompleteStudentRoster/:rosterId", Controller.CompleteRosterList);
 router.post("/ApproveRosterList/:rosterId", Controller.ApprovedRosterList);
 router.post("/RevisionRosterList/:rosterId", Controller.revisionNoteRosterList);
+router.post("/gradeAccomplishment/", Controller.gradeAccomplishment);
 
 /*
 **********              **********
@@ -174,6 +175,10 @@ router.get(
 router.get(
   "/getStudentLeaderProposalConduct/:orgProfileId",
   Controller.getProposalConductByOrgProfile
+);
+router.get(
+  "/getAllSystemWideProposalConduct",
+  Controller.getAllSystemWideProposal
 );
 router.get(
   "/getStudentLeaderAccomplishmentReady/:orgProfileId",

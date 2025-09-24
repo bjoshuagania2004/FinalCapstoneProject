@@ -37,6 +37,8 @@ import { SduOverallProposedActioPlan } from "./accreditation/proposed-action-pla
 import { SduProposedActionPlanOrganization } from "./accreditation/proposed-action-plan/individual-proposed-action-plan";
 import { SduAccomplishmentMain } from "./accomplishment/sdu-accomplishment-main";
 import { SduAccomplishmentOrganization } from "./accomplishment/sdu-individual-accomplishment";
+import { SduSystemWideProposal } from "./proposal/sdu-overall-proposal";
+import { SduIndividualProposalConduct } from "./proposal/sdu-individual-proposal";
 
 // ✅ Main Layout Wrapper
 export default function StudentDevMainLayout() {
@@ -182,8 +184,8 @@ function StudentDevUnitComponent({ selectedOrg, onSelectOrg }) {
         <Route
           path="/proposal"
           element={renderRoute(
-            <OrganizationProposals selectedOrg={selectedOrg} />,
-            <ProposalsOverview />
+            <SduIndividualProposalConduct orgData={selectedOrg} />,
+            <SduSystemWideProposal onSelectOrg={onSelectOrg} />
           )}
         />
 

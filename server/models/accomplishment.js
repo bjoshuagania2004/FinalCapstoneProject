@@ -29,6 +29,7 @@ export const subAccomplishmentSchema = new Schema(
     },
 
     awardedPoints: { type: Number, default: 0 },
+    awardPointsBreakdown: Object,
   },
   { timestamps: true }
 );

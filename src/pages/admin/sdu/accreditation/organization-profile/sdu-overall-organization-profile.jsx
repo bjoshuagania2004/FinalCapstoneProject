@@ -181,7 +181,7 @@ export function SduOverallOrganizationProfile({ selectedOrg, onSelectOrg }) {
       >
         {/* Header */}
         <div className="flex items-center gap-4">
-          {org.organizationProfile.orgLogo ? (
+          {org.organizationProfile?.orgLogo ? (
             <img
               src={`${DOCU_API_ROUTER}/${org.organizationProfile._id}/${org.organizationProfile.orgLogo}`}
               alt="Logo"

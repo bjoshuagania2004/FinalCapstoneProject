@@ -11,36 +11,34 @@ export function UpdateStatusProposal({
 }) {
   const [loading, setLoading] = useState(false);
   const { type, status } = statusModal || {};
-  // Prepare default email data
-  console.log(proposal);
+
+  // Fallback user if not provided
+  const safeUser = user || { name: "SDU HEAD", position: "SDU" };
+
   const [emailData, setEmailData] = useState({
     inquirySubject: `Revision of "${proposal.ProposedIndividualActionPlan.activityTitle}"`,
     inquiryText: "",
-    userName: user.name,
-    userPosition: user.position,
+    userName: safeUser.name,
+    userPosition: safeUser.position,
     orgProfileId: orgData._id,
     orgName: orgData.orgName,
   });
 
   const closeModal = () => setStatusModal(null);
 
-  // ✅ Unified handler (approval + revision email)
   const handleSubmit = async (status) => {
     setLoading(true);
 
-    // merge emailData + overallStatus
     const payload = {
       ...emailData,
       overallStatus: status,
-      userName: user.name,
-      userPosition: user.position,
+      userName: safeUser.name,
+      userPosition: safeUser.position,
       orgProfileId: orgData._id,
       orgName: orgData.orgName,
     };
 
-    console.log("🔄 Submitting:", {
-      payload,
-    });
+    console.log("🔄 Submitting:", { payload });
 
     try {
       const response = await axios.post(
@@ -69,14 +67,13 @@ export function UpdateStatusProposal({
           ✕
         </button>
 
-        {/* ✅ Approval Modal */}
         {type === "approval" && (
           <>
             <h1 className="text-lg font-semibold mb-4">
               Approval: Proposal "
               {proposal.ProposedIndividualActionPlan.activityTitle}"
             </h1>
-            <p className=" text-gray-700">
+            <p className="text-gray-700">
               By approving this section you confirm that you have reviewed the
               information provided and consent to its approval.
             </p>
@@ -94,7 +91,6 @@ export function UpdateStatusProposal({
           </>
         )}
 
-        {/* ✅ Revision (Alert / Email Modal) */}
         {type === "alert" && (
           <>
             <h3 className="text-lg font-semibold mb-4">
@@ -131,7 +127,6 @@ export function UpdateStatusProposal({
                 />
               </label>
             </div>
-            {/* form content unchanged */}
             <div className="mt-4 flex justify-end gap-2">
               <button
                 className="px-4 py-2 text-sm bg-gray-200 rounded hover:bg-gray-300"
