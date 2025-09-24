@@ -1,6 +1,9 @@
 {
-  "name": "sandbox2",
+  "name": "capstone-monorepo",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "version": "0.0.0",
   "type": "module",
   "scripts": {
@@ -8,6 +11,7 @@
     "postinstall": "npm install @tailwindcss/oxide",
     "build": "vite build",
     "lint": "eslint .",
+    "start": "node ./packages/server/server.js",
     "preview": "vite preview"
   },
   "dependencies": {
